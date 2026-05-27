@@ -383,6 +383,43 @@ router.post("/matches/:id/finish", async (req, res): Promise<void> => {
   res.json(detail);
 });
 
+// POST /matches/:id/reset — wipe scores and score_log, reactivate the match
+router.post("/matches/:id/reset", async (req, res): Promise<void> => {
+  const params = FinishMatchParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
+  if (!match) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  if (match.status === "finished") {
+    res.status(400).json({ error: "Cannot reset a finished match" });
+    return;
+  }
+
+  // Delete all score log entries for this match
+  await db.delete(scoreLogTable).where(eq(scoreLogTable.matchId, params.data.id));
+
+  // Reset scores and player points
+  await db
+    .update(matchesTable)
+    .set({ shortosScore: 0, largosScore: 0, status: "active", winnerTeam: null, finishedAt: null })
+    .where(eq(matchesTable.id, params.data.id));
+
+  await db
+    .update(matchPlayersTable)
+    .set({ playerPoints: 0 })
+    .where(eq(matchPlayersTable.matchId, params.data.id));
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
 // GET /history (finished matches)
 router.get("/history", async (_req, res): Promise<void> => {
   const finishedMatches = await db
