@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trophy, ChevronUp, Activity, RotateCcw } from "lucide-react";
+import { Trophy, ChevronUp, Activity, RotateCcw, Undo2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function MatchLive() {
@@ -112,6 +112,21 @@ export default function MatchLive() {
       toast({ title: "Error", description: "No se pudo reiniciar la partida.", variant: "destructive" });
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleUndoScore = async () => {
+    try {
+      const res = await fetch(`/api/matches/${matchId}/undo-score`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ title: "Error", description: err.error || "No se pudo deshacer.", variant: "destructive" });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
+      toast({ title: "Anotación deshecha", description: "El último punto fue eliminado." });
+    } catch {
+      toast({ title: "Error", description: "No se pudo deshacer.", variant: "destructive" });
     }
   };
 
@@ -302,23 +317,44 @@ export default function MatchLive() {
       </div>
 
       <div className="glass-card rounded-2xl p-6 mt-8">
-        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Activity className="h-5 w-5" /> Registro de puntos
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Activity className="h-5 w-5" /> Registro de puntos
+          </h3>
+          {!isFinished && match.scoreLog.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleUndoScore}
+              className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 gap-1.5 h-7 text-xs"
+            >
+              <Undo2 className="h-3.5 w-3.5" /> Deshacer última
+            </Button>
+          )}
+        </div>
         <ScrollArea className="h-48 pr-4">
-          <div className="space-y-3">
-            {match.scoreLog.map((log) => (
-              <div key={log.id} className="flex items-center justify-between text-sm py-2 border-b border-border/50 last:border-0">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${log.team === 'cortos' ? 'bg-red-500' : 'bg-blue-500'}`} />
-                  <span className="font-medium">{log.playerName}</span>
+          <div className="space-y-1">
+            {match.scoreLog.map((log, idx) => {
+              const isLatest = idx === 0;
+              return (
+                <div
+                  key={log.id}
+                  className={`flex items-center justify-between text-sm py-2 border-b border-border/50 last:border-0 rounded-lg px-2 transition-colors ${isLatest && !isFinished ? 'bg-yellow-500/5 border-yellow-500/20' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${log.team === 'cortos' ? 'bg-red-500' : 'bg-blue-500'}`} />
+                    <span className="font-medium">{log.playerName}</span>
+                    {isLatest && !isFinished && (
+                      <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">último</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold">+{log.points}</span>
+                    <span className="text-muted-foreground text-xs">{new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="font-bold">+{log.points}</span>
-                  <span className="text-muted-foreground text-xs">{new Date(log.createdAt).toLocaleTimeString()}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {match.scoreLog.length === 0 && (
               <div className="text-center text-muted-foreground py-4">No hay puntos registrados aún.</div>
             )}

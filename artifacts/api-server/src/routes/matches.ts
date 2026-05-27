@@ -383,6 +383,79 @@ router.post("/matches/:id/finish", async (req, res): Promise<void> => {
   res.json(detail);
 });
 
+// POST /matches/:id/undo-score — remove last score log entry and recalculate totals
+router.post("/matches/:id/undo-score", async (req, res): Promise<void> => {
+  const params = FinishMatchParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
+  if (!match) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  if (match.status === "finished") {
+    res.status(400).json({ error: "Cannot undo score on a finished match" });
+    return;
+  }
+
+  // Find the most recent score log entry
+  const logs = await db
+    .select()
+    .from(scoreLogTable)
+    .where(eq(scoreLogTable.matchId, params.data.id))
+    .orderBy(desc(scoreLogTable.createdAt));
+
+  if (logs.length === 0) {
+    res.status(400).json({ error: "No scores to undo" });
+    return;
+  }
+
+  const lastLog = logs[0];
+
+  // Delete that entry
+  await db.delete(scoreLogTable).where(eq(scoreLogTable.id, lastLog.id));
+
+  // Recalculate team scores from remaining log entries
+  const remaining = await db
+    .select()
+    .from(scoreLogTable)
+    .where(eq(scoreLogTable.matchId, params.data.id));
+
+  const shortosScore = remaining.filter(l => l.team === "cortos").reduce((sum, l) => sum + l.points, 0);
+  const largosScore = remaining.filter(l => l.team === "largos").reduce((sum, l) => sum + l.points, 0);
+
+  await db
+    .update(matchesTable)
+    .set({ shortosScore, largosScore })
+    .where(eq(matchesTable.id, params.data.id));
+
+  // Recalculate player points from remaining log
+  await db
+    .update(matchPlayersTable)
+    .set({ playerPoints: 0 })
+    .where(eq(matchPlayersTable.matchId, params.data.id));
+
+  for (const log of remaining) {
+    const [mp] = await db
+      .select()
+      .from(matchPlayersTable)
+      .where(and(eq(matchPlayersTable.matchId, params.data.id), eq(matchPlayersTable.playerId, log.playerId)));
+    if (mp) {
+      await db
+        .update(matchPlayersTable)
+        .set({ playerPoints: mp.playerPoints + log.points })
+        .where(eq(matchPlayersTable.id, mp.id));
+    }
+  }
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
 // POST /matches/:id/reset — wipe scores and score_log, reactivate the match
 router.post("/matches/:id/reset", async (req, res): Promise<void> => {
   const params = FinishMatchParams.safeParse(req.params);
