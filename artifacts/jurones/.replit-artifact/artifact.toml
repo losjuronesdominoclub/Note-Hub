@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Los Jurones Domino Club"
+version = "1.0.0"
+id = "artifacts/jurones"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24984
+
+[services.development]
+run = "pnpm --filter @workspace/jurones run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jurones", "run", "build" ]
+publicDir = "artifacts/jurones/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24984"
+BASE_PATH = "/"

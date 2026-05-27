@@ -1,0 +1,475 @@
+Crea una aplicación web moderna y profesional para anotación y gestión de partidas de dominó del club “Los Jurones”.
+
+La aplicación debe ser FULLSTACK, responsive, tiempo real, optimizada para móviles y con apariencia premium similar a Netflix.
+
+Stack recomendado:
+
+Frontend: React + Vite
+Backend: Node.js + Express
+Base de datos: Firebase Firestore o Supabase
+Autenticación: Google Login OAuth
+Tiempo real: Firebase Realtime / Firestore realtime listeners / Socket.io
+Hosting preparado para PWA
+UI moderna con TailwindCSS
+Animaciones fluidas usando Framer Motion
+OBJETIVO PRINCIPAL
+
+La app servirá para:
+
+Crear jugadores
+Crear partidas de dominó
+Llevar anotaciones en tiempo real
+Ver partidas LIVE desde otros dispositivos
+Ranking automático
+Historial editable
+Eventos del club
+Sincronización en tiempo real entre múltiples dispositivos
+
+IMPORTANTE:
+VARIOS DISPOSITIVOS PODRÁN CREAR Y ANOTAR PARTIDAS SIMULTÁNEAMENTE Y TODOS LOS DATOS DEBEN GUARDARSE EN UNA MISMA BASE DE DATOS CENTRALIZADA.
+
+LOGIN / REGISTRO
+
+Implementar:
+
+Login con Google
+Registro automático
+Persistencia de sesión
+Protección de rutas privadas
+
+Pantalla de login:
+
+Fondo oscuro estilo Netflix
+Logo del Club Los Jurones
+Botón “Continuar con Google”
+DISEÑO GENERAL
+
+Tema:
+
+Oscuro estilo Netflix
+Modo claro opcional
+Switch Light/Dark con iconos animados
+Diseño elegante y minimalista
+100% responsive mobile-first
+Animaciones suaves y fluidas
+Bordes redondeados
+Glassmorphism sutil
+Transiciones premium
+PANTALLA INICIO (HOME)
+
+La pantalla principal debe mostrar:
+
+HEADER
+Logo del Club Los Jurones
+Nombre de la app
+INFORMACIÓN GENERAL
+
+Cards animadas mostrando:
+
+Cantidad total de jugadores
+Cantidad total de partidas jugadas
+Partidas activas LIVE
+BOTONES PRINCIPALES
+Crear Jugador
+Crear Partida
+SWITCH
+Modo claro / oscuro
+Iconos animados
+MENÚ FLOTANTE
+
+En la esquina inferior izquierda:
+Menú tipo Windows Start Menu con apertura hacia arriba.
+
+Opciones:
+
+Inicio
+Records
+Ranking
+Eventos
+Jugadores
+Live
+
+Con animaciones suaves.
+
+MÓDULO JUGADORES
+
+Crear sistema completo CRUD.
+
+Funciones:
+
+Crear jugador
+Editar jugador
+Eliminar jugador
+Subir foto/avatar
+Cambiar avatar
+Estadísticas del jugador
+
+Cada jugador debe tener:
+
+ID único
+Nombre
+Foto/avatar
+Victorias
+Derrotas
+Puntos totales
+Porcentaje de victorias
+Racha actual
+Fecha de creación
+
+Usar base de datos persistente.
+
+MÓDULO PARTIDAS
+CREAR PARTIDA
+
+Cada partida tendrá:
+
+ID incremental automático
+Formato:
+001
+002
+003
+etc.
+
+Guardar:
+
+Fecha
+Hora
+Equipos
+Estado:
+activa
+finalizada
+SELECCIÓN DE EQUIPOS
+
+Existen 2 equipos:
+
+CORTOS
+Color ROJO
+LARGOS
+Color AZUL
+
+Funciones:
+
+Selección de 2 jugadores por equipo
+Al tocar un jugador se agrega automáticamente
+Cuando se completan 2 jugadores:
+pasar automáticamente al siguiente equipo
+Cuando ambos equipos estén completos:
+activar botón “Siguiente”
+
+Mostrar:
+
+Fotos
+Nombres
+Animaciones al seleccionar
+PANTALLA DE ANOTACIÓN
+HEADER PARTIDA
+
+Mostrar:
+
+CORTOS (ROJO)
+
+foto jugador 1
+nombre jugador 1
+foto jugador 2
+nombre jugador 2
+score total equipo
+
+VS animado al centro
+
+LARGOS (AZUL)
+
+foto jugador 3
+nombre jugador 3
+foto jugador 4
+nombre jugador 4
+score total equipo
+ENTRADA DE PUNTOS
+
+Cada jugador tendrá:
+
+Input numérico de 3 dígitos
+Teclado numérico mobile-friendly
+Botón “SUMAR”
+Botón rápido “30”
+
+Reglas:
+
+El primer equipo en llegar a 200 gana
+Los puntos individuales se suman al total del equipo
+REGLA ESPECIAL DEL BOTÓN “30”
+
+El botón rápido “30” tendrá una lógica especial para evitar que un equipo gane automáticamente con ese botón.
+
+COMPORTAMIENTO
+
+Si el total actual del equipo es:
+
+menor de 170:
+el botón suma 30 normalmente.
+
+Ejemplo:
+140 + 30 = 170
+
+Si el equipo tiene:
+
+170 puntos o más
+
+ENTONCES:
+
+el botón “30” NO puede llevar el marcador a 200 o más.
+automáticamente ajustará el total máximo permitido a 199.
+
+Ejemplos:
+
+170 + botón 30 = 199
+180 + botón 30 = 199
+195 + botón 30 = 199
+
+IMPORTANTE:
+
+El botón “30” nunca puede finalizar la partida.
+Para ganar, el usuario debe introducir puntos manualmente usando el input numérico.
+Esta validación debe aplicarse tanto visualmente como en backend/database.
+LÓGICA TÉCNICA
+if (teamScore >= 170) {
+   teamScore = 199;
+} else {
+   teamScore += 30;
+}
+UX
+
+Cuando ocurra este ajuste:
+
+mostrar una pequeña animación
+mostrar tooltip o toast:
+“El botón 30 no puede cerrar la partida. Máximo permitido: 199”
+
+El botón debe sentirse fluido y moderno.
+
+HISTORIAL EN TIEMPO REAL
+
+En la parte inferior:
+Lista cronológica tipo feed mostrando:
+
+Jugador
+Equipo
+Color del equipo
+Puntos agregados
+Hora
+
+Ejemplo:
+
+Juan (CORTOS) +35
+Pedro (LARGOS) +20
+
+Actualizar automáticamente en tiempo real.
+
+AUTOGUARDADO
+
+La partida debe:
+
+Guardarse automáticamente después de cada anotación
+Recuperarse si ocurre un error
+Continuar exactamente donde quedó
+Persistencia total
+FINALIZACIÓN DE PARTIDA
+
+Cuando un equipo llegue a 200:
+
+Mostrar tarjeta flotante animada con:
+
+Equipo ganador
+Equipo perdedor
+Fotos de los ganadores
+Puntos finales
+Fecha y hora
+
+Si el equipo perdedor termina con 0 puntos:
+Mostrar:
+
+Texto gigante “LISA”
+Icono de pez animado
+Efectos especiales
+
+Después:
+
+Guardar automáticamente en HISTORIAL
+Actualizar ranking
+Actualizar estadísticas jugadores
+MÓDULO RANKING
+
+Crear ranking dinámico automático.
+
+Mostrar:
+
+Posición
+Foto
+Nombre
+Victorias
+Derrotas
+Porcentaje
+Puntos
+Racha
+
+Ordenado por:
+
+Victorias
+Porcentaje
+Racha
+
+Diseño premium tipo leaderboard gaming.
+
+HISTORIAL DE JUGADAS
+
+Mostrar tarjetas de partidas finalizadas.
+
+Cada tarjeta debe mostrar:
+
+FECHA Y HORA
+
+GANADORES
+
+puntos
+jugador1 · jugador2
+equipo
+
+VS
+
+PERDEDORES
+
+puntos
+jugador3 · jugador4
+equipo
+
+Botones:
+
+Editar
+Eliminar
+SEGURIDAD ADMIN
+
+Para editar o eliminar:
+Solicitar código secreto de 6 dígitos.
+
+Código:
+110880
+
+IMPORTANTE:
+
+El código NO debe ser visible en frontend
+Validar desde backend
+Proteger endpoints
+EDICIÓN DE PARTIDAS
+
+Permitir editar:
+
+Jugadores
+Puntos
+Victoria/Derrota
+Equipos
+
+Al editar:
+
+recalcular ranking automáticamente
+recalcular estadísticas
+MÓDULO EVENTOS
+
+Crear sistema de eventos con:
+
+Calendario dinámico
+Crear eventos
+Cumpleaños
+Ubicación usando Google Maps
+Botón “Asistir”
+Lista de asistentes
+
+Cada evento tendrá:
+
+título
+descripción
+fecha
+hora
+ubicación
+mapa
+asistentes
+MÓDULO LIVE
+
+Mostrar partidas activas en tiempo real.
+
+Funciones:
+
+Ver score en vivo
+Ver jugadores
+Ver equipos
+Botón actualizar
+Solo lectura
+NO permitir editar desde LIVE
+
+Actualización en tiempo real automática.
+
+BASE DE DATOS
+
+Diseñar colecciones/tablas para:
+
+users
+jugadores
+partidas
+historial
+ranking
+eventos
+live_matches
+REQUISITOS TÉCNICOS IMPORTANTES
+Código limpio y escalable
+Arquitectura modular
+Componentes reutilizables
+Manejo de errores
+Estados globales
+Responsive completo
+Optimización mobile
+Lazy loading
+Loading skeletons
+Transiciones fluidas
+Animaciones premium
+Toast notifications
+Confirmaciones elegantes
+Persistencia offline parcial
+Preparado para PWA
+UX/UI
+
+Inspiración visual:
+
+Netflix
+Sofascore
+Apps gaming premium
+
+Usar:
+
+Gradientes oscuros
+Rojo intenso para CORTOS
+Azul intenso para LARGOS
+Cards modernas
+Blur effects
+Sombras suaves
+Microanimaciones
+EXTRA
+
+Agregar:
+
+Sonidos sutiles opcionales
+Vibración móvil opcional
+Confetti al ganar
+Transiciones entre pantallas
+Loader animado
+RESULTADO ESPERADO
+
+Generar:
+
+Proyecto completo funcional
+Frontend + Backend
+Base de datos conectada
+Responsive
+Código organizado
+Listo para deploy
+README de instalación
+Variables de entorno
+Firebase/Supabase setup
+Estructura profesional de carpetas

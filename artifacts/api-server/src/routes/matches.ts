@@ -1,0 +1,409 @@
+import { Router, type IRouter } from "express";
+import { eq, desc, and } from "drizzle-orm";
+import { db, matchesTable, matchPlayersTable, scoreLogTable, playersTable } from "@workspace/db";
+import {
+  ListMatchesQueryParams,
+  GetMatchParams,
+  CreateMatchBody,
+  UpdateMatchParams,
+  UpdateMatchBody,
+  DeleteMatchParams,
+  DeleteMatchBody,
+  AddScoreParams,
+  AddScoreBody,
+  FinishMatchParams,
+} from "@workspace/api-zod";
+
+const ADMIN_CODE = process.env.ADMIN_CODE ?? "110880";
+
+const router: IRouter = Router();
+
+async function buildMatchDetail(matchId: number) {
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, matchId));
+  if (!match) return null;
+
+  const matchPlayers = await db
+    .select({
+      id: matchPlayersTable.id,
+      playerId: matchPlayersTable.playerId,
+      team: matchPlayersTable.team,
+      playerPoints: matchPlayersTable.playerPoints,
+      player: playersTable,
+    })
+    .from(matchPlayersTable)
+    .innerJoin(playersTable, eq(matchPlayersTable.playerId, playersTable.id))
+    .where(eq(matchPlayersTable.matchId, matchId));
+
+  const scoreLog = await db
+    .select({
+      id: scoreLogTable.id,
+      playerId: scoreLogTable.playerId,
+      team: scoreLogTable.team,
+      points: scoreLogTable.points,
+      createdAt: scoreLogTable.createdAt,
+      playerName: playersTable.name,
+    })
+    .from(scoreLogTable)
+    .innerJoin(playersTable, eq(scoreLogTable.playerId, playersTable.id))
+    .where(eq(scoreLogTable.matchId, matchId))
+    .orderBy(desc(scoreLogTable.createdAt));
+
+  return { ...match, players: matchPlayers, scoreLog };
+}
+
+async function getNextMatchNumber(): Promise<string> {
+  const [last] = await db
+    .select({ matchNumber: matchesTable.matchNumber })
+    .from(matchesTable)
+    .orderBy(desc(matchesTable.id))
+    .limit(1);
+
+  if (!last) return "001";
+  const num = parseInt(last.matchNumber, 10) + 1;
+  return num.toString().padStart(3, "0");
+}
+
+async function recalculatePlayerStats(playerId: number) {
+  // Get all finished matches for this player
+  const playerMatches = await db
+    .select({
+      team: matchPlayersTable.team,
+      winnerTeam: matchesTable.winnerTeam,
+      playerPoints: matchPlayersTable.playerPoints,
+    })
+    .from(matchPlayersTable)
+    .innerJoin(matchesTable, eq(matchPlayersTable.matchId, matchesTable.id))
+    .where(and(eq(matchPlayersTable.playerId, playerId), eq(matchesTable.status, "finished")));
+
+  let wins = 0;
+  let losses = 0;
+  let totalPoints = 0;
+  let streak = 0;
+  let lastResult: string | null = null;
+
+  for (const m of playerMatches) {
+    totalPoints += m.playerPoints;
+    if (m.winnerTeam === m.team) {
+      wins++;
+    } else if (m.winnerTeam != null) {
+      losses++;
+    }
+  }
+
+  const total = wins + losses;
+  const winRate = total > 0 ? wins / total : 0;
+
+  // Simple streak: just use wins - losses as a proxy
+  streak = wins - losses;
+
+  await db
+    .update(playersTable)
+    .set({ wins, losses, totalPoints, winRate, currentStreak: streak })
+    .where(eq(playersTable.id, playerId));
+}
+
+// GET /matches
+router.get("/matches", async (req, res): Promise<void> => {
+  const queryParams = ListMatchesQueryParams.safeParse(req.query);
+  const query = db.select().from(matchesTable).orderBy(desc(matchesTable.createdAt));
+
+  let matches;
+  if (queryParams.success && queryParams.data.status) {
+    matches = await db
+      .select()
+      .from(matchesTable)
+      .where(eq(matchesTable.status, queryParams.data.status))
+      .orderBy(desc(matchesTable.createdAt));
+  } else {
+    matches = await db.select().from(matchesTable).orderBy(desc(matchesTable.createdAt));
+  }
+
+  res.json(matches);
+});
+
+// POST /matches
+router.post("/matches", async (req, res): Promise<void> => {
+  const parsed = CreateMatchBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const matchNumber = await getNextMatchNumber();
+
+  const [match] = await db
+    .insert(matchesTable)
+    .values({ matchNumber, status: "active", shortosScore: 0, largosScore: 0 })
+    .returning();
+
+  // Insert match players
+  const playerValues = [
+    ...parsed.data.cortos.map((pid: number) => ({ matchId: match.id, playerId: pid, team: "cortos" as const, playerPoints: 0 })),
+    ...parsed.data.largos.map((pid: number) => ({ matchId: match.id, playerId: pid, team: "largos" as const, playerPoints: 0 })),
+  ];
+
+  await db.insert(matchPlayersTable).values(playerValues);
+
+  const detail = await buildMatchDetail(match.id);
+  res.status(201).json(detail);
+});
+
+// GET /matches/:id
+router.get("/matches/:id", async (req, res): Promise<void> => {
+  const params = GetMatchParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const detail = await buildMatchDetail(params.data.id);
+  if (!detail) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  res.json(detail);
+});
+
+// PATCH /matches/:id (admin)
+router.patch("/matches/:id", async (req, res): Promise<void> => {
+  const params = UpdateMatchParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const parsed = UpdateMatchBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  if (parsed.data.adminCode && parsed.data.adminCode !== ADMIN_CODE) {
+    res.status(401).json({ error: "Invalid admin code" });
+    return;
+  }
+
+  const updateData: Record<string, unknown> = {};
+  if (parsed.data.shortosScore !== undefined) updateData.shortosScore = parsed.data.shortosScore;
+  if (parsed.data.largosScore !== undefined) updateData.largosScore = parsed.data.largosScore;
+  if (parsed.data.winnerTeam !== undefined) updateData.winnerTeam = parsed.data.winnerTeam;
+  if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
+
+  const [match] = await db
+    .update(matchesTable)
+    .set(updateData)
+    .where(eq(matchesTable.id, params.data.id))
+    .returning();
+
+  if (!match) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  // Handle team reassignment if provided
+  if (parsed.data.cortos || parsed.data.largos) {
+    await db.delete(matchPlayersTable).where(eq(matchPlayersTable.matchId, params.data.id));
+    const playerValues = [];
+    if (parsed.data.cortos) {
+      for (const pid of parsed.data.cortos) {
+        playerValues.push({ matchId: params.data.id, playerId: pid, team: "cortos" as const, playerPoints: 0 });
+      }
+    }
+    if (parsed.data.largos) {
+      for (const pid of parsed.data.largos) {
+        playerValues.push({ matchId: params.data.id, playerId: pid, team: "largos" as const, playerPoints: 0 });
+      }
+    }
+    if (playerValues.length > 0) {
+      await db.insert(matchPlayersTable).values(playerValues);
+    }
+  }
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
+// DELETE /matches/:id (admin)
+router.delete("/matches/:id", async (req, res): Promise<void> => {
+  const params = DeleteMatchParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const parsed = DeleteMatchBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  if (parsed.data.adminCode !== ADMIN_CODE) {
+    res.status(401).json({ error: "Invalid admin code" });
+    return;
+  }
+
+  const [match] = await db
+    .delete(matchesTable)
+    .where(eq(matchesTable.id, params.data.id))
+    .returning();
+
+  if (!match) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  res.sendStatus(204);
+});
+
+// POST /matches/:id/score
+router.post("/matches/:id/score", async (req, res): Promise<void> => {
+  const params = AddScoreParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const parsed = AddScoreBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
+  if (!match) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  if (match.status === "finished") {
+    res.status(400).json({ error: "Match is already finished" });
+    return;
+  }
+
+  const { playerId, team, points, isQuickThirty } = parsed.data;
+
+  // Calculate new team score
+  const currentTeamScore = team === "cortos" ? match.shortosScore : match.largosScore;
+  let actualPoints = points;
+
+  // Apply quick-thirty cap: if total would reach 200, cap at 199 for quick-30
+  if (isQuickThirty) {
+    const projected = currentTeamScore + 30;
+    if (projected >= 200) {
+      // Cap to 199
+      actualPoints = Math.max(0, 199 - currentTeamScore);
+    }
+  }
+
+  const newTeamScore = currentTeamScore + actualPoints;
+
+  // Insert score log
+  await db.insert(scoreLogTable).values({ matchId: params.data.id, playerId, team, points: actualPoints });
+
+  // Update player points in match
+  const [mp] = await db
+    .select()
+    .from(matchPlayersTable)
+    .where(and(eq(matchPlayersTable.matchId, params.data.id), eq(matchPlayersTable.playerId, playerId)));
+
+  if (mp) {
+    await db
+      .update(matchPlayersTable)
+      .set({ playerPoints: mp.playerPoints + actualPoints })
+      .where(eq(matchPlayersTable.id, mp.id));
+  }
+
+  // Update match team score
+  const matchUpdate: Record<string, unknown> = {};
+  if (team === "cortos") {
+    matchUpdate.shortosScore = newTeamScore;
+  } else {
+    matchUpdate.largosScore = newTeamScore;
+  }
+
+  // Check win condition
+  if (newTeamScore >= 200) {
+    matchUpdate.status = "finished";
+    matchUpdate.winnerTeam = team;
+    matchUpdate.finishedAt = new Date();
+  }
+
+  await db.update(matchesTable).set(matchUpdate).where(eq(matchesTable.id, params.data.id));
+
+  // If match finished, update all player stats
+  if (newTeamScore >= 200) {
+    const allPlayers = await db
+      .select({ playerId: matchPlayersTable.playerId })
+      .from(matchPlayersTable)
+      .where(eq(matchPlayersTable.matchId, params.data.id));
+
+    for (const p of allPlayers) {
+      await recalculatePlayerStats(p.playerId);
+    }
+  }
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
+// POST /matches/:id/finish
+router.post("/matches/:id/finish", async (req, res): Promise<void> => {
+  const params = FinishMatchParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
+  if (!match) {
+    res.status(404).json({ error: "Match not found" });
+    return;
+  }
+
+  // Determine winner
+  const winnerTeam = match.shortosScore >= match.largosScore ? "cortos" : "largos";
+
+  await db
+    .update(matchesTable)
+    .set({ status: "finished", winnerTeam, finishedAt: new Date() })
+    .where(eq(matchesTable.id, params.data.id));
+
+  // Update all player stats
+  const allPlayers = await db
+    .select({ playerId: matchPlayersTable.playerId })
+    .from(matchPlayersTable)
+    .where(eq(matchPlayersTable.matchId, params.data.id));
+
+  for (const p of allPlayers) {
+    await recalculatePlayerStats(p.playerId);
+  }
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
+// GET /history (finished matches)
+router.get("/history", async (_req, res): Promise<void> => {
+  const finishedMatches = await db
+    .select()
+    .from(matchesTable)
+    .where(eq(matchesTable.status, "finished"))
+    .orderBy(desc(matchesTable.finishedAt));
+
+  const results = await Promise.all(finishedMatches.map((m) => buildMatchDetail(m.id)));
+  res.json(results.filter(Boolean));
+});
+
+// GET /ranking
+router.get("/ranking", async (_req, res): Promise<void> => {
+  const players = await db
+    .select()
+    .from(playersTable)
+    .orderBy(desc(playersTable.wins), desc(playersTable.winRate), desc(playersTable.currentStreak));
+
+  const ranked = players.map((player, idx) => ({ position: idx + 1, player }));
+  res.json(ranked);
+});
+
+export default router;

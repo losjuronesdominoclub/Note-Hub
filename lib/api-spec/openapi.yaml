@@ -3,20 +3,32 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Los Jurones Domino Club API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: players
+    description: Player management
+  - name: matches
+    description: Match management
+  - name: history
+    description: Match history
+  - name: ranking
+    description: Player rankings
+  - name: events
+    description: Club events
+  - name: stats
+    description: Dashboard statistics
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +36,742 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Players ───────────────────────────────────────────────────────────────
+  /players:
+    get:
+      operationId: listPlayers
+      tags: [players]
+      summary: List all players
+      responses:
+        "200":
+          description: List of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Player"
+    post:
+      operationId: createPlayer
+      tags: [players]
+      summary: Create a player
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+
+  /players/{id}:
+    get:
+      operationId: getPlayer
+      tags: [players]
+      summary: Get player by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePlayer
+      tags: [players]
+      summary: Update a player
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerUpdate"
+      responses:
+        "200":
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+        "404":
+          description: Not found
+    delete:
+      operationId: deletePlayer
+      tags: [players]
+      summary: Delete a player
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  # ─── Matches ────────────────────────────────────────────────────────────────
+  /matches:
+    get:
+      operationId: listMatches
+      tags: [matches]
+      summary: List all matches
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, finished]
+      responses:
+        "200":
+          description: List of matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match"
+    post:
+      operationId: createMatch
+      tags: [matches]
+      summary: Create a new match
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Match"
+
+  /matches/{id}:
+    get:
+      operationId: getMatch
+      tags: [matches]
+      summary: Get match by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Match with full details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateMatch
+      tags: [matches]
+      summary: Update match (admin - requires secret)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchUpdate"
+      responses:
+        "200":
+          description: Updated match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Match"
+        "401":
+          description: Invalid admin code
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteMatch
+      tags: [matches]
+      summary: Delete match (admin - requires secret)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAction"
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Invalid admin code
+        "404":
+          description: Not found
+
+  /matches/{id}/score:
+    post:
+      operationId: addScore
+      tags: [matches]
+      summary: Add points to a player in a match
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScoreInput"
+      responses:
+        "200":
+          description: Updated match with new scores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchDetail"
+        "400":
+          description: Invalid score
+        "404":
+          description: Not found
+
+  /matches/{id}/finish:
+    post:
+      operationId: finishMatch
+      tags: [matches]
+      summary: Finish a match and declare winner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Finished match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchDetail"
+        "404":
+          description: Not found
+
+  # ─── History ─────────────────────────────────────────────────────────────
+  /history:
+    get:
+      operationId: listHistory
+      tags: [history]
+      summary: List finished matches history
+      responses:
+        "200":
+          description: Finished matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MatchDetail"
+
+  # ─── Ranking ─────────────────────────────────────────────────────────────
+  /ranking:
+    get:
+      operationId: getRanking
+      tags: [ranking]
+      summary: Get player ranking leaderboard
+      responses:
+        "200":
+          description: Ranked player list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankedPlayer"
+
+  # ─── Events ──────────────────────────────────────────────────────────────
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List club events
+      responses:
+        "200":
+          description: Events list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a club event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    patch:
+      operationId: updateEvent
+      tags: [events]
+      summary: Update an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventUpdate"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEvent
+      tags: [events]
+      summary: Delete an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /events/{id}/attend:
+    post:
+      operationId: attendEvent
+      tags: [events]
+      summary: Mark attendance for an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendInput"
+      responses:
+        "200":
+          description: Updated attendance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  # ─── Stats (Wow endpoints) ────────────────────────────────────────────────
+  /stats/dashboard:
+    get:
+      operationId: getDashboardStats
+      tags: [stats]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /stats/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [stats]
+      summary: Get recent score activity feed
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEntry"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    # ─── Player ───────────────────────────────────────────────────────────
+    Player:
+      type: object
+      required: [id, name, wins, losses, totalPoints, winRate, currentStreak, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        wins:
+          type: integer
+        losses:
+          type: integer
+        totalPoints:
+          type: integer
+        winRate:
+          type: number
+        currentStreak:
+          type: integer
+        createdAt:
+          type: string
+
+    PlayerInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        avatarUrl:
+          type: string
+
+    PlayerUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        avatarUrl:
+          type: ["string", "null"]
+        wins:
+          type: integer
+        losses:
+          type: integer
+        totalPoints:
+          type: integer
+        currentStreak:
+          type: integer
+
+    # ─── Match ────────────────────────────────────────────────────────────
+    Match:
+      type: object
+      required: [id, matchNumber, status, shortosScore, largosScore, createdAt]
+      properties:
+        id:
+          type: integer
+        matchNumber:
+          type: string
+        status:
+          type: string
+          enum: [active, finished]
+        shortosScore:
+          type: integer
+        largosScore:
+          type: integer
+        winnerTeam:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        finishedAt:
+          type: ["string", "null"]
+
+    MatchDetail:
+      type: object
+      required: [id, matchNumber, status, shortosScore, largosScore, createdAt, players, scoreLog]
+      properties:
+        id:
+          type: integer
+        matchNumber:
+          type: string
+        status:
+          type: string
+          enum: [active, finished]
+        shortosScore:
+          type: integer
+        largosScore:
+          type: integer
+        winnerTeam:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        finishedAt:
+          type: ["string", "null"]
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchPlayer"
+        scoreLog:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoreLogEntry"
+
+    MatchPlayer:
+      type: object
+      required: [id, playerId, team, playerPoints, player]
+      properties:
+        id:
+          type: integer
+        playerId:
+          type: integer
+        team:
+          type: string
+          enum: [cortos, largos]
+        playerPoints:
+          type: integer
+        player:
+          $ref: "#/components/schemas/Player"
+
+    MatchInput:
+      type: object
+      required: [cortos, largos]
+      properties:
+        cortos:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+        largos:
+          type: array
+          items:
+            type: integer
+          minItems: 2
+          maxItems: 2
+
+    MatchUpdate:
+      type: object
+      properties:
+        adminCode:
+          type: string
+        cortos:
+          type: array
+          items:
+            type: integer
+        largos:
+          type: array
+          items:
+            type: integer
+        shortosScore:
+          type: integer
+        largosScore:
+          type: integer
+        winnerTeam:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, finished]
+
+    AdminAction:
+      type: object
+      required: [adminCode]
+      properties:
+        adminCode:
+          type: string
+
+    ScoreInput:
+      type: object
+      required: [playerId, team, points]
+      properties:
+        playerId:
+          type: integer
+        team:
+          type: string
+          enum: [cortos, largos]
+        points:
+          type: integer
+        isQuickThirty:
+          type: boolean
+
+    ScoreLogEntry:
+      type: object
+      required: [id, playerId, team, points, createdAt]
+      properties:
+        id:
+          type: integer
+        playerId:
+          type: integer
+        team:
+          type: string
+          enum: [cortos, largos]
+        points:
+          type: integer
+        createdAt:
+          type: string
+        playerName:
+          type: string
+
+    # ─── Ranking ──────────────────────────────────────────────────────────
+    RankedPlayer:
+      type: object
+      required: [position, player]
+      properties:
+        position:
+          type: integer
+        player:
+          $ref: "#/components/schemas/Player"
+
+    # ─── Events ───────────────────────────────────────────────────────────
+    Event:
+      type: object
+      required: [id, title, date, createdAt, attendees]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        time:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        mapsUrl:
+          type: ["string", "null"]
+        attendees:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+
+    EventInput:
+      type: object
+      required: [title, date]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        date:
+          type: string
+        time:
+          type: string
+        location:
+          type: string
+        mapsUrl:
+          type: string
+
+    EventUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        date:
+          type: string
+        time:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        mapsUrl:
+          type: ["string", "null"]
+
+    AttendInput:
+      type: object
+      required: [attendeeName]
+      properties:
+        attendeeName:
+          type: string
+          minLength: 1
+
+    # ─── Stats ────────────────────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      required: [totalPlayers, totalMatches, activeMatches, totalGamesPlayed]
+      properties:
+        totalPlayers:
+          type: integer
+        totalMatches:
+          type: integer
+        activeMatches:
+          type: integer
+        totalGamesPlayed:
+          type: integer
+        topPlayer:
+          $ref: "#/components/schemas/Player"
+
+    ActivityEntry:
+      type: object
+      required: [id, matchId, matchNumber, playerId, playerName, team, points, createdAt]
+      properties:
+        id:
+          type: integer
+        matchId:
+          type: integer
+        matchNumber:
+          type: string
+        playerId:
+          type: integer
+        playerName:
+          type: string
+        team:
+          type: string
+          enum: [cortos, largos]
+        points:
+          type: integer
+        createdAt:
+          type: string
