@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal } from "lucide-react";
-import { useGetDashboardStats, useGetRecentActivity } from "@workspace/api-client-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap } from "lucide-react";
+import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
+  const { data: activeMatches } = useListMatches({ status: "active" });
+  const activeMatch = activeMatches?.[0] ?? null;
 
   const statCards = [
     { title: "Partidas Activas", value: stats?.activeMatches, icon: Activity, color: "text-green-500", bg: "bg-green-500/10" },
@@ -31,6 +33,29 @@ export default function Dashboard() {
           </Button>
         </Link>
       </div>
+
+      {activeMatch && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-green-500/10 p-4 flex items-center gap-4"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/20">
+            <Zap className="h-5 w-5 text-green-400 animate-pulse" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-green-400 text-sm uppercase tracking-wider">Partida en curso</p>
+            <p className="text-white font-semibold truncate">
+              Partida #{activeMatch.matchNumber} — Cortos {activeMatch.shortosScore} vs {activeMatch.largosScore} Largos
+            </p>
+          </div>
+          <Link href={`/match/${activeMatch.id}`}>
+            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white rounded-full shrink-0 gap-2">
+              <ArrowRight className="h-4 w-4" /> Continuar
+            </Button>
+          </Link>
+        </motion.div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         {statCards.map((stat, i) => (
