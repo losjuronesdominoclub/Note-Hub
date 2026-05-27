@@ -34,3 +34,5 @@ export * from './scoreInput';
 export * from './scoreInputTeam';
 export * from './scoreLogEntry';
 export * from './scoreLogEntryTeam';
+export * from './uploadUrlRequest';
+export * from './uploadUrlResponse';
