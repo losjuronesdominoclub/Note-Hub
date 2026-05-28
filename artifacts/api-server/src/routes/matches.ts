@@ -149,6 +149,155 @@ router.post("/matches", async (req, res): Promise<void> => {
   res.status(201).json(detail);
 });
 
+// POST /matches/import — must be before /:id routes
+// Accepts both formats:
+// Format A (original): equipo1: { jugador1, jugador2, puntos }, ganador: "equipo1"|"equipo2"
+// Format B (array):    equipo1: [string, string], puntuacion1: number
+const ImportPartidaSchema = z.union([
+  z.object({
+    fecha: z.string(),
+    hora: z.string(),
+    equipo1: z.array(z.string()).min(2).max(2),
+    puntuacion1: z.number().int().min(0),
+    equipo2: z.array(z.string()).min(2).max(2),
+    puntuacion2: z.number().int().min(0),
+    lisa: z.boolean().optional(),
+  }),
+  z.object({
+    fecha: z.string(),
+    hora: z.string(),
+    equipo1: z.object({ jugador1: z.string().min(1), jugador2: z.string().min(1), puntos: z.number().int().min(0) }),
+    equipo2: z.object({ jugador1: z.string().min(1), jugador2: z.string().min(1), puntos: z.number().int().min(0) }),
+    ganador: z.enum(["equipo1", "equipo2"]).optional(),
+    lisa: z.boolean().optional(),
+  }),
+]);
+
+const ImportBodySchema = z.object({
+  adminCode: z.string(),
+  partidas: z.array(ImportPartidaSchema).min(1),
+});
+
+router.post("/matches/import", async (req, res): Promise<void> => {
+  const parsed = ImportBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Formato JSON inválido", details: parsed.error.issues.map((i) => i.message) });
+    return;
+  }
+
+  const { adminCode, partidas } = parsed.data;
+
+  if (adminCode !== ADMIN_CODE) {
+    res.status(403).json({ error: "Código de administrador inválido" });
+    return;
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+  const affectedPlayerIds = new Set<number>();
+
+  for (const partida of partidas) {
+    try {
+      const finishedAt = new Date(`${partida.fecha}T${partida.hora}:00`);
+      if (isNaN(finishedAt.getTime())) {
+        errors.push(`Fecha/hora inválida: ${partida.fecha} ${partida.hora}`);
+        continue;
+      }
+
+      let e1Names: string[], e2Names: string[], e1Pts: number, e2Pts: number;
+      if (Array.isArray(partida.equipo1)) {
+        e1Names = partida.equipo1 as string[];
+        e2Names = partida.equipo2 as string[];
+        e1Pts = (partida as any).puntuacion1 as number;
+        e2Pts = (partida as any).puntuacion2 as number;
+      } else {
+        const eq1 = partida.equipo1 as { jugador1: string; jugador2: string; puntos: number };
+        const eq2 = partida.equipo2 as { jugador1: string; jugador2: string; puntos: number };
+        e1Names = [eq1.jugador1, eq1.jugador2];
+        e2Names = [eq2.jugador1, eq2.jugador2];
+        e1Pts = eq1.puntos;
+        e2Pts = eq2.puntos;
+      }
+
+      let winnerTeam: "cortos" | "largos";
+      const ganador = (partida as any).ganador as string | undefined;
+      if (ganador === "equipo1") winnerTeam = "cortos";
+      else if (ganador === "equipo2") winnerTeam = "largos";
+      else winnerTeam = e1Pts >= e2Pts ? "cortos" : "largos";
+
+      const allNames = [...e1Names, ...e2Names];
+      const playerIds: Record<string, number> = {};
+      for (const name of allNames) {
+        const [existing] = await db
+          .select()
+          .from(playersTable)
+          .where(sql`lower(${playersTable.name}) = lower(${name})`);
+        if (existing) {
+          playerIds[name] = existing.id;
+        } else {
+          const [created] = await db.insert(playersTable).values({ name }).returning();
+          playerIds[name] = created.id;
+        }
+      }
+
+      const sameTimeMatches = await db
+        .select({ id: matchesTable.id })
+        .from(matchesTable)
+        .where(and(eq(matchesTable.status, "finished"), eq(matchesTable.finishedAt, finishedAt)));
+
+      let isDuplicate = false;
+      const importPids = new Set(Object.values(playerIds));
+      for (const em of sameTimeMatches) {
+        const emPlayers = await db
+          .select({ playerId: matchPlayersTable.playerId })
+          .from(matchPlayersTable)
+          .where(eq(matchPlayersTable.matchId, em.id));
+        const emPids = new Set(emPlayers.map((p) => p.playerId));
+        if (emPids.size === importPids.size && [...importPids].every((id) => emPids.has(id))) {
+          isDuplicate = true;
+          break;
+        }
+      }
+
+      if (isDuplicate) {
+        skipped++;
+        continue;
+      }
+
+      const matchNumber = await getNextMatchNumber();
+      const [match] = await db
+        .insert(matchesTable)
+        .values({ matchNumber, status: "finished", shortosScore: e1Pts, largosScore: e2Pts, winnerTeam, createdAt: finishedAt, finishedAt })
+        .returning();
+
+      const teamAssignments = [
+        { name: e1Names[0], team: "cortos" as const, points: e1Pts },
+        { name: e1Names[1], team: "cortos" as const, points: e1Pts },
+        { name: e2Names[0], team: "largos" as const, points: e2Pts },
+        { name: e2Names[1], team: "largos" as const, points: e2Pts },
+      ];
+
+      for (const ta of teamAssignments) {
+        const pid = playerIds[ta.name];
+        await db.insert(matchPlayersTable).values({ matchId: match.id, playerId: pid, team: ta.team, playerPoints: ta.points });
+        await db.insert(scoreLogTable).values({ matchId: match.id, playerId: pid, team: ta.team, points: ta.points, createdAt: finishedAt });
+        affectedPlayerIds.add(pid);
+      }
+
+      imported++;
+    } catch (err) {
+      errors.push(`Error en partida ${partida.fecha} ${partida.hora}: ${String(err)}`);
+    }
+  }
+
+  for (const pid of affectedPlayerIds) {
+    await recalculatePlayerStats(pid);
+  }
+
+  res.json({ imported, skipped, errors });
+});
+
 // GET /matches/:id
 router.get("/matches/:id", async (req, res): Promise<void> => {
   const params = GetMatchParams.safeParse(req.params);
@@ -515,179 +664,6 @@ router.get("/ranking", async (_req, res): Promise<void> => {
 
   const ranked = players.map((player, idx) => ({ position: idx + 1, player }));
   res.json(ranked);
-});
-
-// Accepts both formats:
-// Format A (original): equipo1: { jugador1, jugador2, puntos }, ganador: "equipo1"|"equipo2"
-// Format B (array):    equipo1: [string, string], puntuacion1: number
-const ImportPartidaSchema = z.union([
-  z.object({
-    fecha: z.string(),
-    hora: z.string(),
-    equipo1: z.array(z.string()).min(2).max(2),
-    puntuacion1: z.number().int().min(0),
-    equipo2: z.array(z.string()).min(2).max(2),
-    puntuacion2: z.number().int().min(0),
-    lisa: z.boolean().optional(),
-  }),
-  z.object({
-    fecha: z.string(),
-    hora: z.string(),
-    equipo1: z.object({ jugador1: z.string().min(1), jugador2: z.string().min(1), puntos: z.number().int().min(0) }),
-    equipo2: z.object({ jugador1: z.string().min(1), jugador2: z.string().min(1), puntos: z.number().int().min(0) }),
-    ganador: z.enum(["equipo1", "equipo2"]).optional(),
-    lisa: z.boolean().optional(),
-  }),
-]);
-
-const ImportBodySchema = z.object({
-  adminCode: z.string(),
-  partidas: z.array(ImportPartidaSchema).min(1),
-});
-
-// POST /import
-router.post("/import", async (req, res): Promise<void> => {
-  const parsed = ImportBodySchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Formato JSON inválido", details: parsed.error.issues.map((i) => i.message) });
-    return;
-  }
-
-  const { adminCode, partidas } = parsed.data;
-
-  if (adminCode !== ADMIN_CODE) {
-    res.status(403).json({ error: "Código de administrador inválido" });
-    return;
-  }
-
-  let imported = 0;
-  let skipped = 0;
-  const errors: string[] = [];
-  const affectedPlayerIds = new Set<number>();
-
-  for (const partida of partidas) {
-    try {
-      const finishedAt = new Date(`${partida.fecha}T${partida.hora}:00`);
-      if (isNaN(finishedAt.getTime())) {
-        errors.push(`Fecha/hora inválida: ${partida.fecha} ${partida.hora}`);
-        continue;
-      }
-
-      // Normalise both formats into a common shape
-      let e1Names: string[], e2Names: string[], e1Pts: number, e2Pts: number;
-      if (Array.isArray(partida.equipo1)) {
-        e1Names = partida.equipo1 as string[];
-        e2Names = partida.equipo2 as string[];
-        e1Pts = (partida as any).puntuacion1 as number;
-        e2Pts = (partida as any).puntuacion2 as number;
-      } else {
-        const eq1 = partida.equipo1 as { jugador1: string; jugador2: string; puntos: number };
-        const eq2 = partida.equipo2 as { jugador1: string; jugador2: string; puntos: number };
-        e1Names = [eq1.jugador1, eq1.jugador2];
-        e2Names = [eq2.jugador1, eq2.jugador2];
-        e1Pts = eq1.puntos;
-        e2Pts = eq2.puntos;
-      }
-
-      // Infer winner: explicit ganador field takes priority, otherwise highest score
-      let winnerTeam: "cortos" | "largos";
-      const ganador = (partida as any).ganador as string | undefined;
-      if (ganador === "equipo1") winnerTeam = "cortos";
-      else if (ganador === "equipo2") winnerTeam = "largos";
-      else winnerTeam = e1Pts >= e2Pts ? "cortos" : "largos";
-
-      const allNames = [...e1Names, ...e2Names];
-      const playerIds: Record<string, number> = {};
-      for (const name of allNames) {
-        const [existing] = await db
-          .select()
-          .from(playersTable)
-          .where(sql`lower(${playersTable.name}) = lower(${name})`);
-        if (existing) {
-          playerIds[name] = existing.id;
-        } else {
-          const [created] = await db.insert(playersTable).values({ name }).returning();
-          playerIds[name] = created.id;
-        }
-      }
-
-      // Duplicate detection: same finishedAt + same 4 player IDs
-      const sameTimeMatches = await db
-        .select({ id: matchesTable.id })
-        .from(matchesTable)
-        .where(and(eq(matchesTable.status, "finished"), eq(matchesTable.finishedAt, finishedAt)));
-
-      let isDuplicate = false;
-      const importPids = new Set(Object.values(playerIds));
-      for (const em of sameTimeMatches) {
-        const emPlayers = await db
-          .select({ playerId: matchPlayersTable.playerId })
-          .from(matchPlayersTable)
-          .where(eq(matchPlayersTable.matchId, em.id));
-        const emPids = new Set(emPlayers.map((p) => p.playerId));
-        if (emPids.size === importPids.size && [...importPids].every((id) => emPids.has(id))) {
-          isDuplicate = true;
-          break;
-        }
-      }
-
-      if (isDuplicate) {
-        skipped++;
-        continue;
-      }
-
-      const matchNumber = await getNextMatchNumber();
-
-      const [match] = await db
-        .insert(matchesTable)
-        .values({
-          matchNumber,
-          status: "finished",
-          shortosScore: e1Pts,
-          largosScore: e2Pts,
-          winnerTeam,
-          createdAt: finishedAt,
-          finishedAt,
-        })
-        .returning();
-
-      const teamAssignments = [
-        { name: e1Names[0], team: "cortos" as const, points: e1Pts },
-        { name: e1Names[1], team: "cortos" as const, points: e1Pts },
-        { name: e2Names[0], team: "largos" as const, points: e2Pts },
-        { name: e2Names[1], team: "largos" as const, points: e2Pts },
-      ];
-
-      for (const ta of teamAssignments) {
-        const pid = playerIds[ta.name];
-        await db.insert(matchPlayersTable).values({
-          matchId: match.id,
-          playerId: pid,
-          team: ta.team,
-          playerPoints: ta.points,
-        });
-        await db.insert(scoreLogTable).values({
-          matchId: match.id,
-          playerId: pid,
-          team: ta.team,
-          points: ta.points,
-          createdAt: finishedAt,
-        });
-        affectedPlayerIds.add(pid);
-      }
-
-      imported++;
-    } catch (err) {
-      errors.push(`Error en partida ${partida.fecha} ${partida.hora}: ${String(err)}`);
-    }
-  }
-
-  // Recalculate all affected player stats from scratch
-  for (const pid of affectedPlayerIds) {
-    await recalculatePlayerStats(pid);
-  }
-
-  res.json({ imported, skipped, errors });
 });
 
 export default router;
