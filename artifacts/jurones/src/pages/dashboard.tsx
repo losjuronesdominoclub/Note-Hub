@@ -35,8 +35,8 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>
         <Link href="/match/new">
-          <Button size="lg" className="rounded-full shadow-lg font-bold bg-green-600 hover:bg-green-500 text-white shadow-green-900/40">
-            <Play className="mr-2 h-5 w-5 fill-current" /> Nueva Partida
+          <Button size="icon" title="Nueva Partida" className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40">
+            <Play className="h-6 w-6 fill-current" />
           </Button>
         </Link>
       </div>
