@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { useGetRanking } from "@workspace/api-client-react";
+import { useGetRanking, getGetRankingQueryKey, getListPlayersQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Medal, Flame } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Trophy, Medal, Flame, Download, Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -13,6 +19,17 @@ function avatarSrc(path: string | null | undefined): string | undefined {
 
 export default function Ranking() {
   const { data: ranking, isLoading } = useGetRanking();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importAdminCode, setImportAdminCode] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importParsed, setImportParsed] = useState<any>(null);
+  const [importParseError, setImportParseError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ updated: number; notFound: number; errors: string[] } | null>(null);
 
   const getPositionColor = (position: number) => {
     switch (position) {
@@ -23,12 +40,115 @@ export default function Ranking() {
     }
   };
 
+  const handleExport = () => {
+    if (!ranking || ranking.length === 0) return;
+    const jugadores = ranking.map((item) => ({
+      nombre: item.player.name,
+      victorias: item.player.wins,
+      derrotas: item.player.losses,
+      winRate: Number(item.player.winRate).toFixed(2),
+      racha: item.player.currentStreak,
+    }));
+    const blob = new Blob([JSON.stringify({ jugadores }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `jurones_ranking_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exportado", description: `${jugadores.length} jugadores descargados como JSON.` });
+  };
+
+  const openImport = () => {
+    setImportFile(null);
+    setImportParsed(null);
+    setImportParseError(null);
+    setImportAdminCode("");
+    setImportResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setIsImportOpen(true);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFile(file);
+    setImportParseError(null);
+    setImportParsed(null);
+    setImportResult(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string);
+        if (!json.jugadores || !Array.isArray(json.jugadores)) {
+          setImportParseError('El JSON debe tener un campo "jugadores" como lista.');
+          return;
+        }
+        setImportParsed(json);
+      } catch {
+        setImportParseError("Formato JSON inválido. Verifica la estructura del archivo.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImport = async () => {
+    if (!importParsed || !importAdminCode) return;
+    setIsImporting(true);
+    setImportResult(null);
+    try {
+      const res = await fetch("/api/players/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode: importAdminCode, jugadores: importParsed.jugadores }),
+      });
+      const data = await res.json();
+      if (res.status === 403) {
+        toast({ title: "Acceso denegado", description: "Código de administrador inválido.", variant: "destructive" });
+        setIsImporting(false);
+        return;
+      }
+      if (!res.ok) {
+        toast({ title: "Error", description: data?.error ?? "Error desconocido.", variant: "destructive" });
+        setIsImporting(false);
+        return;
+      }
+      setImportResult(data);
+      queryClient.invalidateQueries({ queryKey: getGetRankingQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
+    } catch {
+      toast({ title: "Error de red", description: "No se pudo conectar con el servidor.", variant: "destructive" });
+    }
+    setIsImporting(false);
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="text-center space-y-4 mb-12">
+      <div className="text-center space-y-4 mb-6">
         <Trophy className="w-16 h-16 mx-auto text-primary" />
         <h1 className="text-4xl font-black tracking-tighter uppercase">Global Ranking</h1>
         <p className="text-muted-foreground">Los mejores jugadores del club, clasificados por tasa de victoria.</p>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={!ranking || ranking.length === 0}
+          className="flex items-center gap-2 border-border hover:border-primary"
+        >
+          <Download className="h-4 w-4" />
+          Exportar JSON
+        </Button>
+        <Button
+          variant="outline"
+          onClick={openImport}
+          className="flex items-center gap-2 border-primary/40 hover:border-primary"
+        >
+          <Upload className="h-4 w-4" />
+          Importar JSON
+        </Button>
       </div>
 
       {isLoading ? (
@@ -48,7 +168,7 @@ export default function Ranking() {
               className={`flex items-center gap-4 p-4 rounded-2xl glass-card relative overflow-hidden ${index < 3 ? 'border ' + getPositionColor(index + 1).split(' ')[2] : ''}`}
             >
               {index === 0 && <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent pointer-events-none" />}
-              
+
               <div className={`w-12 h-12 flex items-center justify-center font-black text-xl rounded-full ${getPositionColor(index + 1)}`}>
                 {index < 3 ? <Medal className="w-6 h-6" /> : `#${index + 1}`}
               </div>
@@ -84,6 +204,121 @@ export default function Ranking() {
           Aún no hay suficientes datos para generar el ranking.
         </div>
       )}
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
+      {/* Import Modal */}
+      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+        <DialogContent className="glass-card sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Importar Estadísticas (JSON)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <p className="text-xs text-muted-foreground">
+              Formato esperado: <code className="bg-muted px-1 rounded">{"{ \"jugadores\": [{ \"nombre\", \"victorias\", \"derrotas\", \"racha\"? }] }"}</code>
+            </p>
+
+            {/* File selector */}
+            <div
+              className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/60 hover:bg-white/5 transition-all"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {importFile ? (
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <span className="font-medium">{importFile.name}</span>
+                </div>
+              ) : (
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <Upload className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                  <p>Haz clic para seleccionar un archivo .json</p>
+                </div>
+              )}
+            </div>
+
+            {importParseError && (
+              <div className="flex items-start gap-2 bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{importParseError}</span>
+              </div>
+            )}
+
+            {importParsed && !importParseError && (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-sm">
+                <div className="flex items-center gap-2 text-green-400 font-medium mb-1">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Archivo válido
+                </div>
+                <p className="text-muted-foreground">
+                  {importParsed.jugadores.length} jugador{importParsed.jugadores.length !== 1 ? "es" : ""} para actualizar.
+                </p>
+              </div>
+            )}
+
+            {importResult && (
+              <div className={`rounded-lg p-3 text-sm border ${importResult.updated > 0 ? "bg-green-500/10 border-green-500/30" : "bg-muted border-border"}`}>
+                <p className="font-medium mb-1">
+                  {importResult.updated > 0 ? "✅ Estadísticas actualizadas" : "Sin cambios"}
+                </p>
+                <ul className="text-muted-foreground space-y-0.5">
+                  <li>✔ Actualizados: <span className="text-foreground font-semibold">{importResult.updated}</span></li>
+                  {importResult.notFound > 0 && (
+                    <li>⚠ No encontrados: <span className="text-foreground font-semibold">{importResult.notFound}</span></li>
+                  )}
+                </ul>
+                {importResult.errors.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-destructive text-xs">
+                    {importResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {!importResult && (
+              <div className="grid gap-2 pt-2 border-t border-border">
+                <Label>Código de Admin</Label>
+                <Input
+                  type="password"
+                  value={importAdminCode}
+                  onChange={(e) => setImportAdminCode(e.target.value)}
+                  placeholder="••••••"
+                  className="bg-background"
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsImportOpen(false)} className="flex-1">
+              {importResult ? "Cerrar" : "Cancelar"}
+            </Button>
+            {!importResult && (
+              <Button
+                onClick={handleImport}
+                disabled={!importParsed || !importAdminCode || isImporting || !!importParseError}
+                className="flex-1"
+              >
+                {isImporting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />Importando...</>
+                ) : (
+                  "Importar"
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
