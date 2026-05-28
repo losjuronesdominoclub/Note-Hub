@@ -173,7 +173,7 @@ export default function Dashboard() {
                     <h3 className="text-2xl font-bold">{stats.topPlayer.name}</h3>
                     <div className="flex items-center justify-center gap-3 mt-2">
                       <span className="text-sm bg-green-500/20 text-green-500 px-2 py-0.5 rounded font-medium">{stats.topPlayer.wins} Victorias</span>
-                      <span className="text-sm bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded font-medium">{stats.topPlayer.winRate}% WR</span>
+                      <span className="text-sm bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded font-medium">{Number(stats.topPlayer.winRate).toFixed(2)}% WR</span>
                     </div>
                   </div>
                   <Button variant="outline" className="mt-4 rounded-full" asChild>

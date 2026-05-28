@@ -66,7 +66,7 @@ export default function Ranking() {
               </div>
 
               <div className="text-right pl-4 border-l border-border">
-                <div className="text-2xl font-black text-primary">{item.player.winRate}%</div>
+                <div className="text-2xl font-black text-primary">{Number(item.player.winRate).toFixed(2)}%</div>
                 <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Win Rate</div>
               </div>
             </motion.div>
