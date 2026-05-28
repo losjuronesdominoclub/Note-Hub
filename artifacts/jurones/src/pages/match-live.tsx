@@ -378,6 +378,8 @@ export default function MatchLive() {
                         <div className="flex gap-2">
                           <Input 
                             type="number" 
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             placeholder="Pts" 
                             className="w-16 h-8 text-center"
                             value={pointsInput[player.id] || ""}
@@ -432,6 +434,8 @@ export default function MatchLive() {
                         <div className="flex gap-2">
                           <Input 
                             type="number" 
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             placeholder="Pts" 
                             className="w-16 h-8 text-center"
                             value={pointsInput[player.id] || ""}
