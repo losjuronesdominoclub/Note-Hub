@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram } from "lucide-react";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,17 @@ export default function Dashboard() {
       {/* ── Header + Nueva Partida ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <a
+              href="https://www.instagram.com/losjuronesdominoclub/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-pink-500 transition-colors group"
+            >
+              <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
+            </a>
+          </div>
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>
         <Link href="/match/new">

@@ -77,18 +77,6 @@ export default function Home() {
           </Link>
         </motion.div>
 
-        <motion.a
-          href="https://www.instagram.com/losjuronesdominoclub/"
-          target="_blank"
-          rel="noopener noreferrer"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8 }}
-          className="flex items-center gap-2 text-muted-foreground hover:text-pink-500 transition-colors group"
-        >
-          <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
-          <span className="text-sm font-medium">@losjuronesdominoclub</span>
-        </motion.a>
       </motion.div>
     </div>
   );
