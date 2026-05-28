@@ -340,17 +340,24 @@ export default function MatchNew() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <span className="text-sm text-muted-foreground">{survivorChallengers.length}/2 retadores</span>
+                </div>
+                <motion.div
+                  className="fixed bottom-8 right-8 z-50"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: survivorReady ? 1 : 0.85, opacity: survivorReady ? 1 : 0.4 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                >
                   <Button
-                    size="lg"
+                    size="icon"
                     onClick={handleStartMatch}
                     disabled={!survivorReady || createMatch.isPending}
-                    className={`text-white rounded-full px-8 ${challengerColor === "blue" ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"}`}
+                    className={`h-16 w-16 rounded-full text-white shadow-2xl disabled:pointer-events-none ${challengerColor === "blue" ? "bg-blue-600 hover:bg-blue-500 shadow-blue-900/50" : "bg-red-600 hover:bg-red-500 shadow-red-900/50"}`}
                   >
-                    {createMatch.isPending ? "Iniciando..." : "¡A jugar!"} <Play className="ml-2 h-5 w-5 fill-current" />
+                    {createMatch.isPending ? <span className="text-xs font-bold">...</span> : <Play className="h-7 w-7 fill-current" />}
                   </Button>
-                </div>
+                </motion.div>
               </>
             )}
 
@@ -527,17 +534,24 @@ export default function MatchNew() {
                     })}
                   </div>
                 )}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <span className="text-sm text-muted-foreground">{largos.length}/2 seleccionados</span>
+                </div>
+                <motion.div
+                  className="fixed bottom-8 right-8 z-50"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: largos.length === 2 ? 1 : 0.85, opacity: largos.length === 2 ? 1 : 0.4 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                >
                   <Button
-                    size="lg"
+                    size="icon"
                     onClick={handleStartMatch}
                     disabled={largos.length !== 2 || createMatch.isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8"
+                    className="h-16 w-16 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-2xl shadow-blue-900/50 disabled:pointer-events-none"
                   >
-                    {createMatch.isPending ? "Iniciando..." : "Comenzar Partida"} <Play className="ml-2 h-5 w-5 fill-current" />
+                    {createMatch.isPending ? <span className="text-xs font-bold">...</span> : <Play className="h-7 w-7 fill-current" />}
                   </Button>
-                </div>
+                </motion.div>
               </motion.div>
             )}
           </motion.div>
