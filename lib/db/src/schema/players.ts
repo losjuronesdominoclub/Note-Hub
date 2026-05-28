@@ -11,6 +11,7 @@ export const playersTable = pgTable("players", {
   totalPoints: integer("total_points").notNull().default(0),
   winRate: real("win_rate").notNull().default(0),
   currentStreak: integer("current_streak").notNull().default(0),
+  extraLisas: integer("extra_lisas").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -1,12 +1,14 @@
 import { Router, type IRouter } from "express";
 import { and, eq, or } from "drizzle-orm";
 import { db, matchesTable, matchPlayersTable, playersTable } from "@workspace/db";
+import { z } from "zod";
 
 const router: IRouter = Router();
 
-// GET /lisas — ranking of players by number of "lisa" wins (200-0)
+const ADMIN_CODE = "110880";
+
+// GET /lisas — ranking of players by number of "lisa" wins (200-0) + manually imported lisas
 router.get("/lisas", async (req, res): Promise<void> => {
-  // Find all finished matches where one team scored 200 and the other 0
   const lisaMatches = await db
     .select()
     .from(matchesTable)
@@ -20,7 +22,6 @@ router.get("/lisas", async (req, res): Promise<void> => {
       )
     );
 
-  // Count lisas per player (only winning team)
   const lisaCountMap: Record<number, number> = {};
 
   for (const match of lisaMatches) {
@@ -35,25 +36,78 @@ router.get("/lisas", async (req, res): Promise<void> => {
     }
   }
 
-  if (Object.keys(lisaCountMap).length === 0) {
+  // Fetch all players and merge extraLisas
+  const allPlayers = await db.select().from(playersTable);
+  const playerMap = new Map(allPlayers.map((p) => [p.id, p]));
+
+  // Combine computed + manual lisas
+  const combinedMap: Record<number, number> = {};
+  for (const p of allPlayers) {
+    const computed = lisaCountMap[p.id] ?? 0;
+    const extra = p.extraLisas ?? 0;
+    if (computed + extra > 0) {
+      combinedMap[p.id] = computed + extra;
+    }
+  }
+
+  if (Object.keys(combinedMap).length === 0) {
     res.json([]);
     return;
   }
 
-  // Fetch player info for all players with lisas
-  const playerIds = Object.keys(lisaCountMap).map(Number);
-  const allPlayers = await db.select().from(playersTable);
-  const playerMap = new Map(allPlayers.map((p) => [p.id, p]));
-
-  const ranking = playerIds
+  const ranking = Object.keys(combinedMap)
+    .map(Number)
     .filter((id) => playerMap.has(id))
     .map((id) => ({
       player: playerMap.get(id)!,
-      lisas: lisaCountMap[id],
+      lisas: combinedMap[id],
     }))
     .sort((a, b) => b.lisas - a.lisas || a.player.name.localeCompare(b.player.name));
 
   res.json(ranking);
+});
+
+// POST /lisas/import — import lisas ranking (admin only)
+const importSchema = z.object({
+  adminCode: z.string(),
+  data: z.array(
+    z.object({
+      playerName: z.string(),
+      lisas: z.number().int().min(0),
+    })
+  ),
+});
+
+router.post("/lisas/import", async (req, res): Promise<void> => {
+  const parsed = importSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Formato inválido" });
+    return;
+  }
+  if (parsed.data.adminCode !== ADMIN_CODE) {
+    res.status(403).json({ error: "Código de administrador incorrecto" });
+    return;
+  }
+
+  const allPlayers = await db.select().from(playersTable);
+  const playerByName = new Map(allPlayers.map((p) => [p.name.toLowerCase(), p]));
+
+  const results: { name: string; status: string }[] = [];
+
+  for (const entry of parsed.data.data) {
+    const player = playerByName.get(entry.playerName.toLowerCase());
+    if (!player) {
+      results.push({ name: entry.playerName, status: "no encontrado" });
+      continue;
+    }
+    await db
+      .update(playersTable)
+      .set({ extraLisas: entry.lisas })
+      .where(eq(playersTable.id, player.id));
+    results.push({ name: entry.playerName, status: "actualizado" });
+  }
+
+  res.json({ ok: true, results });
 });
 
 export default router;
