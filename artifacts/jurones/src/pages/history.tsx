@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, Download, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function History() {
@@ -160,6 +160,37 @@ export default function History() {
     setIsImportOpen(true);
   };
 
+  const handleExport = () => {
+    if (!matches || matches.length === 0) return;
+    const partidas = matches.map((match: any) => {
+      const cortos = (match.players ?? []).filter((p: any) => p.team === "cortos");
+      const largos = (match.players ?? []).filter((p: any) => p.team === "largos");
+      const date = new Date(match.finishedAt || match.createdAt);
+      const fecha = date.toISOString().slice(0, 10);
+      const hora = date.toTimeString().slice(0, 5);
+      return {
+        fecha,
+        hora,
+        equipo1: {
+          jugadores: cortos.map((p: any) => p.player?.name ?? p.playerName ?? ""),
+          puntos: match.shortosScore,
+        },
+        equipo2: {
+          jugadores: largos.map((p: any) => p.player?.name ?? p.playerName ?? ""),
+          puntos: match.largosScore,
+        },
+      };
+    });
+    const blob = new Blob([JSON.stringify({ partidas }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `jurones_partidas_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exportado", description: `${partidas.length} partidas descargadas como JSON.` });
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-8 flex-wrap">
@@ -172,10 +203,21 @@ export default function History() {
             <p className="text-muted-foreground">Historial de partidas finalizadas.</p>
           </div>
         </div>
-        <Button onClick={openImport} variant="outline" className="flex items-center gap-2 border-primary/40 hover:border-primary">
-          <Upload className="h-4 w-4" />
-          Importar JSON
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            disabled={!matches || matches.length === 0}
+            className="flex items-center gap-2 border-border hover:border-primary"
+          >
+            <Download className="h-4 w-4" />
+            Exportar JSON
+          </Button>
+          <Button onClick={openImport} variant="outline" className="flex items-center gap-2 border-primary/40 hover:border-primary">
+            <Upload className="h-4 w-4" />
+            Importar JSON
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
