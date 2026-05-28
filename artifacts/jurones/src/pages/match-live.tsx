@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { useGetMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
+import { useGetMatch, useCreateMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound, Clock } from "lucide-react";
+import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
@@ -37,6 +37,7 @@ export default function MatchLive() {
   const { data: match, isLoading } = useGetMatch(matchId, {
     query: { refetchInterval: 3000 }
   });
+  const createMatch = useCreateMatch();
 
   const [pointsInput, setPointsInput] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -190,8 +191,20 @@ export default function MatchLive() {
 
   const cortosPlayers = match.players.filter(p => p.team === "cortos");
   const largosPlayers = match.players.filter(p => p.team === "largos");
-  
+
   const isFinished = match.status === "finished";
+
+  const handleRepeat = () => {
+    const cortosIds = cortosPlayers.map(({ player }) => player.id);
+    const largosIds = largosPlayers.map(({ player }) => player.id);
+    createMatch.mutate(
+      { data: { cortos: cortosIds, largos: largosIds } },
+      {
+        onSuccess: (newMatch) => setLocation(`/match/${newMatch.id}`),
+        onError: () => toast({ variant: "destructive", title: "Error", description: "No se pudo crear la partida." }),
+      }
+    );
+  };
   const isLisa = isFinished && (match.shortosScore === 0 || match.largosScore === 0);
 
   return (
@@ -311,6 +324,33 @@ export default function MatchLive() {
                 <div className="text-6xl text-gradient">¡LISA!</div>
               </motion.div>
             )}
+
+            {/* Post-match action buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="relative z-10 flex flex-col sm:flex-row gap-3 mt-8 justify-center"
+            >
+              <Button
+                size="lg"
+                onClick={handleRepeat}
+                disabled={createMatch.isPending}
+                className="rounded-full px-8 font-bold bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/40 gap-2"
+              >
+                <RefreshCw className="h-5 w-5" />
+                {createMatch.isPending ? "Creando..." : "Repetir"}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setLocation("/match/new")}
+                className="rounded-full px-8 font-bold gap-2"
+              >
+                <Users className="h-5 w-5" />
+                Seleccionar jugadores
+              </Button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
