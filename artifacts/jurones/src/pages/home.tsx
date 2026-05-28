@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, ChevronRight } from "lucide-react";
+import { Play, Users, Trophy, ChevronRight, Instagram } from "lucide-react";
 import logoPath from "@assets/logo_1779907396869.png";
 import { useGetDashboardStats } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,19 @@ export default function Home() {
             </Button>
           </Link>
         </motion.div>
+
+        <motion.a
+          href="https://www.instagram.com/losjuronesdominoclub/"
+          target="_blank"
+          rel="noopener noreferrer"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.8 }}
+          className="flex items-center gap-2 text-muted-foreground hover:text-pink-500 transition-colors group"
+        >
+          <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
+          <span className="text-sm font-medium">@losjuronesdominoclub</span>
+        </motion.a>
       </motion.div>
     </div>
   );
