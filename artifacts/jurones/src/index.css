@@ -161,6 +161,30 @@
   @apply bg-card/80 backdrop-blur-md border border-card-border shadow-lg;
 }
 
+@property --ga {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-border {
+  to { --ga: 360deg; }
+}
+
+.animated-border-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 2px;
+  background: conic-gradient(from var(--ga), #6841ea, aqua, #6841ea);
+  animation: spin-border 3s linear infinite;
+}
+
+.animated-border-card-inner {
+  @apply bg-card/90 backdrop-blur-md shadow-lg;
+  border-radius: 14px;
+  height: 100%;
+}
+
 .cortos-gradient {
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, transparent 100%);
 }

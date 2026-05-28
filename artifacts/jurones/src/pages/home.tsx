@@ -45,13 +45,17 @@ export default function Home() {
           transition={{ delay: 0.4 }}
           className="flex flex-wrap justify-center gap-4 w-full"
         >
-          <div className="glass-card px-6 py-4 rounded-2xl flex flex-col items-center min-w-[140px]">
-            <span className="text-3xl font-bold">{stats?.activeMatches || 0}</span>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Partidas Live</span>
+          <div className="animated-border-card min-w-[140px]">
+            <div className="animated-border-card-inner px-6 py-4 flex flex-col items-center">
+              <span className="text-3xl font-bold">{stats?.activeMatches || 0}</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Partidas Live</span>
+            </div>
           </div>
-          <div className="glass-card px-6 py-4 rounded-2xl flex flex-col items-center min-w-[140px]">
-            <span className="text-3xl font-bold">{stats?.totalPlayers || 0}</span>
-            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Jugadores</span>
+          <div className="animated-border-card min-w-[140px]">
+            <div className="animated-border-card-inner px-6 py-4 flex flex-col items-center">
+              <span className="text-3xl font-bold">{stats?.totalPlayers || 0}</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Jugadores</span>
+            </div>
           </div>
         </motion.div>
 
