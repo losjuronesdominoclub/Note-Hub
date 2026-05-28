@@ -66,6 +66,7 @@ export const ListPlayersResponseItem = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 export const ListPlayersResponse = zod.array(ListPlayersResponseItem)
@@ -99,6 +100,7 @@ export const GetPlayerResponse = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 
@@ -131,6 +133,7 @@ export const UpdatePlayerResponse = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 
@@ -218,6 +221,7 @@ export const GetMatchResponse = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 })),
@@ -310,6 +314,7 @@ export const AddScoreResponse = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 })),
@@ -354,6 +359,7 @@ export const FinishMatchResponse = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 })),
@@ -394,6 +400,7 @@ export const ListHistoryResponseItem = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 })),
@@ -423,6 +430,7 @@ export const GetRankingResponseItem = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 })
 })
@@ -543,6 +551,7 @@ export const GetDashboardStatsResponse = zod.object({
   "totalPoints": zod.number(),
   "winRate": zod.number(),
   "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
   "createdAt": zod.string()
 }).optional()
 })

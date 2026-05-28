@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download } from "lucide-react";
 import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
 import { useUpload } from "@workspace/object-storage-web";
 import { useQueryClient } from "@tanstack/react-query";
@@ -121,6 +121,191 @@ function AvatarPicker({ value, onChange, initials }: AvatarPickerProps) {
   );
 }
 
+interface PlayerCardProps {
+  player: {
+    id: number;
+    name: string;
+    avatarUrl?: string | null;
+    wins: number;
+    losses: number;
+    totalPoints: number;
+    winRate: number;
+    currentStreak: number;
+    extraLisas: number;
+  };
+  open: boolean;
+  onClose: () => void;
+}
+
+function PlayerCardModal({ player, open, onClose }: PlayerCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const [isSharing, setIsSharing] = useState(false);
+
+  const totalGames = player.wins + player.losses;
+  const avgPoints = totalGames > 0 ? Math.round(player.totalPoints / totalGames) : 0;
+  const winRatePct = (Number(player.winRate) * 100).toFixed(0);
+  const initials = player.name.substring(0, 2).toUpperCase();
+
+  const handleShare = async () => {
+    if (!cardRef.current) return;
+    setIsSharing(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(cardRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        backgroundColor: "#0d0d0d",
+        logging: false,
+      });
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("Canvas empty"))),
+          "image/jpeg",
+          0.95
+        );
+      });
+
+      const fileName = `${player.name.replace(/\s+/g, "_")}_card.jpg`;
+      const file = new File([blob], fileName, { type: "image/jpeg" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${player.name} — Los Jurones` });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Descargado", description: `${fileName} guardado.` });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const stats = [
+    { label: "Ganadas",  value: player.wins,      color: "#4ade80" },
+    { label: "Perdidas", value: player.losses,     color: "#f87171" },
+    { label: "Lisas",    value: player.extraLisas, color: "#facc15" },
+    { label: "Promedio", value: avgPoints,          color: "#60a5fa" },
+    { label: "Win Rate", value: `${winRatePct}%`,  color: "#c084fc" },
+    { label: "Puntos",   value: player.totalPoints, color: "#fb923c" },
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="glass-card sm:max-w-[340px] p-5">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Player Card — {player.name}</DialogTitle>
+        </DialogHeader>
+
+        {/* ── Capturable card ── */}
+        <div
+          ref={cardRef}
+          style={{
+            background: "linear-gradient(160deg, #1a0a0a 0%, #0d0d0d 60%)",
+            borderRadius: "16px",
+            overflow: "hidden",
+            fontFamily: "'Inter', system-ui, sans-serif",
+          }}
+        >
+          {/* Header bar */}
+          <div style={{ background: "#b91c1c", padding: "8px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ color: "#fff", fontSize: "11px", fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+              Los Jurones
+            </span>
+            <div style={{ display: "flex", gap: "3px" }}>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} style={{ width: "6px", height: "6px", borderRadius: "2px", background: "rgba(255,255,255,0.35)" }} />
+              ))}
+            </div>
+          </div>
+
+          {/* Avatar + name */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px 16px" }}>
+            <div style={{
+              width: "96px", height: "96px", borderRadius: "50%",
+              border: "3px solid #dc2626",
+              overflow: "hidden", background: "#333",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {player.avatarUrl ? (
+                <img
+                  src={avatarSrc(player.avatarUrl)}
+                  alt={player.name}
+                  crossOrigin="anonymous"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span style={{ color: "#fff", fontSize: "32px", fontWeight: 900 }}>{initials}</span>
+              )}
+            </div>
+            <div style={{ color: "#fff", fontSize: "20px", fontWeight: 900, marginTop: "12px", letterSpacing: "-0.02em", textAlign: "center" }}>
+              {player.name}
+            </div>
+            <div style={{ color: "#f87171", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.18em", marginTop: "2px" }}>
+              Domino Club
+            </div>
+          </div>
+
+          {/* Stats grid 3×2 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", margin: "0 12px", background: "rgba(255,255,255,0.06)", borderRadius: "10px", overflow: "hidden" }}>
+            {stats.map(({ label, value, color }) => (
+              <div key={label} style={{ background: "#161616", padding: "10px 4px", textAlign: "center" }}>
+                <div style={{ color, fontSize: "20px", fontWeight: 900, lineHeight: 1 }}>{value}</div>
+                <div style={{ color: "#6b7280", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "3px" }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Racha — full width */}
+          <div style={{ margin: "1px 12px 0", background: "#161616", borderRadius: "0 0 10px 10px", padding: "10px 4px", textAlign: "center" }}>
+            <div style={{ color: "#fdba74", fontSize: "20px", fontWeight: 900, lineHeight: 1 }}>
+              {player.currentStreak}
+            </div>
+            <div style={{ color: "#6b7280", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "3px" }}>Racha</div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ padding: "10px 16px 14px", textAlign: "center" }}>
+            <div style={{ color: "#374151", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.2em" }}>
+              Los Jurones Domino Club
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3 mt-3">
+          <Button variant="outline" className="flex-1 gap-2" onClick={onClose}>
+            <X className="h-4 w-4" /> Cerrar
+          </Button>
+          <Button
+            className="flex-1 gap-2 bg-blue-600 hover:bg-blue-500 text-white"
+            onClick={handleShare}
+            disabled={isSharing}
+          >
+            {isSharing ? (
+              <span className="text-sm">Generando...</span>
+            ) : (
+              <>
+                <Share2 className="h-4 w-4" /> Compartir
+              </>
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Players() {
   const { data: players, isLoading } = useListPlayers();
   const createPlayer = useCreatePlayer();
@@ -133,11 +318,11 @@ export default function Players() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [isCardOpen, setIsCardOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
   const [formData, setFormData] = useState({ name: "", avatarUrl: "" });
 
-  // Stats edit state — two steps: code verification → fields
   const [statsStep, setStatsStep] = useState<"code" | "fields">("code");
   const [statsCode, setStatsCode] = useState("");
   const [statsCodeError, setStatsCodeError] = useState(false);
@@ -195,6 +380,11 @@ export default function Players() {
     setStatsCodeError(false);
     setStatsData({ wins: player.wins ?? 0, losses: player.losses ?? 0 });
     setIsStatsOpen(true);
+  };
+
+  const openCard = (player: any) => {
+    setSelectedPlayer(player);
+    setIsCardOpen(true);
   };
 
   const handleVerifyCode = () => {
@@ -310,19 +500,33 @@ export default function Players() {
                         </Button>
                       </div>
                     </div>
+
                     <div className="mt-4 pt-4 border-t border-border flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Win Rate</span>
                       <span className="font-bold text-primary">{(Number(player.winRate) * 100).toFixed(0)}%</span>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-3 gap-2 text-xs border-border hover:border-primary hover:text-primary"
-                      onClick={() => openStats(player)}
-                    >
-                      <BarChart2 className="h-3.5 w-3.5" />
-                      Editar Estadísticas
-                    </Button>
+
+                    {/* Bottom actions */}
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2 text-xs border-border hover:border-blue-500 hover:text-blue-500"
+                        onClick={() => openCard(player)}
+                      >
+                        <LineChart className="h-3.5 w-3.5" />
+                        Ver Estadísticas
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-xs border-border hover:border-primary hover:text-primary shrink-0"
+                        title="Editar estadísticas"
+                        onClick={() => openStats(player)}
+                      >
+                        <BarChart2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -330,6 +534,15 @@ export default function Players() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Player Card modal */}
+      {selectedPlayer && isCardOpen && (
+        <PlayerCardModal
+          player={selectedPlayer}
+          open={isCardOpen}
+          onClose={() => setIsCardOpen(false)}
+        />
+      )}
 
       {/* Edit dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
