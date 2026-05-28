@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { useListMatches, useUpdateMatch, getListMatchesQueryKey } from "@workspace/api-client-react";
+import { useListHistory, useUpdateMatch, getListHistoryQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, CheckCircle2, Al
 import { useToast } from "@/hooks/use-toast";
 
 export default function History() {
-  const { data: matches, isLoading } = useListMatches({ status: "finished" });
+  const { data: matches, isLoading } = useListHistory();
   const updateMatch = useUpdateMatch();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -57,7 +57,7 @@ export default function History() {
       },
     }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
+        queryClient.invalidateQueries({ queryKey: getListHistoryQueryKey() });
         setIsEditOpen(false);
         toast({ title: "Partida actualizada", description: "Los cambios han sido guardados." });
       },
@@ -75,7 +75,7 @@ export default function History() {
       body: JSON.stringify({ adminCode }),
     }).then(res => {
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
+        queryClient.invalidateQueries({ queryKey: getListHistoryQueryKey() });
         setIsDeleteOpen(false);
         toast({ title: "Partida eliminada", description: "El registro ha sido borrado." });
       } else {
@@ -146,7 +146,7 @@ export default function History() {
     }
 
     setImportResult(data);
-    queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
+    queryClient.invalidateQueries({ queryKey: getListHistoryQueryKey() });
     setIsImporting(false);
   };
 
@@ -190,35 +190,57 @@ export default function History() {
               transition={{ delay: index * 0.05 }}
             >
               <Card className="glass-card group hover:bg-white/5 transition-colors">
-                <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-                  <div className="flex flex-col items-center sm:items-start text-center sm:text-left min-w-[120px]">
-                    <span className="text-sm text-muted-foreground">Partida #{match.matchNumber}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(match.finishedAt || match.createdAt).toLocaleDateString()}</span>
-                  </div>
-
-                  <div className="flex items-center gap-8 flex-1 justify-center">
-                    <div className={`flex flex-col items-center ${match.winnerTeam === "cortos" ? "text-red-500 scale-110 font-bold" : "text-muted-foreground"}`}>
-                      <span className="uppercase text-xs tracking-widest mb-1">Cortos</span>
-                      <span className="text-4xl tabular-nums">{match.shortosScore}</span>
-                      {match.winnerTeam === "cortos" && <Trophy className="h-4 w-4 mt-1" />}
+                <CardContent className="p-5 flex flex-col gap-4">
+                  {/* Header row: match info + actions */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold text-muted-foreground">Partida #{match.matchNumber}</span>
+                      <span className="text-xs text-muted-foreground ml-3">
+                        {new Date(match.finishedAt || match.createdAt).toLocaleDateString("es-DO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </span>
                     </div>
-
-                    <div className="text-muted-foreground font-light text-xl">VS</div>
-
-                    <div className={`flex flex-col items-center ${match.winnerTeam === "largos" ? "text-blue-500 scale-110 font-bold" : "text-muted-foreground"}`}>
-                      <span className="uppercase text-xs tracking-widest mb-1">Largos</span>
-                      <span className="text-4xl tabular-nums">{match.largosScore}</span>
-                      {match.winnerTeam === "largos" && <Trophy className="h-4 w-4 mt-1" />}
+                    <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => openEdit(match)}>
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" onClick={() => openDelete(match)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-2">
-                    <Button variant="ghost" size="icon" className="hover:text-primary" onClick={() => openEdit(match)}>
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="hover:text-destructive" onClick={() => openDelete(match)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  {/* Score row with player names */}
+                  <div className="flex items-stretch gap-3">
+                    {/* Cortos */}
+                    <div className={`flex-1 flex flex-col items-center rounded-xl py-3 px-2 ${match.winnerTeam === "cortos" ? "bg-red-500/10 border border-red-500/30" : "bg-muted/30"}`}>
+                      <span className={`uppercase text-xs tracking-widest mb-1 font-semibold ${match.winnerTeam === "cortos" ? "text-red-400" : "text-muted-foreground"}`}>Cortos</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-3xl font-bold tabular-nums ${match.winnerTeam === "cortos" ? "text-red-400" : "text-muted-foreground"}`}>{match.shortosScore}</span>
+                        {match.winnerTeam === "cortos" && <Trophy className="h-4 w-4 text-red-400" />}
+                      </div>
+                      <div className="mt-2 space-y-0.5 text-center">
+                        {(match as any).players?.filter((p: any) => p.team === "cortos").map((p: any) => (
+                          <p key={p.playerId} className="text-xs text-muted-foreground leading-tight">{p.player?.name ?? p.playerName}</p>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* VS divider */}
+                    <div className="flex items-center text-muted-foreground/50 font-light text-lg self-center">VS</div>
+
+                    {/* Largos */}
+                    <div className={`flex-1 flex flex-col items-center rounded-xl py-3 px-2 ${match.winnerTeam === "largos" ? "bg-blue-500/10 border border-blue-500/30" : "bg-muted/30"}`}>
+                      <span className={`uppercase text-xs tracking-widest mb-1 font-semibold ${match.winnerTeam === "largos" ? "text-blue-400" : "text-muted-foreground"}`}>Largos</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-3xl font-bold tabular-nums ${match.winnerTeam === "largos" ? "text-blue-400" : "text-muted-foreground"}`}>{match.largosScore}</span>
+                        {match.winnerTeam === "largos" && <Trophy className="h-4 w-4 text-blue-400" />}
+                      </div>
+                      <div className="mt-2 space-y-0.5 text-center">
+                        {(match as any).players?.filter((p: any) => p.team === "largos").map((p: any) => (
+                          <p key={p.playerId} className="text-xs text-muted-foreground leading-tight">{p.player?.name ?? p.playerName}</p>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
