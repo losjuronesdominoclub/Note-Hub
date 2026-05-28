@@ -22,13 +22,15 @@ export default function Dashboard() {
   const activeMatch = activeMatches?.[0] ?? null;
 
   const statCards = [
-    { title: "Partidas Activas", value: stats?.activeMatches, icon: Activity, color: "text-green-500", bg: "bg-green-500/10" },
-    { title: "Total Jugadores", value: stats?.totalPlayers, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { title: "Partidas Jugadas", value: stats?.totalGamesPlayed, icon: Play, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { title: "Partidas Activas",  value: stats?.activeMatches,    icon: Activity, color: "text-green-500",  bg: "bg-green-500/10"  },
+    { title: "Total Jugadores",   value: stats?.totalPlayers,      icon: Users,    color: "text-blue-500",   bg: "bg-blue-500/10"   },
+    { title: "Partidas Jugadas",  value: stats?.totalGamesPlayed,  icon: Play,     color: "text-purple-500", bg: "bg-purple-500/10" },
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+
+      {/* ── Header + Nueva Partida ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -41,6 +43,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
+      {/* ── Partida activa banner ── */}
       {activeMatch && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -64,41 +67,83 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {statCards.map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <Card className="glass-card overflow-hidden relative">
-              <div className={`absolute top-0 right-0 p-4 ${stat.color} opacity-20`}>
-                <stat.icon className="w-24 h-24 -mr-8 -mt-8" />
-              </div>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bg}`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                {statsLoading ? (
-                  <Skeleton className="h-8 w-16" />
-                ) : (
-                  <div className="text-4xl font-bold">{stat.value || 0}</div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
+      {/* ── Row 1: Jugador Top (left) + Actividad Reciente (right) ── */}
       <div className="grid gap-6 md:grid-cols-2">
+
+        {/* Jugador Top */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="glass-card h-full bg-gradient-to-br from-card to-primary/5 border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-xl">Jugador Top</CardTitle>
+              <Trophy className="h-5 w-5 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              {statsLoading ? (
+                <div className="flex flex-col items-center gap-4 py-4">
+                  <Skeleton className="h-24 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ) : stats?.topPlayer ? (
+                <div className="flex flex-col items-center text-center gap-4 py-4">
+                  <div className="relative">
+                    <Avatar className="h-28 w-28 border-4 border-yellow-500 shadow-xl shadow-yellow-500/20">
+                      <AvatarImage src={avatarSrc(stats.topPlayer.avatarUrl)} className="object-cover" />
+                      <AvatarFallback className="text-3xl font-bold bg-muted">
+                        {stats.topPlayer.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-3 -right-2 bg-yellow-500 text-yellow-950 p-1.5 rounded-full shadow-lg">
+                      <Medal className="h-6 w-6" />
+                    </div>
+                  </div>
+                  <div className="w-full space-y-3">
+                    <h3 className="text-2xl font-bold">{stats.topPlayer.name}</h3>
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <span className="flex items-center gap-1 text-sm bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full font-semibold">
+                        <Trophy className="h-3.5 w-3.5" /> {stats.topPlayer.wins}V · {stats.topPlayer.losses}D
+                      </span>
+                      <span className="flex items-center gap-1 text-sm bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-full font-semibold">
+                        {(Number(stats.topPlayer.winRate) * 100).toFixed(0)}% WR
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mt-1">
+                      <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl py-3 px-2">
+                        <div className="flex items-center justify-center gap-1.5 text-orange-400">
+                          <Flame className="h-5 w-5" />
+                          <span className="text-2xl font-black">{stats.topPlayer.currentStreak ?? 0}</span>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Racha</p>
+                      </div>
+                      <div className="bg-primary/10 border border-primary/20 rounded-xl py-3 px-2">
+                        <div className="flex items-center justify-center gap-1.5 text-primary">
+                          <Star className="h-5 w-5" />
+                          <span className="text-2xl font-black">{stats.topPlayer.totalPoints ?? 0}</span>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Puntos</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="rounded-full w-full" asChild>
+                    <Link href="/ranking">Ver Ranking Completo</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Aún no hay suficientes datos para el ranking.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Actividad Reciente */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
@@ -124,7 +169,7 @@ export default function Dashboard() {
                 <div className="space-y-6">
                   {activity.slice(0, 5).map((entry, i) => (
                     <div key={i} className="flex items-center gap-4">
-                      <div className={`w-2 h-2 rounded-full ${entry.team === 'cortos' ? 'bg-red-500' : 'bg-blue-500'}`} />
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${entry.team === 'cortos' ? 'bg-red-500' : 'bg-blue-500'}`} />
                       <div className="flex-1 space-y-1">
                         <p className="text-sm font-medium leading-none">
                           <span className="font-bold">{entry.playerName}</span> anotó {entry.points} pts
@@ -147,80 +192,41 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="glass-card h-full bg-gradient-to-br from-card to-primary/5 border-primary/20">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Jugador Top</CardTitle>
-              <Trophy className="h-5 w-5 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              {statsLoading ? (
-                <div className="flex flex-col items-center gap-4 py-4">
-                  <Skeleton className="h-24 w-24 rounded-full" />
-                  <Skeleton className="h-6 w-32" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-              ) : stats?.topPlayer ? (
-                <div className="flex flex-col items-center text-center gap-4 py-4">
-                  <div className="relative">
-                    <Avatar className="h-28 w-28 border-4 border-yellow-500 shadow-xl shadow-yellow-500/20">
-                      <AvatarImage src={avatarSrc(stats.topPlayer.avatarUrl)} className="object-cover" />
-                      <AvatarFallback className="text-3xl font-bold bg-muted">{stats.topPlayer.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-3 -right-2 bg-yellow-500 text-yellow-950 p-1.5 rounded-full shadow-lg">
-                      <Medal className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div className="w-full space-y-3">
-                    <h3 className="text-2xl font-bold">{stats.topPlayer.name}</h3>
-
-                    {/* Stats row */}
-                    <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <span className="flex items-center gap-1 text-sm bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full font-semibold">
-                        <Trophy className="h-3.5 w-3.5" /> {stats.topPlayer.wins}V · {stats.topPlayer.losses}D
-                      </span>
-                      <span className="flex items-center gap-1 text-sm bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-full font-semibold">
-                        {(Number(stats.topPlayer.winRate) * 100).toFixed(0)}% WR
-                      </span>
-                    </div>
-
-                    {/* Streak & points */}
-                    <div className="grid grid-cols-2 gap-3 mt-1">
-                      <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl py-3 px-2">
-                        <div className="flex items-center justify-center gap-1.5 text-orange-400">
-                          <Flame className="h-5 w-5" />
-                          <span className="text-2xl font-black">{stats.topPlayer.currentStreak ?? 0}</span>
-                        </div>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Racha</p>
-                      </div>
-                      <div className="bg-primary/10 border border-primary/20 rounded-xl py-3 px-2">
-                        <div className="flex items-center justify-center gap-1.5 text-primary">
-                          <Star className="h-5 w-5" />
-                          <span className="text-2xl font-black">{stats.topPlayer.totalPoints ?? 0}</span>
-                        </div>
-                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Puntos</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button variant="outline" className="rounded-full w-full" asChild>
-                    <Link href="/ranking">Ver Ranking Completo</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  Aún no hay suficientes datos para el ranking.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
+
+      {/* ── Row 2: Partidas Activas · Total Jugadores · Partidas Jugadas ── */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {statCards.map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 + i * 0.1 }}
+          >
+            <Card className="glass-card overflow-hidden relative">
+              <div className={`absolute top-0 right-0 p-4 ${stat.color} opacity-20`}>
+                <stat.icon className="w-24 h-24 -mr-8 -mt-8" />
+              </div>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-2 rounded-lg ${stat.bg}`}>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                {statsLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div className="text-4xl font-bold">{stat.value || 0}</div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
     </div>
   );
 }
