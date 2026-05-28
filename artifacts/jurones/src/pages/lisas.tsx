@@ -231,69 +231,91 @@ export default function Lisas() {
         </div>
       ) : ranking && ranking.length > 0 ? (
         <div className="space-y-3">
-          {ranking.map((item, index) => (
-            <motion.div
-              key={item.player.id}
-              layout
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05, layout: { type: "spring", stiffness: 300, damping: 30 } }}
-              className={`flex items-center gap-4 p-4 rounded-2xl glass-card relative overflow-hidden ${
-                index < 3 ? "border " + getPositionColor(index).split(" ")[2] : ""
-              }`}
-            >
-              {index === 0 && (
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent pointer-events-none" />
-              )}
+          {ranking.map((item, index) => {
+            const hasLisas = item.lisas > 0;
+            // Rank position only counts players with lisas
+            const lisasRank = ranking.filter(r => r.lisas > 0).indexOf(item);
+            const isFirstZero = !hasLisas && index > 0 && ranking[index - 1].lisas > 0;
 
-              {/* Position badge */}
-              <div className={`w-12 h-12 flex items-center justify-center font-black text-xl rounded-full shrink-0 ${getPositionColor(index)}`}>
-                {index < 3 ? <Medal className="w-6 h-6" /> : `#${index + 1}`}
-              </div>
+            return (
+              <React.Fragment key={item.player.id}>
+                {/* Separator between players with and without lisas */}
+                {isFirstZero && (
+                  <div className="flex items-center gap-3 py-2">
+                    <div className="flex-1 h-px bg-border/40" />
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground/50 font-semibold">Sin lisas</span>
+                    <div className="flex-1 h-px bg-border/40" />
+                  </div>
+                )}
 
-              {/* Avatar */}
-              <Avatar className={`h-14 w-14 border-2 shrink-0 ${index === 0 ? "border-cyan-400" : "border-transparent"}`}>
-                <AvatarImage src={avatarSrc(item.player.avatarUrl)} className="object-cover" />
-                <AvatarFallback className="bg-cyan-500/20 text-cyan-400 font-bold">
-                  {item.player.name.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.04, layout: { type: "spring", stiffness: 300, damping: 30 } }}
+                  className={`flex items-center gap-4 p-4 rounded-2xl glass-card relative overflow-hidden ${
+                    hasLisas && lisasRank < 3
+                      ? "border " + getPositionColor(lisasRank).split(" ")[2]
+                      : hasLisas ? "" : "opacity-50"
+                  }`}
+                >
+                  {hasLisas && lisasRank === 0 && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent pointer-events-none" />
+                  )}
 
-              {/* Name & stats */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {item.player.wins}V · {item.player.losses}D · WR {(Number(item.player.winRate) * 100).toFixed(2)}%
-                </p>
-              </div>
+                  {/* Position badge */}
+                  <div className={`w-12 h-12 flex items-center justify-center font-black text-xl rounded-full shrink-0 ${
+                    hasLisas ? getPositionColor(lisasRank) : "text-muted-foreground/40 bg-muted/30 border-border/20"
+                  }`}>
+                    {hasLisas && lisasRank < 3 ? <Medal className="w-6 h-6" /> : hasLisas ? `#${lisasRank + 1}` : "—"}
+                  </div>
 
-              {/* Lisa count */}
-              <div className="text-right pl-4 border-l border-border shrink-0">
-                <div className="flex items-center justify-end gap-2">
-                  <Fish className="h-5 w-5 text-cyan-400" />
-                  <span className="text-3xl font-black text-cyan-400">{item.lisas}</span>
-                </div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
-                  {item.lisas === 1 ? "Lisa" : "Lisas"}
-                </div>
-              </div>
+                  {/* Avatar */}
+                  <Avatar className={`h-14 w-14 border-2 shrink-0 ${hasLisas && lisasRank === 0 ? "border-cyan-400" : "border-transparent"}`}>
+                    <AvatarImage src={avatarSrc(item.player.avatarUrl)} className="object-cover" />
+                    <AvatarFallback className="bg-cyan-500/20 text-cyan-400 font-bold">
+                      {item.player.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
 
-              {/* Edit button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => openEdit(item)}
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 rounded-full"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </motion.div>
-          ))}
+                  {/* Name & stats */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {item.player.wins}V · {item.player.losses}D · WR {(Number(item.player.winRate) * 100).toFixed(2)}%
+                    </p>
+                  </div>
+
+                  {/* Lisa count */}
+                  <div className={`text-right pl-4 border-l border-border shrink-0 ${!hasLisas ? "opacity-40" : ""}`}>
+                    <div className="flex items-center justify-end gap-2">
+                      <Fish className={`h-5 w-5 ${hasLisas ? "text-cyan-400" : "text-muted-foreground"}`} />
+                      <span className={`text-3xl font-black ${hasLisas ? "text-cyan-400" : "text-muted-foreground"}`}>{item.lisas}</span>
+                    </div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                      {item.lisas === 1 ? "Lisa" : "Lisas"}
+                    </div>
+                  </div>
+
+                  {/* Edit button — siempre visible */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEdit(item)}
+                    className="shrink-0 gap-1.5 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full h-8 px-3"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Editar
+                  </Button>
+                </motion.div>
+              </React.Fragment>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-20 text-muted-foreground glass-card rounded-2xl flex flex-col items-center gap-4">
           <Fish className="w-12 h-12 opacity-30" />
-          <p>Aún no hay partidas 200–0 registradas.</p>
+          <p>No hay jugadores registrados.</p>
         </div>
       )}
 

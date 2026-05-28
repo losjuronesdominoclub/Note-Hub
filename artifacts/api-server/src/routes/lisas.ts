@@ -40,27 +40,11 @@ router.get("/lisas", async (req, res): Promise<void> => {
   const allPlayers = await db.select().from(playersTable);
   const playerMap = new Map(allPlayers.map((p) => [p.id, p]));
 
-  // Combine computed + manual lisas
-  const combinedMap: Record<number, number> = {};
-  for (const p of allPlayers) {
-    const computed = lisaCountMap[p.id] ?? 0;
-    const extra = p.extraLisas ?? 0;
-    if (computed + extra > 0) {
-      combinedMap[p.id] = computed + extra;
-    }
-  }
-
-  if (Object.keys(combinedMap).length === 0) {
-    res.json([]);
-    return;
-  }
-
-  const ranking = Object.keys(combinedMap)
-    .map(Number)
-    .filter((id) => playerMap.has(id))
-    .map((id) => ({
-      player: playerMap.get(id)!,
-      lisas: combinedMap[id],
+  // Return ALL players with their combined lisa count (0 if none)
+  const ranking = allPlayers
+    .map((p) => ({
+      player: p,
+      lisas: (lisaCountMap[p.id] ?? 0) + (p.extraLisas ?? 0),
     }))
     .sort((a, b) => b.lisas - a.lisas || a.player.name.localeCompare(b.player.name));
 
