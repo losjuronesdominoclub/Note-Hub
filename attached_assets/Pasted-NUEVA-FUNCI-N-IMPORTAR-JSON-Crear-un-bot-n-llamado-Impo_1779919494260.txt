@@ -1,0 +1,131 @@
+NUEVA FUNCIÓN — IMPORTAR JSON
+
+Crear un botón llamado:
+
+✅ “Importar JSON”
+
+Este botón permitirá subir archivos .json con múltiples partidas antiguas para integrarlas automáticamente a la base de datos actual.
+
+FORMATO DEL JSON
+{
+  "partidas": [
+    {
+      "fecha": "2026-05-16",
+      "hora": "17:37",
+      "equipo1": {
+        "jugador1": "Alberto G",
+        "jugador2": "Emilio DJ",
+        "puntos": 202
+      },
+      "equipo2": {
+        "jugador1": "Amaurys M",
+        "jugador2": "Angel Mateo",
+        "puntos": 192
+      },
+      "ganador": "equipo1",
+      "lisa": false
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "17:56",
+      "equipo1": {
+        "jugador1": "Alberto G",
+        "jugador2": "Emilio DJ",
+        "puntos": 201
+      },
+      "equipo2": {
+        "jugador1": "Bryan",
+        "jugador2": "Obispo J",
+        "puntos": 61
+      },
+      "ganador": "equipo1",
+      "lisa": false
+    }
+  ]
+}
+COMPORTAMIENTO
+Leer automáticamente el archivo JSON
+Validar estructura y formato
+Integrar las partidas antiguas a la base de datos
+Evitar partidas duplicadas
+Crear automáticamente jugadores que no existan
+Recalcular automáticamente:
+ranking
+victorias
+derrotas
+lisas
+lisas recibidas
+estadísticas
+historial
+scouting report
+timeline
+Mantener orden cronológico
+Compatible con localStorage o la base de datos actual
+Mostrar mensajes:
+✅ “Partidas importadas correctamente”
+❌ “Formato JSON inválido”
+MODULO JUGADORES
+BOTÓN EDITAR
+
+Agregar un botón:
+
+✏️ “Editar”
+
+en cada jugador.
+
+SEGURIDAD
+
+Antes de editar:
+
+Solicitar código secreto
+
+Código válido:
+
+110880
+
+Si el código es incorrecto:
+
+Mostrar:
+❌ “Código incorrecto”
+
+Si es correcto:
+
+Abrir modal o panel de edición
+CAMPOS EDITABLES
+
+Permitir editar manualmente:
+
+Victorias
+Derrotas
+COMPORTAMIENTO
+
+Al guardar cambios:
+
+Actualizar automáticamente:
+ranking
+estadísticas
+historial de partidas
+scouting report
+winrate
+Recalcular todos los datos relacionados
+Refrescar la interfaz en tiempo real
+Guardar permanentemente los cambios
+MOSTRAR FOTO / AVATAR DE JUGADORES
+NUEVA PARTIDA
+
+Mostrar la foto/avatar del jugador durante la selección de jugadores en la creación de nueva partida.
+
+REQUISITOS
+Mostrar avatar circular
+Resaltar jugador seleccionado
+
+MODULO RANKING
+
+Mostrar foto/avatar de cada jugador dentro del ranking.
+
+REQUISITOS
+Avatar visible junto al nombre
+
+REQUISITOS GENERALES
+Mantener diseño actual de la app
+No romper funcionalidades existentes

@@ -1,19 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { useListMatches, useUpdateMatch, useDeleteMatch, getListMatchesQueryKey } from "@workspace/api-client-react";
+import { useListMatches, useUpdateMatch, getListMatchesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { History as HistoryIcon, Edit2, Trash2, Trophy } from "lucide-react";
+import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function History() {
   const { data: matches, isLoading } = useListMatches({ status: "finished" });
   const updateMatch = useUpdateMatch();
-  const deleteMatch = useDeleteMatch();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -22,6 +21,16 @@ export default function History() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [adminCode, setAdminCode] = useState("");
   const [formData, setFormData] = useState({ shortosScore: 0, largosScore: 0 });
+
+  // Import JSON state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importAdminCode, setImportAdminCode] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importParsed, setImportParsed] = useState<any>(null);
+  const [importParseError, setImportParseError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null);
 
   const openEdit = (match: any) => {
     setSelectedMatch(match);
@@ -38,14 +47,14 @@ export default function History() {
 
   const handleEdit = () => {
     if (!selectedMatch || !adminCode) return;
-    updateMatch.mutate({ 
-      id: selectedMatch.id, 
-      data: { 
+    updateMatch.mutate({
+      id: selectedMatch.id,
+      data: {
         adminCode,
         shortosScore: formData.shortosScore,
         largosScore: formData.largosScore,
-        winnerTeam: formData.shortosScore >= 200 ? 'cortos' : formData.largosScore >= 200 ? 'largos' : selectedMatch.winnerTeam
-      } 
+        winnerTeam: formData.shortosScore >= 200 ? "cortos" : formData.largosScore >= 200 ? "largos" : selectedMatch.winnerTeam,
+      },
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
@@ -54,17 +63,16 @@ export default function History() {
       },
       onError: () => {
         toast({ title: "Error", description: "Código de administrador inválido o error al guardar.", variant: "destructive" });
-      }
+      },
     });
   };
 
   const handleDelete = () => {
     if (!selectedMatch || !adminCode) return;
-    // Assuming backend delete endpoint accepts adminCode in body
     fetch(`/api/matches/${selectedMatch.id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminCode })
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ adminCode }),
     }).then(res => {
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
@@ -76,16 +84,85 @@ export default function History() {
     });
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFile(file);
+    setImportParseError(null);
+    setImportParsed(null);
+    setImportResult(null);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string);
+        if (!json.partidas || !Array.isArray(json.partidas)) {
+          setImportParseError('El JSON debe tener un campo "partidas" como lista.');
+          return;
+        }
+        setImportParsed(json);
+      } catch {
+        setImportParseError("Formato JSON inválido. Verifica la estructura del archivo.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImport = async () => {
+    if (!importParsed || !importAdminCode) return;
+    setIsImporting(true);
+    setImportResult(null);
+    try {
+      const res = await fetch("/api/matches/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode: importAdminCode, partidas: importParsed.partidas }),
+      });
+      const data = await res.json();
+      if (res.status === 403) {
+        toast({ title: "Error", description: "Código de administrador inválido.", variant: "destructive" });
+        setIsImporting(false);
+        return;
+      }
+      if (!res.ok) {
+        toast({ title: "Formato JSON inválido", description: data.error ?? "Error desconocido.", variant: "destructive" });
+        setIsImporting(false);
+        return;
+      }
+      setImportResult(data);
+      queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
+    } catch {
+      toast({ title: "Error de red", description: "No se pudo conectar con el servidor.", variant: "destructive" });
+    }
+    setIsImporting(false);
+  };
+
+  const openImport = () => {
+    setImportFile(null);
+    setImportParsed(null);
+    setImportParseError(null);
+    setImportAdminCode("");
+    setImportResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setIsImportOpen(true);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 bg-muted rounded-full">
-          <HistoryIcon className="h-6 w-6 text-foreground" />
+      <div className="flex items-center justify-between gap-3 mb-8 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-muted rounded-full">
+            <HistoryIcon className="h-6 w-6 text-foreground" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Records</h1>
+            <p className="text-muted-foreground">Historial de partidas finalizadas.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Records</h1>
-          <p className="text-muted-foreground">Historial de partidas finalizadas.</p>
-        </div>
+        <Button onClick={openImport} variant="outline" className="flex items-center gap-2 border-primary/40 hover:border-primary">
+          <Upload className="h-4 w-4" />
+          Importar JSON
+        </Button>
       </div>
 
       {isLoading ? (
@@ -107,18 +184,18 @@ export default function History() {
                   </div>
 
                   <div className="flex items-center gap-8 flex-1 justify-center">
-                    <div className={`flex flex-col items-center ${match.winnerTeam === 'cortos' ? 'text-red-500 scale-110 font-bold' : 'text-muted-foreground'}`}>
+                    <div className={`flex flex-col items-center ${match.winnerTeam === "cortos" ? "text-red-500 scale-110 font-bold" : "text-muted-foreground"}`}>
                       <span className="uppercase text-xs tracking-widest mb-1">Cortos</span>
                       <span className="text-4xl tabular-nums">{match.shortosScore}</span>
-                      {match.winnerTeam === 'cortos' && <Trophy className="h-4 w-4 mt-1" />}
+                      {match.winnerTeam === "cortos" && <Trophy className="h-4 w-4 mt-1" />}
                     </div>
-                    
+
                     <div className="text-muted-foreground font-light text-xl">VS</div>
 
-                    <div className={`flex flex-col items-center ${match.winnerTeam === 'largos' ? 'text-blue-500 scale-110 font-bold' : 'text-muted-foreground'}`}>
+                    <div className={`flex flex-col items-center ${match.winnerTeam === "largos" ? "text-blue-500 scale-110 font-bold" : "text-muted-foreground"}`}>
                       <span className="uppercase text-xs tracking-widest mb-1">Largos</span>
                       <span className="text-4xl tabular-nums">{match.largosScore}</span>
-                      {match.winnerTeam === 'largos' && <Trophy className="h-4 w-4 mt-1" />}
+                      {match.winnerTeam === "largos" && <Trophy className="h-4 w-4 mt-1" />}
                     </div>
                   </div>
 
@@ -151,28 +228,28 @@ export default function History() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label className="text-red-500">Puntos Cortos</Label>
-                <Input 
-                  type="number" 
-                  value={formData.shortosScore} 
-                  onChange={e => setFormData({...formData, shortosScore: parseInt(e.target.value) || 0})}
+                <Input
+                  type="number"
+                  value={formData.shortosScore}
+                  onChange={e => setFormData({ ...formData, shortosScore: parseInt(e.target.value) || 0 })}
                   className="bg-background text-center text-xl"
                 />
               </div>
               <div className="grid gap-2">
                 <Label className="text-blue-500">Puntos Largos</Label>
-                <Input 
-                  type="number" 
-                  value={formData.largosScore} 
-                  onChange={e => setFormData({...formData, largosScore: parseInt(e.target.value) || 0})}
+                <Input
+                  type="number"
+                  value={formData.largosScore}
+                  onChange={e => setFormData({ ...formData, largosScore: parseInt(e.target.value) || 0 })}
                   className="bg-background text-center text-xl"
                 />
               </div>
             </div>
             <div className="grid gap-2 mt-4 pt-4 border-t border-border">
               <Label>Código de Admin</Label>
-              <Input 
-                type="password" 
-                value={adminCode} 
+              <Input
+                type="password"
+                value={adminCode}
                 onChange={e => setAdminCode(e.target.value)}
                 placeholder="******"
                 className="bg-background"
@@ -197,9 +274,9 @@ export default function History() {
             <p className="text-muted-foreground text-sm">Esta acción eliminará el registro permanentemente. Ingresa el código de admin para confirmar.</p>
             <div className="grid gap-2">
               <Label>Código de Admin</Label>
-              <Input 
-                type="password" 
-                value={adminCode} 
+              <Input
+                type="password"
+                value={adminCode}
                 onChange={e => setAdminCode(e.target.value)}
                 placeholder="******"
                 className="bg-background"
@@ -211,6 +288,120 @@ export default function History() {
             <Button variant="destructive" onClick={handleDelete} disabled={!adminCode} className="flex-1">
               Eliminar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import JSON Modal */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+        <DialogContent className="glass-card sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Importar Partidas (JSON)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* File selector */}
+            <div
+              className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/60 hover:bg-white/5 transition-all"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {importFile ? (
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <span className="font-medium">{importFile.name}</span>
+                </div>
+              ) : (
+                <div className="text-muted-foreground text-sm space-y-1">
+                  <Upload className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                  <p>Haz clic para seleccionar un archivo .json</p>
+                </div>
+              )}
+            </div>
+
+            {/* Parse error */}
+            {importParseError && (
+              <div className="flex items-start gap-2 bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{importParseError}</span>
+              </div>
+            )}
+
+            {/* Parsed preview */}
+            {importParsed && !importParseError && (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-sm">
+                <div className="flex items-center gap-2 text-green-400 font-medium mb-1">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Archivo válido
+                </div>
+                <p className="text-muted-foreground">
+                  {importParsed.partidas.length} partida{importParsed.partidas.length !== 1 ? "s" : ""} detectada{importParsed.partidas.length !== 1 ? "s" : ""} para importar.
+                </p>
+              </div>
+            )}
+
+            {/* Import result */}
+            {importResult && (
+              <div className={`rounded-lg p-3 text-sm border ${importResult.imported > 0 ? "bg-green-500/10 border-green-500/30" : "bg-muted border-border"}`}>
+                <p className="font-medium mb-1">
+                  {importResult.imported > 0 ? "✅ Partidas importadas correctamente" : "Sin cambios"}
+                </p>
+                <ul className="text-muted-foreground space-y-0.5">
+                  <li>✔ Importadas: <span className="text-foreground font-semibold">{importResult.imported}</span></li>
+                  <li>⟳ Omitidas (duplicadas): <span className="text-foreground font-semibold">{importResult.skipped}</span></li>
+                  {importResult.errors.length > 0 && (
+                    <li className="text-destructive">⚠ Errores: {importResult.errors.length}</li>
+                  )}
+                </ul>
+                {importResult.errors.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-destructive text-xs">
+                    {importResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* Admin code */}
+            {!importResult && (
+              <div className="grid gap-2 pt-2 border-t border-border">
+                <Label>Código de Admin</Label>
+                <Input
+                  type="password"
+                  value={importAdminCode}
+                  onChange={e => setImportAdminCode(e.target.value)}
+                  placeholder="******"
+                  className="bg-background"
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsImportOpen(false)} className="flex-1">
+              {importResult ? "Cerrar" : "Cancelar"}
+            </Button>
+            {!importResult && (
+              <Button
+                onClick={handleImport}
+                disabled={!importParsed || !importAdminCode || isImporting || !!importParseError}
+                className="flex-1"
+              >
+                {isImporting ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />Importando...</>
+                ) : (
+                  "Importar"
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
