@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useGetMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
@@ -17,11 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trophy, ChevronUp, Activity, RotateCcw, Undo2 } from "lucide-react";
+import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
 
 export default function MatchLive() {
   const [, params] = useRoute("/match/:id");
+  const [, setLocation] = useLocation();
   const matchId = parseInt(params?.id || "0");
   const { toast } = useToast();
   
@@ -33,6 +35,9 @@ export default function MatchLive() {
   const [submitting, setSubmitting] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelCode, setCancelCode] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (match?.status === "finished") {
@@ -115,6 +120,28 @@ export default function MatchLive() {
     }
   };
 
+  const handleCancelMatch = async () => {
+    if (!cancelCode) return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/matches/${matchId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode: cancelCode }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ variant: "destructive", title: "Error", description: err.error || "No se pudo cancelar la partida." });
+        return;
+      }
+      setLocation("/");
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo cancelar la partida." });
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const handleUndoScore = async () => {
     try {
       const res = await fetch(`/api/matches/${matchId}/undo-score`, { method: "POST" });
@@ -141,6 +168,44 @@ export default function MatchLive() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Cancel match dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={(o) => { if (!o) { setShowCancelDialog(false); setCancelCode(""); } }}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a]">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" /> ¿Cancelar la partida?
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              La partida será eliminada permanentemente junto con todos sus puntos. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-gray-300 flex items-center gap-1.5">
+              <KeyRound className="h-3.5 w-3.5" /> Código de administrador
+            </Label>
+            <input
+              type="password"
+              placeholder="••••••"
+              value={cancelCode}
+              onChange={e => setCancelCode(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleCancelMatch()}
+              className="w-full rounded-md border border-[#2a2a2a] bg-background px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setShowCancelDialog(false); setCancelCode(""); }} disabled={cancelling}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+              Volver
+            </Button>
+            <Button onClick={handleCancelMatch} disabled={cancelling || !cancelCode}
+              className="bg-red-600 hover:bg-red-700 text-white gap-2">
+              <Trash2 className="h-4 w-4" />
+              {cancelling ? "Cancelando…" : "Sí, cancelar partida"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Reset confirmation dialog */}
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <DialogContent className="bg-[#141414] border-[#2a2a2a]">
@@ -164,9 +229,9 @@ export default function MatchLive() {
         </DialogContent>
       </Dialog>
 
-      {/* Reset button — only for active matches */}
+      {/* Action buttons — only for active matches */}
       {!isFinished && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -174,7 +239,16 @@ export default function MatchLive() {
             className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 gap-2"
           >
             <RotateCcw className="h-4 w-4" />
-            Reiniciar partida
+            Reiniciar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setCancelCode(""); setShowCancelDialog(true); }}
+            className="border-red-500/50 text-red-400 hover:bg-red-500/10 gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Cancelar partida
           </Button>
         </div>
       )}
