@@ -21,6 +21,13 @@ import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound } from 
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
+function avatarSrc(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("http")) return path;
+  const slug = path.startsWith("/objects/") ? path.slice("/objects/".length) : path;
+  return `/api/storage/objects/${slug}`;
+}
+
 export default function MatchLive() {
   const [, params] = useRoute("/match/:id");
   const [, setLocation] = useLocation();
@@ -294,7 +301,7 @@ export default function MatchLive() {
                 <Card key={player.id} className="bg-background/50 border-red-500/20">
                   <CardContent className="p-4 flex items-center gap-4">
                     <Avatar className="h-12 w-12 border border-red-500/50">
-                      <AvatarImage src={player.avatarUrl || undefined} />
+                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
                       <AvatarFallback className="bg-red-500/20 text-red-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 font-semibold">{player.name}</div>
@@ -348,7 +355,7 @@ export default function MatchLive() {
                 <Card key={player.id} className="bg-background/50 border-blue-500/20">
                   <CardContent className="p-4 flex items-center gap-4">
                     <Avatar className="h-12 w-12 border border-blue-500/50">
-                      <AvatarImage src={player.avatarUrl || undefined} />
+                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
                       <AvatarFallback className="bg-blue-500/20 text-blue-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 font-semibold">{player.name}</div>
