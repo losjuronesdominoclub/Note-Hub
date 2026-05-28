@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle } from "lucide-react";
+import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
@@ -45,11 +45,18 @@ export default function Lisas() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [adminCode, setAdminCode] = useState("");
   const [pendingData, setPendingData] = useState<{ playerName: string; lisas: number }[] | null>(null);
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState<ImportResult[] | null>(null);
+
+  // Edit state
+  const [editEntry, setEditEntry] = useState<LisaEntry | null>(null);
+  const [editLisas, setEditLisas] = useState("");
+  const [editCode, setEditCode] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   const { data: ranking, isLoading } = useQuery<LisaEntry[]>({
     queryKey: ["lisas"],
@@ -129,6 +136,42 @@ export default function Lisas() {
     setImportResults(null);
   };
 
+  // --- Edit per player ---
+  const openEdit = (entry: LisaEntry) => {
+    setEditEntry(entry);
+    setEditLisas(String(entry.lisas));
+    setEditCode("");
+  };
+
+  const handleEditSave = async () => {
+    if (!editEntry || !editCode) return;
+    const lisas = parseInt(editLisas);
+    if (isNaN(lisas) || lisas < 0) {
+      toast({ variant: "destructive", title: "Error", description: "El número de lisas debe ser 0 o mayor." });
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/lisas/${editEntry.player.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode: editCode, lisas }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Error", description: json.error ?? "No se pudo actualizar." });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["lisas"] });
+      setEditEntry(null);
+      toast({ title: "Actualizado", description: `${editEntry.player.name}: ${json.total} lisa${json.total !== 1 ? "s" : ""}` });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo conectar con el servidor." });
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const getPositionColor = (index: number) => {
     switch (index) {
       case 0: return "text-yellow-500 bg-yellow-500/10 border-yellow-500/50";
@@ -175,13 +218,7 @@ export default function Lisas() {
             <Upload className="h-4 w-4" />
             Importar JSON
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+          <input ref={fileInputRef} type="file" accept="application/json,.json" className="hidden" onChange={handleFileChange} />
         </div>
       </div>
 
@@ -197,9 +234,10 @@ export default function Lisas() {
           {ranking.map((item, index) => (
             <motion.div
               key={item.player.id}
+              layout
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.08 }}
+              transition={{ delay: index * 0.05, layout: { type: "spring", stiffness: 300, damping: 30 } }}
               className={`flex items-center gap-4 p-4 rounded-2xl glass-card relative overflow-hidden ${
                 index < 3 ? "border " + getPositionColor(index).split(" ")[2] : ""
               }`}
@@ -208,10 +246,12 @@ export default function Lisas() {
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent pointer-events-none" />
               )}
 
+              {/* Position badge */}
               <div className={`w-12 h-12 flex items-center justify-center font-black text-xl rounded-full shrink-0 ${getPositionColor(index)}`}>
                 {index < 3 ? <Medal className="w-6 h-6" /> : `#${index + 1}`}
               </div>
 
+              {/* Avatar */}
               <Avatar className={`h-14 w-14 border-2 shrink-0 ${index === 0 ? "border-cyan-400" : "border-transparent"}`}>
                 <AvatarImage src={avatarSrc(item.player.avatarUrl)} className="object-cover" />
                 <AvatarFallback className="bg-cyan-500/20 text-cyan-400 font-bold">
@@ -219,6 +259,7 @@ export default function Lisas() {
                 </AvatarFallback>
               </Avatar>
 
+              {/* Name & stats */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
                 <p className="text-sm text-muted-foreground mt-0.5">
@@ -226,6 +267,7 @@ export default function Lisas() {
                 </p>
               </div>
 
+              {/* Lisa count */}
               <div className="text-right pl-4 border-l border-border shrink-0">
                 <div className="flex items-center justify-end gap-2">
                   <Fish className="h-5 w-5 text-cyan-400" />
@@ -235,6 +277,16 @@ export default function Lisas() {
                   {item.lisas === 1 ? "Lisa" : "Lisas"}
                 </div>
               </div>
+
+              {/* Edit button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openEdit(item)}
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 rounded-full"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
             </motion.div>
           ))}
         </div>
@@ -244,6 +296,86 @@ export default function Lisas() {
           <p>Aún no hay partidas 200–0 registradas.</p>
         </div>
       )}
+
+      {/* Edit dialog */}
+      <Dialog open={!!editEntry} onOpenChange={(o) => { if (!o) setEditEntry(null); }}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Fish className="h-5 w-5 text-cyan-400" /> Editar Lisas
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Modifica el total de lisas para <span className="text-white font-semibold">{editEntry?.player.name}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Lisa count input */}
+            <div className="space-y-1.5">
+              <Label className="text-gray-300 flex items-center gap-1.5">
+                <Fish className="h-3.5 w-3.5 text-cyan-400" /> Número de Lisas
+              </Label>
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0 border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] text-lg font-bold"
+                  onClick={() => setEditLisas(v => String(Math.max(0, (parseInt(v) || 0) - 1)))}
+                >
+                  −
+                </Button>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editLisas}
+                  onChange={e => setEditLisas(e.target.value)}
+                  className="bg-background border-[#2a2a2a] text-white text-center text-2xl font-black h-12"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0 border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] text-lg font-bold"
+                  onClick={() => setEditLisas(v => String((parseInt(v) || 0) + 1))}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+
+            {/* Admin code */}
+            <div className="space-y-1.5">
+              <Label className="text-gray-300 flex items-center gap-1.5">
+                <KeyRound className="h-3.5 w-3.5" /> Código de administrador
+              </Label>
+              <Input
+                type="password"
+                placeholder="••••••"
+                value={editCode}
+                onChange={e => setEditCode(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleEditSave()}
+                className="bg-background border-[#2a2a2a] text-white"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditEntry(null)} disabled={editSaving}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleEditSave}
+              disabled={editSaving || !editCode}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white gap-2"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {editSaving ? "Guardando..." : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={(o) => { if (!o) handleCloseImport(); }}>
@@ -262,7 +394,6 @@ export default function Lisas() {
           <AnimatePresence mode="wait">
             {!importResults ? (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4 py-2">
-                {/* Preview */}
                 {pendingData && pendingData.length > 0 && (
                   <div className="bg-background/60 rounded-xl p-3 space-y-1.5 max-h-40 overflow-y-auto">
                     {pendingData.map((row, i) => (
@@ -310,11 +441,7 @@ export default function Lisas() {
               {importResults ? "Cerrar" : "Cancelar"}
             </Button>
             {!importResults && (
-              <Button
-                onClick={handleImportConfirm}
-                disabled={importing || !adminCode}
-                className="bg-primary hover:bg-primary/90 text-white"
-              >
+              <Button onClick={handleImportConfirm} disabled={importing || !adminCode} className="bg-primary hover:bg-primary/90 text-white">
                 {importing ? "Importando..." : "Confirmar importación"}
               </Button>
             )}

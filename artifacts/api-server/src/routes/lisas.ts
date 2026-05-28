@@ -110,4 +110,72 @@ router.post("/lisas/import", async (req, res): Promise<void> => {
   res.json({ ok: true, results });
 });
 
+// PATCH /lisas/:playerId — set total lisa count for a player (admin only)
+const patchSchema = z.object({
+  adminCode: z.string(),
+  lisas: z.number().int().min(0),
+});
+
+router.patch("/lisas/:playerId", async (req, res): Promise<void> => {
+  const playerId = parseInt(req.params.playerId);
+  if (isNaN(playerId)) {
+    res.status(400).json({ error: "ID inválido" });
+    return;
+  }
+
+  const parsed = patchSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Formato inválido" });
+    return;
+  }
+  if (parsed.data.adminCode !== ADMIN_CODE) {
+    res.status(403).json({ error: "Código de administrador incorrecto" });
+    return;
+  }
+
+  // Compute match-derived lisa count for this player
+  const lisaMatches = await db
+    .select()
+    .from(matchesTable)
+    .where(
+      and(
+        eq(matchesTable.status, "finished"),
+        or(
+          and(eq(matchesTable.shortosScore, 200), eq(matchesTable.largosScore, 0)),
+          and(eq(matchesTable.largosScore, 200), eq(matchesTable.shortosScore, 0))
+        )
+      )
+    );
+
+  let matchDerived = 0;
+  for (const match of lisaMatches) {
+    const players = await db
+      .select({ playerId: matchPlayersTable.playerId })
+      .from(matchPlayersTable)
+      .where(
+        and(
+          eq(matchPlayersTable.matchId, match.id),
+          eq(matchPlayersTable.team, match.winnerTeam as "cortos" | "largos"),
+          eq(matchPlayersTable.playerId, playerId)
+        )
+      );
+    matchDerived += players.length;
+  }
+
+  const extraLisas = Math.max(0, parsed.data.lisas - matchDerived);
+
+  const [updated] = await db
+    .update(playersTable)
+    .set({ extraLisas })
+    .where(eq(playersTable.id, playerId))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ error: "Jugador no encontrado" });
+    return;
+  }
+
+  res.json({ ok: true, extraLisas, total: matchDerived + extraLisas });
+});
+
 export default router;
