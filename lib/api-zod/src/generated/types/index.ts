@@ -14,6 +14,7 @@ export * from './dashboardStats';
 export * from './event';
 export * from './eventInput';
 export * from './eventUpdate';
+export * from './getBusyPlayers200';
 export * from './healthStatus';
 export * from './listMatchesParams';
 export * from './listMatchesStatus';

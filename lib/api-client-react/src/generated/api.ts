@@ -27,6 +27,7 @@ import type {
   Event,
   EventInput,
   EventUpdate,
+  GetBusyPlayers200,
   HealthStatus,
   ListMatchesParams,
   Match,
@@ -800,6 +801,83 @@ export const useCreateMatch = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getCreateMatchMutationOptions(options));
     }
+
+export const getGetBusyPlayersUrl = () => {
+
+
+
+
+  return `/api/matches/busy-players`
+}
+
+/**
+ * @summary Get IDs of players currently in an active match
+ */
+export const getBusyPlayers = async ( options?: RequestInit): Promise<GetBusyPlayers200> => {
+
+  return customFetch<GetBusyPlayers200>(getGetBusyPlayersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBusyPlayersQueryKey = () => {
+    return [
+    `/api/matches/busy-players`
+    ] as const;
+    }
+
+
+export const getGetBusyPlayersQueryOptions = <TData = Awaited<ReturnType<typeof getBusyPlayers>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusyPlayers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBusyPlayersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBusyPlayers>>> = ({ signal }) => getBusyPlayers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBusyPlayers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBusyPlayersQueryResult = NonNullable<Awaited<ReturnType<typeof getBusyPlayers>>>
+export type GetBusyPlayersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get IDs of players currently in an active match
+ */
+
+export function useGetBusyPlayers<TData = Awaited<ReturnType<typeof getBusyPlayers>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBusyPlayers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBusyPlayersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetMatchUrl = (id: number,) => {
 

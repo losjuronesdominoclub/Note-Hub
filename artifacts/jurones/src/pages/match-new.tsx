@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { useListPlayers, useCreateMatch } from "@workspace/api-client-react";
+import { useListPlayers, useCreateMatch, useGetBusyPlayers } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { ChevronRight, ArrowLeft, Play, Search, CheckCircle2 } from "lucide-react";
+import { ChevronRight, ArrowLeft, Play, Search, CheckCircle2, Swords } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
@@ -19,6 +19,8 @@ function avatarSrc(path: string | null | undefined): string | undefined {
 export default function MatchNew() {
   const [, setLocation] = useLocation();
   const { data: players, isLoading } = useListPlayers();
+  const { data: busyData } = useGetBusyPlayers({ query: { refetchInterval: 5000 } });
+  const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
   const createMatch = useCreateMatch();
   const { toast } = useToast();
 
@@ -28,6 +30,7 @@ export default function MatchNew() {
   const [search, setSearch] = useState("");
 
   const toggleCorto = (id: number) => {
+    if (busyPlayerIds.has(id)) return;
     if (cortos.includes(id)) {
       setCortos(cortos.filter(p => p !== id));
     } else if (cortos.length < 2) {
@@ -36,6 +39,7 @@ export default function MatchNew() {
   };
 
   const toggleLargo = (id: number) => {
+    if (busyPlayerIds.has(id)) return;
     if (largos.includes(id)) {
       setLargos(largos.filter(p => p !== id));
     } else if (largos.length < 2) {
@@ -139,10 +143,11 @@ export default function MatchNew() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredCortos.map((player) => {
                 const selected = cortos.includes(player.id);
+                const busy = busyPlayerIds.has(player.id);
                 return (
                   <Card
                     key={player.id}
-                    className={`cursor-pointer transition-all ${selected ? 'ring-2 ring-red-500 bg-red-500/10' : 'hover:bg-white/5 glass-card'}`}
+                    className={`transition-all ${busy ? 'opacity-40 cursor-not-allowed' : selected ? 'cursor-pointer ring-2 ring-red-500 bg-red-500/10' : 'cursor-pointer hover:bg-white/5 glass-card'}`}
                     onClick={() => toggleCorto(player.id)}
                   >
                     <CardContent className="p-4 flex flex-col items-center text-center gap-3">
@@ -153,14 +158,22 @@ export default function MatchNew() {
                             {player.name.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        {selected && (
+                        {selected && !busy && (
                           <div className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5">
                             <CheckCircle2 className="h-3.5 w-3.5 text-white" />
                           </div>
                         )}
+                        {busy && (
+                          <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-0.5">
+                            <Swords className="h-3.5 w-3.5 text-black" />
+                          </div>
+                        )}
                       </div>
                       <span className="font-semibold text-sm leading-tight">{player.name}</span>
-                      <span className="text-xs text-muted-foreground">{player.wins}V · {player.losses}D</span>
+                      {busy
+                        ? <span className="text-xs font-semibold text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">En partida</span>
+                        : <span className="text-xs text-muted-foreground">{player.wins}V · {player.losses}D</span>
+                      }
                     </CardContent>
                   </Card>
                 );
@@ -190,10 +203,11 @@ export default function MatchNew() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {filteredLargos.map((player) => {
                 const selected = largos.includes(player.id);
+                const busy = busyPlayerIds.has(player.id);
                 return (
                   <Card
                     key={player.id}
-                    className={`cursor-pointer transition-all ${selected ? 'ring-2 ring-blue-500 bg-blue-500/10' : 'hover:bg-white/5 glass-card'}`}
+                    className={`transition-all ${busy ? 'opacity-40 cursor-not-allowed' : selected ? 'cursor-pointer ring-2 ring-blue-500 bg-blue-500/10' : 'cursor-pointer hover:bg-white/5 glass-card'}`}
                     onClick={() => toggleLargo(player.id)}
                   >
                     <CardContent className="p-4 flex flex-col items-center text-center gap-3">
@@ -204,14 +218,22 @@ export default function MatchNew() {
                             {player.name.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        {selected && (
+                        {selected && !busy && (
                           <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-0.5">
                             <CheckCircle2 className="h-3.5 w-3.5 text-white" />
                           </div>
                         )}
+                        {busy && (
+                          <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-0.5">
+                            <Swords className="h-3.5 w-3.5 text-black" />
+                          </div>
+                        )}
                       </div>
                       <span className="font-semibold text-sm leading-tight">{player.name}</span>
-                      <span className="text-xs text-muted-foreground">{player.wins}V · {player.losses}D</span>
+                      {busy
+                        ? <span className="text-xs font-semibold text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">En partida</span>
+                        : <span className="text-xs text-muted-foreground">{player.wins}V · {player.losses}D</span>
+                      }
                     </CardContent>
                   </Card>
                 );

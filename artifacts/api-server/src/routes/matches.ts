@@ -103,6 +103,17 @@ async function recalculatePlayerStats(playerId: number) {
     .where(eq(playersTable.id, playerId));
 }
 
+// GET /matches/busy-players — must be before /:id
+router.get("/matches/busy-players", async (_req, res): Promise<void> => {
+  const rows = await db
+    .selectDistinct({ playerId: matchPlayersTable.playerId })
+    .from(matchPlayersTable)
+    .innerJoin(matchesTable, eq(matchPlayersTable.matchId, matchesTable.id))
+    .where(eq(matchesTable.status, "active"));
+
+  res.json({ busyPlayerIds: rows.map(r => r.playerId) });
+});
+
 // GET /matches
 router.get("/matches", async (req, res): Promise<void> => {
   const queryParams = ListMatchesQueryParams.safeParse(req.query);

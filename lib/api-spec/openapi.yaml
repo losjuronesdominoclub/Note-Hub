@@ -210,6 +210,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Match"
 
+  /matches/busy-players:
+    get:
+      operationId: getBusyPlayers
+      tags: [matches]
+      summary: Get IDs of players currently in an active match
+      responses:
+        "200":
+          description: List of busy player IDs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [busyPlayerIds]
+                properties:
+                  busyPlayerIds:
+                    type: array
+                    items:
+                      type: integer
+
   /matches/{id}:
     get:
       operationId: getMatch

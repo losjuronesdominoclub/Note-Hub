@@ -270,3 +270,7 @@ export const ListMatchesStatus = {
   finished: 'finished',
 } as const;
 
+export type GetBusyPlayers200 = {
+  busyPlayerIds: number[];
+};
+

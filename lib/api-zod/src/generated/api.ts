@@ -181,6 +181,14 @@ export const CreateMatchBody = zod.object({
 
 
 /**
+ * @summary Get IDs of players currently in an active match
+ */
+export const GetBusyPlayersResponse = zod.object({
+  "busyPlayerIds": zod.array(zod.number())
+})
+
+
+/**
  * @summary Get match by ID
  */
 export const GetMatchParams = zod.object({
