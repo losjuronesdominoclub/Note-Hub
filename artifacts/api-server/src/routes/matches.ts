@@ -150,10 +150,23 @@ router.post("/matches", async (req, res): Promise<void> => {
 });
 
 // POST /matches/import — must be before /:id routes
-// Accepts both formats:
-// Format A (original): equipo1: { jugador1, jugador2, puntos }, ganador: "equipo1"|"equipo2"
-// Format B (array):    equipo1: [string, string], puntuacion1: number
+// Accepts three formats:
+// Format A: equipo1: { jugador1, jugador2, puntos }, optional ganador
+// Format B: equipo1: [string, string], puntuacion1: number
+// Format C: equipo1: { jugadores: [string, ...], puntos: number }
+const TeamObjSchema = z.object({ jugadores: z.array(z.string()), puntos: z.number().int().min(0) });
+
 const ImportPartidaSchema = z.union([
+  // Format C (jugadores array inside object)
+  z.object({
+    fecha: z.string(),
+    hora: z.string(),
+    equipo1: TeamObjSchema,
+    equipo2: TeamObjSchema,
+    ganador: z.enum(["equipo1", "equipo2"]).optional(),
+    lisa: z.boolean().optional(),
+  }),
+  // Format B (flat arrays + puntuacion1/2)
   z.object({
     fecha: z.string(),
     hora: z.string(),
@@ -163,6 +176,7 @@ const ImportPartidaSchema = z.union([
     puntuacion2: z.number().int().min(0),
     lisa: z.boolean().optional(),
   }),
+  // Format A (jugador1/jugador2 keys)
   z.object({
     fecha: z.string(),
     hora: z.string(),
@@ -206,18 +220,33 @@ router.post("/matches/import", async (req, res): Promise<void> => {
       }
 
       let e1Names: string[], e2Names: string[], e1Pts: number, e2Pts: number;
-      if (Array.isArray(partida.equipo1)) {
-        e1Names = partida.equipo1 as string[];
-        e2Names = partida.equipo2 as string[];
+      const eq1 = partida.equipo1 as any;
+      const eq2 = partida.equipo2 as any;
+
+      if (Array.isArray(eq1)) {
+        // Format B: equipo1 is a flat array
+        e1Names = eq1 as string[];
+        e2Names = eq2 as string[];
         e1Pts = (partida as any).puntuacion1 as number;
         e2Pts = (partida as any).puntuacion2 as number;
+      } else if (Array.isArray(eq1.jugadores)) {
+        // Format C: equipo1: { jugadores: [...], puntos }
+        e1Names = (eq1.jugadores as string[]).filter((n: string) => n.trim().length > 0);
+        e2Names = (eq2.jugadores as string[]).filter((n: string) => n.trim().length > 0);
+        e1Pts = eq1.puntos as number;
+        e2Pts = eq2.puntos as number;
       } else {
-        const eq1 = partida.equipo1 as { jugador1: string; jugador2: string; puntos: number };
-        const eq2 = partida.equipo2 as { jugador1: string; jugador2: string; puntos: number };
+        // Format A: equipo1: { jugador1, jugador2, puntos }
         e1Names = [eq1.jugador1, eq1.jugador2];
         e2Names = [eq2.jugador1, eq2.jugador2];
         e1Pts = eq1.puntos;
         e2Pts = eq2.puntos;
+      }
+
+      // Need at least 1 player per team to create a meaningful record
+      if (e1Names.length === 0 && e2Names.length === 0) {
+        errors.push(`Partida ${partida.fecha} ${partida.hora}: ambos equipos sin jugadores, omitida.`);
+        continue;
       }
 
       let winnerTeam: "cortos" | "largos";
@@ -272,14 +301,13 @@ router.post("/matches/import", async (req, res): Promise<void> => {
         .returning();
 
       const teamAssignments = [
-        { name: e1Names[0], team: "cortos" as const, points: e1Pts },
-        { name: e1Names[1], team: "cortos" as const, points: e1Pts },
-        { name: e2Names[0], team: "largos" as const, points: e2Pts },
-        { name: e2Names[1], team: "largos" as const, points: e2Pts },
+        ...e1Names.map((name) => ({ name, team: "cortos" as const, points: e1Pts })),
+        ...e2Names.map((name) => ({ name, team: "largos" as const, points: e2Pts })),
       ];
 
       for (const ta of teamAssignments) {
         const pid = playerIds[ta.name];
+        if (!pid) continue;
         await db.insert(matchPlayersTable).values({ matchId: match.id, playerId: pid, team: ta.team, playerPoints: ta.points });
         await db.insert(scoreLogTable).values({ matchId: match.id, playerId: pid, team: ta.team, points: ta.points, createdAt: finishedAt });
         affectedPlayerIds.add(pid);

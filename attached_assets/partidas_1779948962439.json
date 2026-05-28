@@ -1,0 +1,3241 @@
+{
+  "partidas": [
+    {
+      "fecha": "2026-05-16",
+      "hora": "17:37",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 202
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 192
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "17:56",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 201
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bryan",
+          "Obispo J"
+        ],
+        "puntos": 61
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "18:15",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 214
+      },
+      "equipo2": {
+        "jugadores": [
+          "S Franco",
+          "Bigote 67"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "18:37",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 209
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo",
+          "Lizardo V"
+        ],
+        "puntos": 96
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "18:54",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Larin"
+        ],
+        "puntos": 215
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 170
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "19:15",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 227
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "Larin"
+        ],
+        "puntos": 179
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "19:46",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Odalis R 159"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:02",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 204
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Obispo J"
+        ],
+        "puntos": 149
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:12",
+      "equipo1": {
+        "jugadores": [
+          "Domingo",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "S Franco",
+          "Bigote 30"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:33",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo",
+          "Hector L"
+        ],
+        "puntos": 164
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:51",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Bigote 68"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:03",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "S Franco"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:19",
+      "equipo1": {
+        "jugadores": [
+          "Domingo",
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:33",
+      "equipo1": {
+        "jugadores": [
+          "Domingo",
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [],
+        "puntos": 203
+      }
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:52",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 218
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo",
+          "Bigote 102"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "17:13",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Alex S 0"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "17:21",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Alex S 0"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "17:39",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Alex S 109"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "17:49",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Alex S 0"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "18:14",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Alex S 99"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "18:29",
+      "equipo1": {
+        "jugadores": [
+          "Larin",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Hector L"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "18:30",
+      "equipo1": {
+        "jugadores": [
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alex S"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "18:49",
+      "equipo1": {
+        "jugadores": [
+          "Obispo J",
+          "Larin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Dario",
+          "Blas T"
+        ],
+        "puntos": 165
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "18:51",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alex S",
+          "Bigote 79"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:08",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Larin"
+        ],
+        "puntos": 161
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:11",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alex S",
+          "Bigote 110"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:18",
+      "equipo1": {
+        "jugadores": [
+          "Matías B",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:38",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Odalis R"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Matías B 166"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:38",
+      "equipo1": {
+        "jugadores": [
+          "Alex S",
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:46",
+      "equipo1": {
+        "jugadores": [
+          "S Franco",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alex S",
+          "Bigote 0"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:49",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Odalis R"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Hector L"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "19:59",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Odalis R"
+        ],
+        "puntos": 12
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "20:03",
+      "equipo1": {
+        "jugadores": [
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [
+          "Luis cordero"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "20:15",
+      "equipo1": {
+        "jugadores": [
+          "Odalis R",
+          "Alberto G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "Blas T"
+        ],
+        "puntos": 64
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "20:27",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Luis cordero 21"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "20:43",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Carmen M"
+        ],
+        "puntos": 170
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "21:05",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Luis cordero 184"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-17",
+      "hora": "21:28",
+      "equipo1": {
+        "jugadores": [
+          "S Franco",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Luis cordero",
+          "Bigote 81"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "16:44",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Miguel Angel"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "16:58",
+      "equipo1": {
+        "jugadores": [
+          "Miguel Angel",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 153
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "17:16",
+      "equipo1": {
+        "jugadores": [
+          "Antonio",
+          "Miguel Angel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Odalis R"
+        ],
+        "puntos": 141
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "17:27",
+      "equipo1": {
+        "jugadores": [
+          "Miguel Angel",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Bigote 110"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "17:42",
+      "equipo1": {
+        "jugadores": [
+          "Miguel Angel",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 96
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "17:55",
+      "equipo1": {
+        "jugadores": [
+          "Antonio",
+          "Miguel Angel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Marino R"
+        ],
+        "puntos": 136
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "18:06",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Miguel Angel"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "18:16",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "18:36",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Obispo J"
+        ],
+        "puntos": 185
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "18:54",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Marino R"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 48
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "19:04",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Marino R"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "19:17",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Marino R",
+          "Hector L"
+        ],
+        "puntos": 116
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "19:43",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 144
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "20:01",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Amaurys M"
+        ],
+        "puntos": 151
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "20:12",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-18",
+      "hora": "20:35",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "17:18",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Wilkin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 34
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "17:59",
+      "equipo1": {
+        "jugadores": [
+          "Isidro F",
+          "Jose L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Odalis R"
+        ],
+        "puntos": 196
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "18:23",
+      "equipo1": {
+        "jugadores": [
+          "Jose L",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Miguel Angel",
+          "Angel Mateo"
+        ],
+        "puntos": 122
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "18:42",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Isidro F",
+          "Jose L"
+        ],
+        "puntos": 88
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "18:58",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "Bryan"
+        ],
+        "puntos": 122
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "19:12",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 107
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "19:36",
+      "equipo1": {
+        "jugadores": [
+          "Lizardo V",
+          "Wilkin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 174
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "20:02",
+      "equipo1": {
+        "jugadores": [
+          "Odalis R",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Wilkin",
+          "Lizardo V"
+        ],
+        "puntos": 180
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "20:28",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Miguel Angel"
+        ],
+        "puntos": 163
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "20:55",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Lizardo V"
+        ],
+        "puntos": 158
+      }
+    },
+    {
+      "fecha": "2026-05-19",
+      "hora": "21:09",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Lizardo V"
+        ],
+        "puntos": 112
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "16:17",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Amaurys M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Marino R",
+          "Lizardo V"
+        ],
+        "puntos": 48
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "16:26",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Amaurys M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Lizardo V",
+          "Marino R"
+        ],
+        "puntos": 41
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "16:44",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Amaurys M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Lizardo V",
+          "Marino R"
+        ],
+        "puntos": 189
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "17:11",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Amaurys M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Isidro F"
+        ],
+        "puntos": 118
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "17:26",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Amaurys M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Isidro F"
+        ],
+        "puntos": 40
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "17:32",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 120
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "17:38",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Jose L"
+        ],
+        "puntos": 19
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "17:54",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Hector L"
+        ],
+        "puntos": 135
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "18:18",
+      "equipo1": {
+        "jugadores": [
+          "Wilkin",
+          "Jose L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Obispo J"
+        ],
+        "puntos": 140
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "18:34",
+      "equipo1": {
+        "jugadores": [
+          "Wilkin",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Isidro F",
+          "Lizardo V"
+        ],
+        "puntos": 142
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "18:42",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Wilkin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "Emilio DJ"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "18:58",
+      "equipo1": {
+        "jugadores": [
+          "Wilkin",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Melvyn M"
+        ],
+        "puntos": 163
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "19:20",
+      "equipo1": {
+        "jugadores": [
+          "Obispo J",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Wilkin"
+        ],
+        "puntos": 163
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "19:36",
+      "equipo1": {
+        "jugadores": [
+          "Isidro F",
+          "Blas T"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Obispo J"
+        ],
+        "puntos": 82
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "19:54",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Emilio DJ"
+        ],
+        "puntos": 96
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "20:26",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Hector L 144"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "20:53",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Wilkin"
+        ],
+        "puntos": 154
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "21:16",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Obispo J"
+        ],
+        "puntos": 34
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "21:45",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Hector L"
+        ],
+        "puntos": 175
+      }
+    },
+    {
+      "fecha": "2026-05-20",
+      "hora": "21:50",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "16:54",
+      "equipo1": {
+        "jugadores": [
+          "Melvyn M",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Angel Mateo"
+        ],
+        "puntos": 30
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "17:10",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Melvyn M"
+        ],
+        "puntos": 94
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "17:27",
+      "equipo1": {
+        "jugadores": [
+          "David L",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 69
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "17:44",
+      "equipo1": {
+        "jugadores": [
+          "Antonio",
+          "Lizardo V"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "David L",
+          "Max G"
+        ],
+        "puntos": 179
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "18:09",
+      "equipo1": {
+        "jugadores": [
+          "Jose L",
+          "Wilkin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Lizardo V"
+        ],
+        "puntos": 163
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "18:38",
+      "equipo1": {
+        "jugadores": [
+          "Domingo",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Jose L",
+          "Wilkin"
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "18:58",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Domingo"
+        ],
+        "puntos": 165
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "19:25",
+      "equipo1": {
+        "jugadores": [
+          "Bryan",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Obispo J"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "20:17",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Wilkin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Isidro F"
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "20:19",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Isidro F"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Bryan 69"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "20:39",
+      "equipo1": {
+        "jugadores": [
+          "Blas T",
+          "Wilkin"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Max G"
+        ],
+        "puntos": 129
+      }
+    },
+    {
+      "fecha": "2026-05-21",
+      "hora": "21:00",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Domingo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Isidro F"
+        ],
+        "puntos": 117
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "17:16",
+      "equipo1": {
+        "jugadores": [
+          "Antonio",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Carmen M",
+          "Lizardo V"
+        ],
+        "puntos": 47
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "17:27",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Lizardo V",
+          "Wilkin"
+        ],
+        "puntos": 76
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "17:45",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Marino R"
+        ],
+        "puntos": 41
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "18:02",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "18:18",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Martín B."
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "18:30",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Lizardo V 60"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "18:48",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Isidro F",
+          "Wilkin"
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "19:05",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Marino R"
+        ],
+        "puntos": 42
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "19:23",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Odalis R"
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "19:37",
+      "equipo1": {
+        "jugadores": [
+          "Obispo J",
+          "Martín B."
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Emilio DJ"
+        ],
+        "puntos": 84
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "19:54",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Martín B."
+        ],
+        "puntos": 54
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "20:12",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Lizardo V"
+        ],
+        "puntos": 122
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "20:30",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Jose L",
+          "S Franco"
+        ],
+        "puntos": 169
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "20:45",
+      "equipo1": {
+        "jugadores": [
+          "Isidro F",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Angel Mateo"
+        ],
+        "puntos": 143
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "21:09",
+      "equipo1": {
+        "jugadores": [
+          "Isidro F",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Lizardo V"
+        ],
+        "puntos": 144
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "21:38",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Isidro F"
+        ],
+        "puntos": 147
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "21:49",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Lizardo V"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "22:03",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Lizardo V"
+        ],
+        "puntos": 75
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "22:20",
+      "equipo1": {
+        "jugadores": [
+          "Lizardo V",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "S Franco"
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-22",
+      "hora": "22:41",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Lizardo V",
+          "Max G"
+        ],
+        "puntos": 124
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "19:23",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Isidro F",
+          "Larin"
+        ],
+        "puntos": 80
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "19:25",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Lizardo V",
+          "Emilio DJ"
+        ],
+        "puntos": 22
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "19:47",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alex S",
+          "Infiltrado"
+        ],
+        "puntos": 127
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "19:49",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "J Ernesto"
+        ],
+        "puntos": 108
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "19:59",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Cuki",
+          "Angel Matos"
+        ],
+        "puntos": 70
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:06",
+      "equipo1": {
+        "jugadores": [
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:11",
+      "equipo1": {
+        "jugadores": [
+          "Uservio",
+          "Santiago"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:20",
+      "equipo1": {
+        "jugadores": [
+          "Domingo",
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:27",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Lizardo V"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Uservio",
+          "Santiago"
+        ],
+        "puntos": 60
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:40",
+      "equipo1": {
+        "jugadores": [
+          "Cuki",
+          "Angel Matos"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Lizardo V"
+        ],
+        "puntos": 44
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:55",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "J Ernesto"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Matos",
+          "Cuki"
+        ],
+        "puntos": 134
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "20:55",
+      "equipo1": {
+        "jugadores": [
+          "Max G",
+          "Luis cordero"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo",
+          "Bigote 193"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "21:07",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "J Ernesto"
+        ],
+        "puntos": 30
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "21:17",
+      "equipo1": {
+        "jugadores": [
+          "Carmen M",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Luis cordero"
+        ],
+        "puntos": 101
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "21:32",
+      "equipo1": {
+        "jugadores": [
+          "Antonio",
+          "Amaurys M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Santiago",
+          "Uservio"
+        ],
+        "puntos": 171
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "21:44",
+      "equipo1": {
+        "jugadores": [
+          "Carmen M",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Isidro F",
+          "Larin"
+        ],
+        "puntos": 108
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "21:51",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Angel Matos"
+        ],
+        "puntos": 93
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "22:01",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Carmen M"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 86
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "22:10",
+      "equipo1": {
+        "jugadores": [
+          "Yaniel",
+          "Fernandez"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Carmen M"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "22:13",
+      "equipo1": {
+        "jugadores": [
+          "Lizardo V",
+          "J Ernesto"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 79
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "22:30",
+      "equipo1": {
+        "jugadores": [
+          "Yaniel",
+          "Fernandez"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo",
+          "Bigote 199"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "22:43",
+      "equipo1": {
+        "jugadores": [
+          "Lizardo V",
+          "J Ernesto"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Cuki",
+          "Isidro F"
+        ],
+        "puntos": 180
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "22:44",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Yaniel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Max G",
+          "Angel Matos"
+        ],
+        "puntos": 56
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:02",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Yaniel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Larin",
+          "S Franco"
+        ],
+        "puntos": 89
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:02",
+      "equipo1": {
+        "jugadores": [
+          "Carlos",
+          "Yeidi Perez"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Lizardo V",
+          "J Ernesto"
+        ],
+        "puntos": 127
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:13",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Carlos",
+          "Yeidi Perez"
+        ],
+        "puntos": 122
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:24",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Yaniel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Domingo",
+          "Max G"
+        ],
+        "puntos": 34
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:31",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Yeidi Perez",
+          "Carlos"
+        ],
+        "puntos": 20
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:41",
+      "equipo1": {
+        "jugadores": [
+          "Yeidi Perez",
+          "J Ernesto"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Matos",
+          "Lizardo V"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:53",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Yaniel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Alex S 110"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-23",
+      "hora": "23:54",
+      "equipo1": {
+        "jugadores": [
+          "Angel Matos",
+          "Lizardo V"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "J Ernesto",
+          "Yeidi Perez"
+        ],
+        "puntos": 64
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "17:50",
+      "equipo1": {
+        "jugadores": [
+          "Martín B.",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Marino R"
+        ],
+        "puntos": 36
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "18:13",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Martín B."
+        ],
+        "puntos": 92
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "18:17",
+      "equipo1": {
+        "jugadores": [
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Odalis R  Alberto G",
+          "Emilio DJ 0"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "18:48",
+      "equipo1": {
+        "jugadores": [
+          "Odalis R",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Marino R",
+          "Obispo J"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "19:14",
+      "equipo1": {
+        "jugadores": [
+          "S Franco",
+          "Martín B."
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Odalis R",
+          "Bigote 101"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "19:27",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "S Franco",
+          "Martín B."
+        ],
+        "puntos": 36
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "19:51",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 162
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "20:14",
+      "equipo1": {
+        "jugadores": [
+          "Odalis R",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Hector L"
+        ],
+        "puntos": 58
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "20:28",
+      "equipo1": {
+        "jugadores": [
+          "Odalis R",
+          "S Franco"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Martín B.",
+          "Obispo J"
+        ],
+        "puntos": 30
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "20:52",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Odalis R",
+          "S Franco"
+        ],
+        "puntos": 30
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "21:24",
+      "equipo1": {
+        "jugadores": [
+          "S Franco",
+          "Martín B."
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 182
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "21:46",
+      "equipo1": {
+        "jugadores": [
+          "S Franco",
+          "Martín B."
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Obispo J"
+        ],
+        "puntos": 64
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "22:21",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Martín B.",
+          "S Franco"
+        ],
+        "puntos": 168
+      }
+    },
+    {
+      "fecha": "2026-05-24",
+      "hora": "22:31",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Emilio DJ"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Max G"
+        ],
+        "puntos": 0
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "16:47",
+      "equipo1": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Obispo J"
+        ],
+        "puntos": 25
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "17:29",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Martín B."
+        ],
+        "puntos": 199
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "17:46",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "David L"
+        ],
+        "puntos": 11
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "18:15",
+      "equipo1": {
+        "jugadores": [
+          "Angel Mateo",
+          "Antonio"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Obispo J"
+        ],
+        "puntos": 129
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "18:38",
+      "equipo1": {
+        "jugadores": [
+          "Marino R",
+          "Hector L"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "Odalis R"
+        ],
+        "puntos": 140
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "18:52",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "Hector L",
+          "Marino R"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "19:19",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Bigote"
+        ],
+        "puntos": 1
+      },
+      "equipo2": {
+        "jugadores": [
+          "S Franco",
+          "Bigote2"
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "19:37",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Miguel Angel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "Bigote 101"
+        ],
+        "puntos": 1
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "19:56",
+      "equipo1": {
+        "jugadores": [
+          "Emilio DJ",
+          "Miguel Angel"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Amaurys M",
+          "Antonio"
+        ],
+        "puntos": 184
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "20:18",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Emilio DJ",
+          "Miguel Angel"
+        ],
+        "puntos": 140
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "20:31",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Blas T",
+          "Martín B."
+        ],
+        "puntos": 64
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "20:57",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "S Franco",
+          "Angel Mateo"
+        ],
+        "puntos": 78
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "21:22",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Obispo J",
+          "Hector L"
+        ],
+        "puntos": 130
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "21:31",
+      "equipo1": {
+        "jugadores": [
+          "Alberto G",
+          "Max G"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Antonio",
+          "Amaurys M"
+        ],
+        "puntos": 30
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "22:03",
+      "equipo1": {
+        "jugadores": [
+          "Bigote"
+        ],
+        "puntos": 2
+      },
+      "equipo2": {
+        "jugadores": [
+          "Martín B."
+        ],
+        "puntos": 200
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "22:23",
+      "equipo1": {
+        "jugadores": [
+          "S Franco",
+          "Angel Mateo"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Bigote",
+          "Martín B. 43"
+        ],
+        "puntos": 2
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "22:35",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Angel Mateo",
+          "S Franco"
+        ],
+        "puntos": 64
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "22:56",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 92
+      }
+    },
+    {
+      "fecha": "2026-05-25",
+      "hora": "23:09",
+      "equipo1": {
+        "jugadores": [
+          "Hector L",
+          "Obispo J"
+        ],
+        "puntos": 200
+      },
+      "equipo2": {
+        "jugadores": [
+          "Alberto G",
+          "S Franco"
+        ],
+        "puntos": 34
+      }
+    }
+  ]
+}
