@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download } from "lucide-react";
 import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
 import { useUpload } from "@workspace/object-storage-web";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -131,13 +131,13 @@ interface PlayerCardProps {
     totalPoints: number;
     winRate: number;
     currentStreak: number;
-    extraLisas: number;
   };
+  lisas: number;
   open: boolean;
   onClose: () => void;
 }
 
-function PlayerCardModal({ player, open, onClose }: PlayerCardProps) {
+function PlayerCardModal({ player, lisas, open, onClose }: PlayerCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [isSharing, setIsSharing] = useState(false);
@@ -192,9 +192,9 @@ function PlayerCardModal({ player, open, onClose }: PlayerCardProps) {
   };
 
   const stats = [
-    { label: "Ganadas",  value: player.wins,      color: "#4ade80" },
-    { label: "Perdidas", value: player.losses,     color: "#f87171" },
-    { label: "Lisas",    value: player.extraLisas, color: "#facc15" },
+    { label: "Ganadas",  value: player.wins,  color: "#4ade80" },
+    { label: "Perdidas", value: player.losses, color: "#f87171" },
+    { label: "Lisas",    value: lisas,         color: "#facc15" },
     { label: "Promedio", value: avgPoints,          color: "#60a5fa" },
     { label: "Win Rate", value: `${winRatePct}%`,  color: "#c084fc" },
     { label: "Puntos",   value: player.totalPoints, color: "#fb923c" },
@@ -313,6 +313,19 @@ export default function Players() {
   const deletePlayer = useDeletePlayer();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const { data: lisasRanking } = useQuery<{ player: { id: number }; lisas: number }[]>({
+    queryKey: ["lisas"],
+    queryFn: async () => {
+      const res = await fetch("/api/lisas");
+      if (!res.ok) throw new Error("Error cargando lisas");
+      return res.json();
+    },
+  });
+
+  const lisasMap = Object.fromEntries(
+    (lisasRanking ?? []).map((e) => [e.player.id, e.lisas])
+  );
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -539,6 +552,7 @@ export default function Players() {
       {selectedPlayer && isCardOpen && (
         <PlayerCardModal
           player={selectedPlayer}
+          lisas={lisasMap[selectedPlayer.id] ?? 0}
           open={isCardOpen}
           onClose={() => setIsCardOpen(false)}
         />
