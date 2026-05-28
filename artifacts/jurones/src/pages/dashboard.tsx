@@ -1,12 +1,19 @@
 import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star } from "lucide-react";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+function avatarSrc(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("http")) return path;
+  const slug = path.startsWith("/objects/") ? path.slice("/objects/".length) : path;
+  return `/api/storage/objects/${slug}`;
+}
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
@@ -162,21 +169,46 @@ export default function Dashboard() {
                 <div className="flex flex-col items-center text-center gap-4 py-4">
                   <div className="relative">
                     <Avatar className="h-28 w-28 border-4 border-yellow-500 shadow-xl shadow-yellow-500/20">
-                      <AvatarImage src={stats.topPlayer.avatarUrl || undefined} />
+                      <AvatarImage src={avatarSrc(stats.topPlayer.avatarUrl)} className="object-cover" />
                       <AvatarFallback className="text-3xl font-bold bg-muted">{stats.topPlayer.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="absolute -bottom-3 -right-2 bg-yellow-500 text-yellow-950 p-1.5 rounded-full shadow-lg">
                       <Medal className="h-6 w-6" />
                     </div>
                   </div>
-                  <div>
+                  <div className="w-full space-y-3">
                     <h3 className="text-2xl font-bold">{stats.topPlayer.name}</h3>
-                    <div className="flex items-center justify-center gap-3 mt-2">
-                      <span className="text-sm bg-green-500/20 text-green-500 px-2 py-0.5 rounded font-medium">{stats.topPlayer.wins} Victorias</span>
-                      <span className="text-sm bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded font-medium">{(Number(stats.topPlayer.winRate) * 100).toFixed(2)}% WR</span>
+
+                    {/* Stats row */}
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <span className="flex items-center gap-1 text-sm bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full font-semibold">
+                        <Trophy className="h-3.5 w-3.5" /> {stats.topPlayer.wins}V · {stats.topPlayer.losses}D
+                      </span>
+                      <span className="flex items-center gap-1 text-sm bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-full font-semibold">
+                        {(Number(stats.topPlayer.winRate) * 100).toFixed(2)}% WR
+                      </span>
+                    </div>
+
+                    {/* Streak & points */}
+                    <div className="grid grid-cols-2 gap-3 mt-1">
+                      <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl py-3 px-2">
+                        <div className="flex items-center justify-center gap-1.5 text-orange-400">
+                          <Flame className="h-5 w-5" />
+                          <span className="text-2xl font-black">{stats.topPlayer.currentStreak ?? 0}</span>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Racha</p>
+                      </div>
+                      <div className="bg-primary/10 border border-primary/20 rounded-xl py-3 px-2">
+                        <div className="flex items-center justify-center gap-1.5 text-primary">
+                          <Star className="h-5 w-5" />
+                          <span className="text-2xl font-black">{stats.topPlayer.totalPoints ?? 0}</span>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Puntos</p>
+                      </div>
                     </div>
                   </div>
-                  <Button variant="outline" className="mt-4 rounded-full" asChild>
+
+                  <Button variant="outline" className="rounded-full w-full" asChild>
                     <Link href="/ranking">Ver Ranking Completo</Link>
                   </Button>
                 </div>
