@@ -112,28 +112,41 @@ export default function History() {
     if (!importParsed || !importAdminCode) return;
     setIsImporting(true);
     setImportResult(null);
+    let res: Response | null = null;
     try {
-      const res = await fetch("/api/matches/import", {
+      res = await fetch("/api/matches/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminCode: importAdminCode, partidas: importParsed.partidas }),
       });
-      const data = await res.json();
-      if (res.status === 403) {
-        toast({ title: "Error", description: "Código de administrador inválido.", variant: "destructive" });
-        setIsImporting(false);
-        return;
-      }
-      if (!res.ok) {
-        toast({ title: "Formato JSON inválido", description: data.error ?? "Error desconocido.", variant: "destructive" });
-        setIsImporting(false);
-        return;
-      }
-      setImportResult(data);
-      queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
-    } catch {
-      toast({ title: "Error de red", description: "No se pudo conectar con el servidor.", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Error de red", description: "No se pudo conectar con el servidor. Verifica tu conexión.", variant: "destructive" });
+      setIsImporting(false);
+      return;
     }
+
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      toast({ title: "Error del servidor", description: `El servidor respondió con estado ${res.status} pero sin datos válidos.`, variant: "destructive" });
+      setIsImporting(false);
+      return;
+    }
+
+    if (res.status === 403) {
+      toast({ title: "Acceso denegado", description: "Código de administrador inválido.", variant: "destructive" });
+      setIsImporting(false);
+      return;
+    }
+    if (!res.ok) {
+      toast({ title: "Formato JSON inválido", description: data?.error ?? "Error desconocido.", variant: "destructive" });
+      setIsImporting(false);
+      return;
+    }
+
+    setImportResult(data);
+    queryClient.invalidateQueries({ queryKey: getListMatchesQueryKey({ status: "finished" }) });
     setIsImporting(false);
   };
 

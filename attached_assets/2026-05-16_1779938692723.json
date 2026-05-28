@@ -1,0 +1,124 @@
+{
+  "partidas": [
+    {
+      "fecha": "2026-05-16",
+      "hora": "17:37",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 202,
+      "equipo2": ["Amaurys M", "Angel Mateo"],
+      "puntuacion2": 192
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "17:56",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 201,
+      "equipo2": ["Bryan", "Obispo J"],
+      "puntuacion2": 61
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "18:15",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 214,
+      "equipo2": ["S Franco", "Bigote 2"],
+      "puntuacion2": 67
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "18:37",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 209,
+      "equipo2": ["Domingo", "Lizardo V"],
+      "puntuacion2": 96
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "18:54",
+      "equipo1": ["Hector L", "Larin"],
+      "puntuacion1": 215,
+      "equipo2": ["Alberto G", "Emilio DJ"],
+      "puntuacion2": 170
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "19:15",
+      "equipo1": ["Amaurys M", "Angel Mateo"],
+      "puntuacion1": 227,
+      "equipo2": ["Hector L", "Larin"],
+      "puntuacion2": 179
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "19:46",
+      "equipo1": ["Amaurys M", "Angel Mateo"],
+      "puntuacion1": 200,
+      "equipo2": ["Bigote 1", "Odalis R"],
+      "puntuacion2": 159
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:02",
+      "equipo1": ["Amaurys M", "Angel Mateo"],
+      "puntuacion1": 204,
+      "equipo2": ["Max G", "Obispo J"],
+      "puntuacion2": 149
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:12",
+      "equipo1": ["Domingo", "Hector L"],
+      "puntuacion1": 200,
+      "equipo2": ["S Franco", "Bigote 2"],
+      "puntuacion2": 30
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:33",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 200,
+      "equipo2": ["Domingo", "Hector L"],
+      "puntuacion2": 164
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "20:51",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 200,
+      "equipo2": ["Max G", "Bigote 2"],
+      "puntuacion2": 68
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:03",
+      "equipo1": ["Alberto G", "Emilio DJ"],
+      "puntuacion1": 200,
+      "equipo2": ["Hector L", "S Franco"],
+      "puntuacion2": 0
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:19",
+      "equipo1": ["Domingo", "Bigote 2"],
+      "puntuacion1": 200,
+      "equipo2": ["Alberto G", "Emilio DJ"],
+      "puntuacion2": 108
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:33",
+      "equipo1": ["Domingo", "Bigote 2"],
+      "puntuacion1": 203,
+      "equipo2": ["Max G", "S Franco"],
+      "puntuacion2": 51
+    },
+    {
+      "fecha": "2026-05-16",
+      "hora": "21:52",
+      "equipo1": ["Alberto G", "S Franco"],
+      "puntuacion1": 218,
+      "equipo2": ["Domingo", "Bigote 2"],
+      "puntuacion2": 102
+    }
+  ]
+}
