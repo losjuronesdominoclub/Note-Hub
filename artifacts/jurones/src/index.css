@@ -179,6 +179,14 @@
   animation: spin-border 3s linear infinite;
 }
 
+.animated-border-card-gold {
+  position: relative;
+  border-radius: 16px;
+  padding: 2px;
+  background: conic-gradient(from var(--ga), #a88932, #edbc37, #a88932);
+  animation: spin-border 3s linear infinite;
+}
+
 .animated-border-card-inner {
   @apply bg-card/90 backdrop-blur-md shadow-lg;
   border-radius: 14px;

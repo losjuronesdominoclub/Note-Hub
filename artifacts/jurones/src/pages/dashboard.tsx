@@ -85,8 +85,9 @@ export default function Dashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
+          className="animated-border-card-gold h-full"
         >
-          <Card className="glass-card h-full bg-gradient-to-br from-card to-primary/5 border-primary/20">
+          <Card className="animated-border-card-inner glass-card h-full bg-gradient-to-br from-card to-primary/5 border-0">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl">Jugador Top</CardTitle>
               <Trophy className="h-5 w-5 text-yellow-500" />
