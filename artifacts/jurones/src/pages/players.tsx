@@ -336,6 +336,10 @@ export default function Players() {
 
   const [formData, setFormData] = useState({ name: "", avatarUrl: "", currentStreak: 0 });
 
+  const [editStep, setEditStep] = useState<"code" | "fields">("code");
+  const [editCode, setEditCode] = useState("");
+  const [editCodeError, setEditCodeError] = useState(false);
+
   const [statsStep, setStatsStep] = useState<"code" | "fields">("code");
   const [statsCode, setStatsCode] = useState("");
   const [statsCodeError, setStatsCodeError] = useState(false);
@@ -375,9 +379,21 @@ export default function Players() {
     });
   };
 
+  const handleVerifyEditCode = () => {
+    if (editCode === "110880") {
+      setEditStep("fields");
+      setEditCodeError(false);
+    } else {
+      setEditCodeError(true);
+    }
+  };
+
   const openEdit = (player: any) => {
     setSelectedPlayer(player);
     setFormData({ name: player.name, avatarUrl: player.avatarUrl || "", currentStreak: player.currentStreak ?? 0 });
+    setEditStep("code");
+    setEditCode("");
+    setEditCodeError(false);
     setIsEditOpen(true);
   };
 
@@ -559,44 +575,81 @@ export default function Players() {
       )}
 
       {/* Edit dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <Dialog open={isEditOpen} onOpenChange={(o) => { setIsEditOpen(o); if (!o) { setEditCode(""); setEditCodeError(false); setEditStep("code"); } }}>
         <DialogContent className="glass-card sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Editar Jugador</DialogTitle>
+            <DialogTitle>Editar Jugador — {selectedPlayer?.name}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-5 py-4">
-            <AvatarPicker
-              value={formData.avatarUrl}
-              onChange={(p) => setFormData({ ...formData, avatarUrl: p })}
-              initials={formData.name.substring(0, 2).toUpperCase()}
-            />
-            <div className="grid gap-2">
-              <Label htmlFor="edit-name">Nombre</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="bg-background"
-                onKeyDown={(e) => e.key === "Enter" && handleEdit()}
-              />
+
+          {editStep === "code" ? (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">Ingresa el código de administrador para editar este jugador.</p>
+              <div className="grid gap-2">
+                <Label>Código secreto</Label>
+                <Input
+                  type="password"
+                  value={editCode}
+                  onChange={(e) => { setEditCode(e.target.value); setEditCodeError(false); }}
+                  placeholder="••••••"
+                  className="bg-background text-center text-xl tracking-widest"
+                  onKeyDown={(e) => e.key === "Enter" && handleVerifyEditCode()}
+                  autoFocus
+                />
+                {editCodeError && (
+                  <div className="flex items-center gap-2 text-sm text-destructive">
+                    <XCircle className="h-4 w-4 shrink-0" />
+                    Código incorrecto
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">Cancelar</Button>
+                <Button onClick={handleVerifyEditCode} disabled={!editCode} className="flex-1">Verificar</Button>
+              </DialogFooter>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-streak">Racha actual</Label>
-              <Input
-                id="edit-streak"
-                type="number"
-                min={0}
-                value={formData.currentStreak}
-                onChange={(e) => setFormData({ ...formData, currentStreak: Math.max(0, parseInt(e.target.value) || 0) })}
-                className="bg-background"
-              />
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                Código verificado correctamente
+              </div>
+              <div className="grid gap-5">
+                <AvatarPicker
+                  value={formData.avatarUrl}
+                  onChange={(p) => setFormData({ ...formData, avatarUrl: p })}
+                  initials={formData.name.substring(0, 2).toUpperCase()}
+                />
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Nombre</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="bg-background"
+                    onKeyDown={(e) => e.key === "Enter" && handleEdit()}
+                    autoFocus
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-streak">Racha actual</Label>
+                  <Input
+                    id="edit-streak"
+                    type="number"
+                    min={0}
+                    value={formData.currentStreak}
+                    onChange={(e) => setFormData({ ...formData, currentStreak: Math.max(0, parseInt(e.target.value) || 0) })}
+                    className="bg-background"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">Cancelar</Button>
+                <Button onClick={handleEdit} disabled={updatePlayer.isPending || !formData.name.trim()} className="flex-1">
+                  {updatePlayer.isPending ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </DialogFooter>
             </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleEdit} disabled={updatePlayer.isPending || !formData.name.trim()} className="w-full">
-              {updatePlayer.isPending ? "Guardando..." : "Guardar Cambios"}
-            </Button>
-          </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
