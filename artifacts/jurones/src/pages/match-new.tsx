@@ -459,17 +459,25 @@ export default function MatchNew() {
                     })}
                   </div>
                 )}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <span className="text-sm text-muted-foreground">{cortos.length}/2 seleccionados</span>
+                </div>
+                {/* Floating round button */}
+                <motion.div
+                  className="fixed bottom-8 right-8 z-50"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: cortos.length === 2 ? 1 : 0.85, opacity: cortos.length === 2 ? 1 : 0.4 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                >
                   <Button
-                    size="lg"
+                    size="icon"
                     onClick={handleNextStep}
                     disabled={cortos.length !== 2}
-                    className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8"
+                    className="h-16 w-16 rounded-full bg-red-600 hover:bg-red-500 text-white shadow-2xl shadow-red-900/50 disabled:pointer-events-none"
                   >
-                    Siguiente <ChevronRight className="ml-2 h-5 w-5" />
+                    <ChevronRight className="h-7 w-7" />
                   </Button>
-                </div>
+                </motion.div>
               </motion.div>
             )}
 
