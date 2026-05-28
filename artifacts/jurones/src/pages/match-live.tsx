@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound } from "lucide-react";
+import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
@@ -45,12 +45,33 @@ export default function MatchLive() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelCode, setCancelCode] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [elapsed, setElapsed] = useState("00:00:00");
 
   useEffect(() => {
     if (match?.status === "finished") {
       triggerConfetti();
     }
   }, [match?.status]);
+
+  // Elapsed time clock
+  useEffect(() => {
+    if (!match?.createdAt) return;
+    const start = new Date(match.createdAt).getTime();
+    const tick = () => {
+      const secs = Math.max(0, Math.floor((Date.now() - start) / 1000));
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = secs % 60;
+      setElapsed(
+        h > 0
+          ? `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+          : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [match?.createdAt]);
 
   const triggerConfetti = () => {
     const duration = 3 * 1000;
@@ -238,25 +259,32 @@ export default function MatchLive() {
 
       {/* Action buttons — only for active matches */}
       {!isFinished && (
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowResetDialog(true)}
-            className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 gap-2"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reiniciar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { setCancelCode(""); setShowCancelDialog(true); }}
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10 gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Cancelar partida
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          {/* Elapsed timer */}
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/40 border border-border/50">
+            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="font-mono text-base font-bold tabular-nums tracking-widest">{elapsed}</span>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowResetDialog(true)}
+              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reiniciar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setCancelCode(""); setShowCancelDialog(true); }}
+              className="border-red-500/50 text-red-400 hover:bg-red-500/10 gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Cancelar partida
+            </Button>
+          </div>
         </div>
       )}
 
