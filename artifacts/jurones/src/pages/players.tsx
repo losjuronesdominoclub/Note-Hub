@@ -334,7 +334,7 @@ export default function Players() {
   const [isCardOpen, setIsCardOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
-  const [formData, setFormData] = useState({ name: "", avatarUrl: "" });
+  const [formData, setFormData] = useState({ name: "", avatarUrl: "", currentStreak: 0 });
 
   const [statsStep, setStatsStep] = useState<"code" | "fields">("code");
   const [statsCode, setStatsCode] = useState("");
@@ -355,7 +355,7 @@ export default function Players() {
 
   const handleEdit = () => {
     if (!formData.name.trim() || !selectedPlayer) return;
-    updatePlayer.mutate({ id: selectedPlayer.id, data: { name: formData.name, avatarUrl: formData.avatarUrl || undefined } }, {
+    updatePlayer.mutate({ id: selectedPlayer.id, data: { name: formData.name, avatarUrl: formData.avatarUrl || undefined, currentStreak: formData.currentStreak } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
         setIsEditOpen(false);
@@ -377,7 +377,7 @@ export default function Players() {
 
   const openEdit = (player: any) => {
     setSelectedPlayer(player);
-    setFormData({ name: player.name, avatarUrl: player.avatarUrl || "" });
+    setFormData({ name: player.name, avatarUrl: player.avatarUrl || "", currentStreak: player.currentStreak ?? 0 });
     setIsEditOpen(true);
   };
 
@@ -578,6 +578,17 @@ export default function Players() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="bg-background"
                 onKeyDown={(e) => e.key === "Enter" && handleEdit()}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-streak">Racha actual</Label>
+              <Input
+                id="edit-streak"
+                type="number"
+                min={0}
+                value={formData.currentStreak}
+                onChange={(e) => setFormData({ ...formData, currentStreak: Math.max(0, parseInt(e.target.value) || 0) })}
+                className="bg-background"
               />
             </div>
           </div>
