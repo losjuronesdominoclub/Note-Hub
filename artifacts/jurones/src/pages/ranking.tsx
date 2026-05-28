@@ -4,6 +4,13 @@ import { useGetRanking } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal, Flame } from "lucide-react";
 
+function avatarSrc(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("http")) return path;
+  const slug = path.startsWith("/objects/") ? path.slice("/objects/".length) : path;
+  return `/api/storage/objects/${slug}`;
+}
+
 export default function Ranking() {
   const { data: ranking, isLoading } = useGetRanking();
 
@@ -47,7 +54,7 @@ export default function Ranking() {
               </div>
 
               <Avatar className={`h-14 w-14 border-2 ${index === 0 ? 'border-yellow-500' : 'border-transparent'}`}>
-                <AvatarImage src={item.player.avatarUrl || undefined} />
+                <AvatarImage src={avatarSrc(item.player.avatarUrl)} className="object-cover" />
                 <AvatarFallback className="bg-primary/20 text-primary font-bold">
                   {item.player.name.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
