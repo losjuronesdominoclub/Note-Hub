@@ -282,7 +282,7 @@ export default function Lisas() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      {item.player.wins}V · {item.player.losses}D · WR {(Number(item.player.winRate) * 100).toFixed(2)}%
+                      {item.player.wins}V · {item.player.losses}D · WR {(Number(item.player.winRate) * 100).toFixed(0)}%
                     </p>
                   </div>
 

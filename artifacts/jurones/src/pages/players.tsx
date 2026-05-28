@@ -312,7 +312,7 @@ export default function Players() {
                     </div>
                     <div className="mt-4 pt-4 border-t border-border flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Win Rate</span>
-                      <span className="font-bold text-primary">{(Number(player.winRate) * 100).toFixed(2)}%</span>
+                      <span className="font-bold text-primary">{(Number(player.winRate) * 100).toFixed(0)}%</span>
                     </div>
                     <Button
                       variant="outline"
@@ -448,7 +448,7 @@ export default function Players() {
                 Win Rate resultante:{" "}
                 <span className="font-bold text-primary">
                   {statsData.wins + statsData.losses > 0
-                    ? ((statsData.wins / (statsData.wins + statsData.losses)) * 100).toFixed(2)
+                    ? ((statsData.wins / (statsData.wins + statsData.losses)) * 100).toFixed(0)
                     : "0.00"}%
                 </span>
               </div>

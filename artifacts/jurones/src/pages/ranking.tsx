@@ -46,7 +46,7 @@ export default function Ranking() {
       nombre: item.player.name,
       victorias: item.player.wins,
       derrotas: item.player.losses,
-      winRate: (Number(item.player.winRate) * 100).toFixed(2),
+      winRate: (Number(item.player.winRate) * 100).toFixed(0),
       racha: item.player.currentStreak,
     }));
     const blob = new Blob([JSON.stringify({ jugadores }, null, 2)], { type: "application/json" });
@@ -193,7 +193,7 @@ export default function Ranking() {
               </div>
 
               <div className="text-right pl-4 border-l border-border">
-                <div className="text-2xl font-black text-primary">{(Number(item.player.winRate) * 100).toFixed(2)}%</div>
+                <div className="text-2xl font-black text-primary">{(Number(item.player.winRate) * 100).toFixed(0)}%</div>
                 <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Win Rate</div>
               </div>
             </motion.div>

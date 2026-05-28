@@ -185,7 +185,7 @@ export default function Dashboard() {
                         <Trophy className="h-3.5 w-3.5" /> {stats.topPlayer.wins}V · {stats.topPlayer.losses}D
                       </span>
                       <span className="flex items-center gap-1 text-sm bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-full font-semibold">
-                        {(Number(stats.topPlayer.winRate) * 100).toFixed(2)}% WR
+                        {(Number(stats.topPlayer.winRate) * 100).toFixed(0)}% WR
                       </span>
                     </div>
 
