@@ -183,7 +183,7 @@
   position: relative;
   border-radius: 16px;
   padding: 2px;
-  background: conic-gradient(from var(--ga), #a88932, #edbc37, #a88932);
+  background: conic-gradient(from var(--ga), #4f3c07, #edbc37, #4f3c07);
   animation: spin-border 3s linear infinite;
 }
 
