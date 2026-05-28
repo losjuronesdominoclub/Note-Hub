@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X } from "lucide-react";
-import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey } from "@workspace/api-client-react";
+import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle } from "lucide-react";
+import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
 import { useUpload } from "@workspace/object-storage-web";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -132,9 +132,16 @@ export default function Players() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
   const [formData, setFormData] = useState({ name: "", avatarUrl: "" });
+
+  // Stats edit state — two steps: code verification → fields
+  const [statsStep, setStatsStep] = useState<"code" | "fields">("code");
+  const [statsCode, setStatsCode] = useState("");
+  const [statsCodeError, setStatsCodeError] = useState(false);
+  const [statsData, setStatsData] = useState({ wins: 0, losses: 0 });
 
   const handleCreate = () => {
     if (!formData.name.trim()) return;
@@ -179,6 +186,42 @@ export default function Players() {
   const openDelete = (player: any) => {
     setSelectedPlayer(player);
     setIsDeleteOpen(true);
+  };
+
+  const openStats = (player: any) => {
+    setSelectedPlayer(player);
+    setStatsStep("code");
+    setStatsCode("");
+    setStatsCodeError(false);
+    setStatsData({ wins: player.wins ?? 0, losses: player.losses ?? 0 });
+    setIsStatsOpen(true);
+  };
+
+  const handleVerifyCode = () => {
+    if (statsCode === "110880") {
+      setStatsCodeError(false);
+      setStatsStep("fields");
+    } else {
+      setStatsCodeError(true);
+    }
+  };
+
+  const handleSaveStats = () => {
+    if (!selectedPlayer) return;
+    updatePlayer.mutate(
+      { id: selectedPlayer.id, data: { wins: statsData.wins, losses: statsData.losses } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetRankingQueryKey() });
+          setIsStatsOpen(false);
+          toast({ title: "Estadísticas actualizadas", description: `${selectedPlayer.name} — ${statsData.wins}V / ${statsData.losses}D` });
+        },
+        onError: () => {
+          toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
+        },
+      }
+    );
   };
 
   return (
@@ -267,10 +310,19 @@ export default function Players() {
                         </Button>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-border flex justify-between text-sm">
+                    <div className="mt-4 pt-4 border-t border-border flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Win Rate</span>
                       <span className="font-bold text-primary">{Number(player.winRate).toFixed(2)}%</span>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3 gap-2 text-xs border-border hover:border-primary hover:text-primary"
+                      onClick={() => openStats(player)}
+                    >
+                      <BarChart2 className="h-3.5 w-3.5" />
+                      Editar Estadísticas
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -325,6 +377,89 @@ export default function Players() {
               {deletePlayer.isPending ? "Eliminando..." : "Eliminar"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stats edit dialog */}
+      <Dialog open={isStatsOpen} onOpenChange={(o) => { setIsStatsOpen(o); if (!o) { setStatsCode(""); setStatsCodeError(false); setStatsStep("code"); } }}>
+        <DialogContent className="glass-card sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-primary" />
+              Editar Estadísticas — {selectedPlayer?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          {statsStep === "code" ? (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">Ingresa el código de administrador para modificar las estadísticas.</p>
+              <div className="grid gap-2">
+                <Label>Código secreto</Label>
+                <Input
+                  type="password"
+                  value={statsCode}
+                  onChange={(e) => { setStatsCode(e.target.value); setStatsCodeError(false); }}
+                  placeholder="••••••"
+                  className="bg-background text-center text-xl tracking-widest"
+                  onKeyDown={(e) => e.key === "Enter" && handleVerifyCode()}
+                  autoFocus
+                />
+                {statsCodeError && (
+                  <div className="flex items-center gap-2 text-sm text-destructive">
+                    <XCircle className="h-4 w-4 shrink-0" />
+                    Código incorrecto
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsStatsOpen(false)} className="flex-1">Cancelar</Button>
+                <Button onClick={handleVerifyCode} disabled={!statsCode} className="flex-1">Verificar</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                Código verificado correctamente
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label className="text-green-400 font-semibold">Victorias</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={statsData.wins}
+                    onChange={(e) => setStatsData({ ...statsData, wins: parseInt(e.target.value) || 0 })}
+                    className="bg-background text-center text-2xl font-bold"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-red-400 font-semibold">Derrotas</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={statsData.losses}
+                    onChange={(e) => setStatsData({ ...statsData, losses: parseInt(e.target.value) || 0 })}
+                    className="bg-background text-center text-2xl font-bold"
+                  />
+                </div>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-center text-sm text-muted-foreground">
+                Win Rate resultante:{" "}
+                <span className="font-bold text-primary">
+                  {statsData.wins + statsData.losses > 0
+                    ? ((statsData.wins / (statsData.wins + statsData.losses)) * 100).toFixed(2)
+                    : "0.00"}%
+                </span>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsStatsOpen(false)} className="flex-1">Cancelar</Button>
+                <Button onClick={handleSaveStats} disabled={updatePlayer.isPending} className="flex-1">
+                  {updatePlayer.isPending ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
