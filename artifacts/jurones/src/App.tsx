@@ -19,6 +19,7 @@ import LiveMatches from "@/pages/live";
 import History from "@/pages/history";
 import Ranking from "@/pages/ranking";
 import Events from "@/pages/events";
+import Lisas from "@/pages/lisas";
 import NotFound from "@/pages/not-found";
 import logoPath from "@assets/logo_1779907396869.png";
 
@@ -186,6 +187,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/history" component={() => <ProtectedRoute component={History} />} />
           <Route path="/ranking" component={() => <ProtectedRoute component={Ranking} />} />
           <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
+          <Route path="/lisas" component={() => <ProtectedRoute component={Lisas} />} />
           
           <Route path="/live" component={() => <PublicOrProtectedRoute component={LiveMatches} />} />
           
