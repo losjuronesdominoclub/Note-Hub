@@ -206,10 +206,16 @@ export default function StreamPage() {
 
   // Socket.io
   const socketRef = useRef<Socket | null>(null);
+  // Ref for isAdmin to avoid stale closures in Socket.io callbacks
+  const isAdminRef = useRef(false);
+  // Track remote audio elements so we can clean them up
+  const remoteAudioEls = useRef<HTMLAudioElement[]>([]);
 
   // UI state
   const [appState, setAppState] = useState<AppState>("idle");
   const [isAdmin, setIsAdmin] = useState(false);
+  // Keep ref in sync
+  const setIsAdminSynced = (v: boolean) => { isAdminRef.current = v; setIsAdmin(v); };
   const [showAdminGate, setShowAdminGate] = useState(false);
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
@@ -244,7 +250,8 @@ export default function StreamPage() {
     s.on("disconnect", () => setSocketConnected(false));
     s.on("viewer-count", (n: number) => setViewerCount(n));
     s.on("stream-status", ({ active }: { active: boolean }) => {
-      if (!isAdmin) setRemoteActive(active);
+      // Use ref to avoid stale closure — isAdmin changes after mount
+      if (!isAdminRef.current) setRemoteActive(active);
     });
 
     return () => { s.disconnect(); };
@@ -288,8 +295,9 @@ export default function StreamPage() {
             setRemoteActive(true);
           }
           if (track.kind === Track.Kind.Audio) {
-            const el = track.attach();
+            const el = track.attach() as HTMLAudioElement;
             document.body.appendChild(el);
+            remoteAudioEls.current.push(el);
           }
         });
         room.on(RoomEvent.TrackUnsubscribed, () => setRemoteActive(false));
@@ -301,6 +309,9 @@ export default function StreamPage() {
       room.on(RoomEvent.Disconnected, () => {
         setAppState("idle");
         setRemoteActive(false);
+        // Clean up remote audio elements
+        remoteAudioEls.current.forEach((el) => { el.pause(); el.remove(); });
+        remoteAudioEls.current = [];
       });
 
       await room.connect(url, token);
@@ -330,7 +341,8 @@ export default function StreamPage() {
       setErrorMsg(err?.message ?? "Error de conexión");
       setAppState("error");
     }
-  }, [cameras, currentCamIdx, userName, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userName, user]);
 
   const stopBroadcast = useCallback(async () => {
     localVideoTrackRef.current?.stop();
@@ -371,7 +383,8 @@ export default function StreamPage() {
       if (newVideoTrack) {
         localVideoTrackRef.current = newVideoTrack;
         if (localVideoRef.current) {
-          newVideoTrack.detach();
+          // Detach only from the specific element, not all elements
+          newVideoTrack.detach(localVideoRef.current);
           newVideoTrack.attach(localVideoRef.current);
         }
       }
@@ -439,7 +452,7 @@ export default function StreamPage() {
       <AnimatePresence>
         {showAdminGate && (
           <AdminGate
-            onUnlock={() => { setIsAdmin(true); setShowAdminGate(false); }}
+            onUnlock={() => { setIsAdminSynced(true); setShowAdminGate(false); }}
             onCancel={() => setShowAdminGate(false)}
           />
         )}
