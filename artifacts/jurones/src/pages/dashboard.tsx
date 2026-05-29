@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2 } from "lucide-react";
-import { useMarineTheme } from "@/hooks/use-marine-theme";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,6 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { marine, toggle: toggleMarine } = useMarineTheme();
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [resetStep, setResetStep] = useState<"code" | "confirm">("code");
   const [resetCode, setResetCode] = useState("");
@@ -115,23 +113,6 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Marine theme toggle */}
-          <button
-            onClick={toggleMarine}
-            title={marine ? "Desactivar tema Marine" : "Activar tema Marine"}
-            className="h-9 w-9 rounded-full transition-all hover:scale-110 active:scale-95 flex items-center justify-center"
-            style={{
-              background: marine
-                ? "linear-gradient(135deg, #0d2d5c 0%, #00b4d8 100%)"
-                : "#0d2d5c",
-              border: `2px solid ${marine ? "#00e5ff" : "#1e4080"}`,
-              boxShadow: marine ? "0 0 12px rgba(0,229,255,0.5), 0 0 24px rgba(0,180,216,0.2)" : "none",
-            }}
-          >
-            {marine && (
-              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse" />
-            )}
-          </button>
           <Button
             size="icon"
             variant="outline"

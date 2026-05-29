@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "wouter";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { useMarineTheme } from "@/hooks/use-marine-theme";
 import { Button } from "@/components/ui/button";
 import FloatingMenu from "./floating-menu";
 import logoPath from "@assets/logo_1779907396869.png";
@@ -9,6 +10,7 @@ import { Show } from "@clerk/react";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
+  const { marine, toggle: toggleMarine } = useMarineTheme();
 
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-border/50">
@@ -19,6 +21,32 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-4">
+          {/* Marine theme toggle — same size as Moon/Sun button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMarine}
+            title={marine ? "Desactivar tema Marine" : "Activar tema Marine"}
+            className="rounded-full relative"
+            style={marine ? {
+              background: "linear-gradient(135deg, #0d2d5c 0%, #006080 100%)",
+              boxShadow: "0 0 10px rgba(0,229,255,0.45)",
+            } : {}}
+          >
+            <span
+              className="h-[1.2rem] w-[1.2rem] rounded-full flex items-center justify-center transition-all"
+              style={{
+                background: marine
+                  ? "linear-gradient(135deg, #00b4d8, #0d2d5c)"
+                  : "#0d2d5c",
+                border: `2px solid ${marine ? "#00e5ff" : "#1e4080"}`,
+              }}
+            >
+              {marine && <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />}
+            </span>
+            <span className="sr-only">Toggle Marine</span>
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
