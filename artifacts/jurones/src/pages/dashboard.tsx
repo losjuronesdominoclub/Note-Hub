@@ -1,12 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle } from "lucide-react";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -20,6 +25,49 @@ export default function Dashboard() {
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
   const { data: activeMatches } = useListMatches({ status: "active" });
   const activeMatch = activeMatches?.[0] ?? null;
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [isResetOpen, setIsResetOpen] = useState(false);
+  const [resetStep, setResetStep] = useState<"code" | "confirm">("code");
+  const [resetCode, setResetCode] = useState("");
+  const [resetCodeError, setResetCodeError] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  const openReset = () => {
+    setResetStep("code");
+    setResetCode("");
+    setResetCodeError(false);
+    setIsResetOpen(true);
+  };
+
+  const handleVerifyResetCode = () => {
+    if (resetCode === "110880") {
+      setResetStep("confirm");
+      setResetCodeError(false);
+    } else {
+      setResetCodeError(true);
+    }
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      const res = await fetch("/api/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode: "110880" }),
+      });
+      if (!res.ok) throw new Error("Error en el servidor");
+      queryClient.invalidateQueries();
+      setIsResetOpen(false);
+      toast({ title: "Reset completado", description: "Todas las estadísticas han sido restablecidas a 0." });
+    } catch {
+      toast({ title: "Error", description: "No se pudo completar el reset.", variant: "destructive" });
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const statCards = [
     { title: "Partidas Activas",  value: stats?.activeMatches,    icon: Activity, color: "text-green-500",  bg: "bg-green-500/10"  },
@@ -46,11 +94,22 @@ export default function Dashboard() {
           </div>
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>
-        <Link href="/match/new">
-          <Button size="icon" title="Nueva Partida" className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40">
-            <Play className="h-6 w-6 fill-current" />
+        <div className="flex items-center gap-3">
+          <Button
+            size="icon"
+            variant="outline"
+            title="Reset estadísticas"
+            onClick={openReset}
+            className="h-10 w-10 rounded-full border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/60 transition-all"
+          >
+            <RotateCcw className="h-4 w-4" />
           </Button>
-        </Link>
+          <Link href="/match/new">
+            <Button size="icon" title="Nueva Partida" className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40">
+              <Play className="h-6 w-6 fill-current" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Partida activa banner ── */}
@@ -238,6 +297,71 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* ── Reset dialog ── */}
+      <Dialog open={isResetOpen} onOpenChange={(o) => { setIsResetOpen(o); if (!o) { setResetCode(""); setResetCodeError(false); setResetStep("code"); } }}>
+        <DialogContent className="glass-card sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-400">
+              <RotateCcw className="h-5 w-5" />
+              Reset General
+            </DialogTitle>
+          </DialogHeader>
+
+          {resetStep === "code" ? (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">Ingresa el código de administrador para continuar.</p>
+              <div className="grid gap-2">
+                <Label>Código secreto</Label>
+                <Input
+                  type="password"
+                  value={resetCode}
+                  onChange={(e) => { setResetCode(e.target.value); setResetCodeError(false); }}
+                  placeholder="••••••"
+                  className="bg-background text-center text-xl tracking-widest"
+                  onKeyDown={(e) => e.key === "Enter" && handleVerifyResetCode()}
+                  autoFocus
+                />
+                {resetCodeError && (
+                  <div className="flex items-center gap-2 text-sm text-destructive">
+                    <XCircle className="h-4 w-4 shrink-0" />
+                    Código incorrecto
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsResetOpen(false)} className="flex-1">Cancelar</Button>
+                <Button onClick={handleVerifyResetCode} disabled={!resetCode} className="flex-1">Verificar</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 flex gap-3 items-start">
+                <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+                <div className="text-sm text-red-300 space-y-1">
+                  <p className="font-bold">Esta acción no se puede deshacer.</p>
+                  <ul className="list-disc list-inside text-red-400/80 space-y-0.5">
+                    <li>Se eliminará todo el historial de partidas</li>
+                    <li>Victorias, derrotas, puntos y rachas → 0</li>
+                    <li>Ranking de lisas → 0</li>
+                    <li>Se conservan nombres y fotos de jugadores</li>
+                  </ul>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsResetOpen(false)} className="flex-1">Cancelar</Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleReset}
+                  disabled={resetting}
+                  className="flex-1"
+                >
+                  {resetting ? "Reseteando..." : "Confirmar Reset"}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

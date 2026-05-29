@@ -6,6 +6,7 @@ import eventsRouter from "./events";
 import statsRouter from "./stats";
 import storageRouter from "./storage";
 import lisasRouter from "./lisas";
+import resetRouter from "./reset";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(eventsRouter);
 router.use(statsRouter);
 router.use(storageRouter);
 router.use(lisasRouter);
+router.use(resetRouter);
 
 export default router;
