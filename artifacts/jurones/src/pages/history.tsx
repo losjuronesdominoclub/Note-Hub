@@ -326,6 +326,8 @@ export default function History() {
               <Label>Código de Admin</Label>
               <Input
                 type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={adminCode}
                 onChange={e => setAdminCode(e.target.value)}
                 placeholder="******"
@@ -353,6 +355,8 @@ export default function History() {
               <Label>Código de Admin</Label>
               <Input
                 type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={adminCode}
                 onChange={e => setAdminCode(e.target.value)}
                 placeholder="******"

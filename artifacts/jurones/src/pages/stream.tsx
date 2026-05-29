@@ -120,6 +120,8 @@ function AdminGate({ onUnlock, onCancel }: { onUnlock: () => void; onCancel: () 
       <form onSubmit={handleSubmit} className="w-full space-y-3">
         <Input
           type="password"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Código"

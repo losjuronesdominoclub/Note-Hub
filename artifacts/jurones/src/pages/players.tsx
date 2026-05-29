@@ -588,6 +588,8 @@ export default function Players() {
                 <Label>Código secreto</Label>
                 <Input
                   type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={editCode}
                   onChange={(e) => { setEditCode(e.target.value); setEditCodeError(false); }}
                   placeholder="••••••"
@@ -688,6 +690,8 @@ export default function Players() {
                 <Label>Código secreto</Label>
                 <Input
                   type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={statsCode}
                   onChange={(e) => { setStatsCode(e.target.value); setStatsCodeError(false); }}
                   placeholder="••••••"

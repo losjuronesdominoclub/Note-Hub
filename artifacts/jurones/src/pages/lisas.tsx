@@ -373,6 +373,8 @@ export default function Lisas() {
               </Label>
               <Input
                 type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="••••••"
                 value={editCode}
                 onChange={e => setEditCode(e.target.value)}
@@ -434,6 +436,8 @@ export default function Lisas() {
                   </Label>
                   <Input
                     type="password"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="••••••"
                     value={adminCode}
                     onChange={e => setAdminCode(e.target.value)}

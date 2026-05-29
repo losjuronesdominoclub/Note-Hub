@@ -332,6 +332,8 @@ export default function Dashboard() {
                 <Label>Código secreto</Label>
                 <Input
                   type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={resetCode}
                   onChange={(e) => { setResetCode(e.target.value); setResetCodeError(false); }}
                   placeholder="••••••"

@@ -290,6 +290,8 @@ export default function Ranking() {
                 <Label>Código de Admin</Label>
                 <Input
                   type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={importAdminCode}
                   onChange={(e) => setImportAdminCode(e.target.value)}
                   placeholder="••••••"
