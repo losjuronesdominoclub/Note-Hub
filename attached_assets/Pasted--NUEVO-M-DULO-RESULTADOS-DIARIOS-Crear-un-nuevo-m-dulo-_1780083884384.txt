@@ -1,0 +1,258 @@
+# NUEVO MÓDULO: RESULTADOS DIARIOS
+
+Crear un nuevo módulo llamado **“Resultados Diarios”** dentro de la app de Los Jurones Domino Club.
+
+---
+
+# NUEVO BOTÓN EN EL DASHBOARD
+
+Agregar un nuevo botón en el Dashboard principal con el nombre:
+
+## RESULTADOS DIARIOS
+
+### Ubicación:
+
+* Debe aparecer al lado del ícono de Instagram.
+
+### Diseño del botón:
+
+* Botón plano (flat design)
+* Color de fondo: `#e8b03f`
+* Texto en color oscuro o negro para buena legibilidad
+* Bordes ligeramente redondeados
+* Ícono opcional de estadísticas o calendario
+* Debe mantener el estilo visual moderno de la app
+
+### Acción:
+
+Al hacer clic debe abrir el módulo “Resultados Diarios”.
+
+---
+
+# NUEVA OPCIÓN EN EL MENÚ
+
+Agregar el módulo también dentro del menú de navegación.
+
+### Ubicación en el menú:
+
+Debe aparecer debajo de:
+
+## Lisas
+
+Orden sugerido:
+
+* Inicio
+* Live
+* Records
+* Ranking
+* Puntos
+* Lisas
+* Resultados Diarios
+* Eventos
+* Jugadores
+
+---
+
+# OBJETIVO DEL MÓDULO
+
+Este módulo mostrará un resumen diario del rendimiento de cada jugador que participó en partidas durante el día, permitiendo visualizar fácilmente cómo fue la jornada de cada integrante.
+
+---
+
+# FUNCIONAMIENTO GENERAL
+
+* El módulo debe agrupar automáticamente los resultados por fecha.
+* Cada grupo representa un día diferente.
+* Cada 24 horas se debe crear automáticamente una nueva sección debajo de la anterior.
+* Las fechas deben mostrarse en orden descendente (más reciente primero).
+
+Ejemplo visual:
+
+## Resultados del 29 de mayo de 2026
+
+👤 Foto + Nombre del jugador
+📊 Estadísticas del día:
+
+* Ganadas (G)
+* Perdidas (P)
+* Lisas realizadas
+
+Ejemplo:
+
+* Alberto G → 2 G · 1 P · 2 Lisas
+* Angel Mateo → 1 G · 2 P · 0 Lisas
+* Emilio DJ → 0 G · 1 P · 0 Lisas
+* S Franco → 2 G · 0 P · 1 Lisa
+
+---
+
+## Resultados del 28 de mayo de 2026
+
+* Antonio → 1 G · 1 P · 0 Lisas
+* Angel Mateo → 1 G · 2 P · 0 Lisas
+* Emilio DJ → 0 G · 1 P · 0 Lisas
+* S Franco → 2 G · 0 P · 1 Lisa
+
+---
+
+# DATOS QUE DEBE MOSTRAR CADA JUGADOR
+
+Cada tarjeta o fila del jugador debe incluir:
+
+* Foto de perfil del jugador
+* Nombre del jugador
+* Total de partidas ganadas
+* Total de partidas perdidas
+* Total de lisas realizadas
+* Opcional: porcentaje de victorias
+
+Formato recomendado:
+
+[ FOTO ]
+Nombre del jugador
+2 G · 1 P · 2 Lisas
+
+---
+
+# CÁLCULO AUTOMÁTICO
+
+Las estadísticas deben calcularse automáticamente usando el historial de partidas ya guardadas en la app.
+
+Para cada jugador:
+
+## Ganadas (G)
+
+Cantidad de partidas donde el jugador pertenece al equipo ganador.
+
+## Perdidas (P)
+
+Cantidad de partidas donde el jugador pertenece al equipo perdedor.
+
+## Lisas
+
+Cantidad de veces que el jugador terminó una partida con “Lisa”.
+
+---
+
+# DISEÑO UI/UX
+
+## Diseño recomendado
+
+* Estilo moderno y deportivo
+* Fondo oscuro similar al resto de la app
+* Tarjetas elegantes con bordes redondeados
+* Separación visual clara entre días
+* Animaciones suaves al cargar
+
+## Cada sección diaria debe incluir:
+
+* Encabezado grande con la fecha
+* Línea divisora
+* Lista de jugadores participantes del día
+
+## Cada jugador debe mostrarse en:
+
+* Card horizontal responsive
+  o
+* Tabla visual moderna
+
+---
+
+# ORDENAMIENTO
+
+Dentro de cada día:
+
+Ordenar los jugadores por:
+
+1. Más victorias
+2. Más lisas
+3. Menos derrotas
+
+---
+
+# FILTROS Y FUNCIONES EXTRA
+
+Agregar:
+
+* Buscador por nombre
+* Filtro por fecha
+* Botón “Ver solo mis resultados”
+* Botón “Compartir jornada”
+* Botón “Exportar imagen”
+
+---
+
+# EXPORTAR IMAGEN
+
+Agregar un botón para generar automáticamente una imagen tipo resumen de jornada.
+
+La imagen debe incluir:
+
+* Fecha
+* Lista de jugadores
+* Estadísticas del día
+* Logo de Los Jurones
+* Diseño listo para Instagram o WhatsApp
+
+Formato recomendado:
+1080x1350 px
+
+---
+
+# BASE DE DATOS
+
+Crear una colección/tabla llamada:
+
+daily_results
+
+Estructura sugerida:
+
+{
+"fecha": "2026-05-29",
+"jugadores": [
+{
+"nombre": "Alberto G",
+"foto": "url",
+"ganadas": 2,
+"perdidas": 1,
+"lisas": 2
+}
+]
+}
+
+---
+
+# ACTUALIZACIÓN AUTOMÁTICA
+
+Cada vez que una partida finalice:
+
+* Actualizar automáticamente los resultados del día correspondiente.
+* Si la fecha no existe:
+
+  * Crear nueva sección automáticamente.
+
+---
+
+# RESPONSIVE
+
+El módulo debe funcionar perfectamente en:
+
+* Móviles
+* Tablets
+* Desktop
+
+---
+
+# EXPERIENCIA DE USUARIO
+
+Objetivo principal:
+
+Que cada jugador pueda entrar al módulo “Resultados Diarios” y ver rápidamente cómo le fue en la jornada del día, fomentando competitividad, seguimiento y participación dentro del club.
+
+El diseño debe sentirse:
+
+* moderno
+* rápido
+* visual
+* deportivo
+* fácil de leer

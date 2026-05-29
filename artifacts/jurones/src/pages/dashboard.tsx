@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2 } from "lucide-react";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,6 +91,15 @@ export default function Dashboard() {
             >
               <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
             </a>
+            <Link href="/daily-results">
+              <button
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
+                style={{ background: "#e8b03f", color: "#1a1209" }}
+              >
+                <BarChart2 className="h-3.5 w-3.5" />
+                Resultados
+              </button>
+            </Link>
           </div>
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>

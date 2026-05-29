@@ -21,6 +21,7 @@ import Ranking from "@/pages/ranking";
 import RankingPoints from "@/pages/ranking-points";
 import Events from "@/pages/events";
 import Lisas from "@/pages/lisas";
+import DailyResults from "@/pages/daily-results";
 import NotFound from "@/pages/not-found";
 import logoPath from "@assets/logo_1779907396869.png";
 
@@ -190,6 +191,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/ranking-points" component={() => <ProtectedRoute component={RankingPoints} />} />
           <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
           <Route path="/lisas" component={() => <ProtectedRoute component={Lisas} />} />
+          <Route path="/daily-results" component={() => <ProtectedRoute component={DailyResults} />} />
           
           <Route path="/live" component={() => <PublicOrProtectedRoute component={LiveMatches} />} />
           
