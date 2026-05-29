@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq, or, gte } from "drizzle-orm";
 import { db, matchesTable, matchPlayersTable, playersTable } from "@workspace/db";
 import { z } from "zod";
 
@@ -7,8 +7,15 @@ const router: IRouter = Router();
 
 const ADMIN_CODE = "110880";
 
+// A "lisa" = one team wins with 200+ points while the opponent has exactly 0
+function isLisaMatch(shortosScore: number, largosScore: number): boolean {
+  return (shortosScore >= 200 && largosScore === 0) ||
+         (largosScore >= 200 && shortosScore === 0);
+}
+
 // GET /lisas — ranking of players by number of "lisa" wins (200-0) + manually imported lisas
 router.get("/lisas", async (req, res): Promise<void> => {
+  // Fetch all finished matches where one team scored 200+ and the other 0
   const lisaMatches = await db
     .select()
     .from(matchesTable)
@@ -16,8 +23,8 @@ router.get("/lisas", async (req, res): Promise<void> => {
       and(
         eq(matchesTable.status, "finished"),
         or(
-          and(eq(matchesTable.shortosScore, 200), eq(matchesTable.largosScore, 0)),
-          and(eq(matchesTable.largosScore, 200), eq(matchesTable.shortosScore, 0))
+          and(gte(matchesTable.shortosScore, 200), eq(matchesTable.largosScore, 0)),
+          and(gte(matchesTable.largosScore, 200), eq(matchesTable.shortosScore, 0))
         )
       )
     );
@@ -26,21 +33,23 @@ router.get("/lisas", async (req, res): Promise<void> => {
 
   for (const match of lisaMatches) {
     const winningTeam = match.winnerTeam;
+    if (!winningTeam) continue; // skip if winner wasn't recorded
+
     const players = await db
-      .select({ playerId: matchPlayersTable.playerId, team: matchPlayersTable.team })
+      .select({ playerId: matchPlayersTable.playerId })
       .from(matchPlayersTable)
-      .where(and(eq(matchPlayersTable.matchId, match.id), eq(matchPlayersTable.team, winningTeam as "cortos" | "largos")));
+      .where(and(
+        eq(matchPlayersTable.matchId, match.id),
+        eq(matchPlayersTable.team, winningTeam as "cortos" | "largos")
+      ));
 
     for (const p of players) {
       lisaCountMap[p.playerId] = (lisaCountMap[p.playerId] ?? 0) + 1;
     }
   }
 
-  // Fetch all players and merge extraLisas
   const allPlayers = await db.select().from(playersTable);
-  const playerMap = new Map(allPlayers.map((p) => [p.id, p]));
 
-  // Return ALL players with their combined lisa count (0 if none)
   const ranking = allPlayers
     .map((p) => ({
       player: p,
@@ -125,14 +134,15 @@ router.patch("/lisas/:playerId", async (req, res): Promise<void> => {
       and(
         eq(matchesTable.status, "finished"),
         or(
-          and(eq(matchesTable.shortosScore, 200), eq(matchesTable.largosScore, 0)),
-          and(eq(matchesTable.largosScore, 200), eq(matchesTable.shortosScore, 0))
+          and(gte(matchesTable.shortosScore, 200), eq(matchesTable.largosScore, 0)),
+          and(gte(matchesTable.largosScore, 200), eq(matchesTable.shortosScore, 0))
         )
       )
     );
 
   let matchDerived = 0;
   for (const match of lisaMatches) {
+    if (!match.winnerTeam) continue;
     const players = await db
       .select({ playerId: matchPlayersTable.playerId })
       .from(matchPlayersTable)
