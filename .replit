@@ -33,3 +33,10 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+LIVEKIT_URL = "wss://jurones-ryxnapdx.livekit.cloud"
+LIVEKIT_API_KEY = "APIzoZZfUC8gBGv"
+LIVEKIT_API_SECRET = "9eVQVvqsfVtfvnWUVYIAbK0zIX1wCffAYK96WPNpryyG"
