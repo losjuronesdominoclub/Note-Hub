@@ -32,6 +32,7 @@ import {
   ShieldCheck,
   AlertCircle,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -218,7 +219,9 @@ export default function StreamPage() {
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
-  const [currentCamIdx, setCurrentCamIdx] = useState(0);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>("");
+  const [switchingCamera, setSwitchingCamera] = useState(false);
+  const [showCamSelector, setShowCamSelector] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
   // Check LiveKit config on mount
@@ -247,12 +250,13 @@ export default function StreamPage() {
     return () => { s.disconnect(); };
   }, []);
 
-  // Enumerate cameras
+  // Close cam selector when clicking outside
   useEffect(() => {
-    navigator.mediaDevices?.enumerateDevices().then((devices) => {
-      setCameras(devices.filter((d) => d.kind === "videoinput"));
-    });
-  }, []);
+    if (!showCamSelector) return;
+    const close = () => setShowCamSelector(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [showCamSelector]);
 
   const getToken = async (role: "broadcaster" | "viewer") => {
     const res = await fetch("/api/stream/token", {
@@ -302,10 +306,7 @@ export default function StreamPage() {
       await room.connect(url, token);
 
       if (role === "broadcaster") {
-        const camDevice = cameras[currentCamIdx];
-        const videoTrack = await createLocalVideoTrack(
-          camDevice ? { deviceId: camDevice.deviceId } : undefined
-        );
+        const videoTrack = await createLocalVideoTrack();
         const audioTrack = await createLocalAudioTrack();
         localVideoTrackRef.current = videoTrack;
         localAudioTrackRef.current = audioTrack;
@@ -314,6 +315,12 @@ export default function StreamPage() {
         await room.localParticipant.publishTrack(audioTrack);
 
         if (localVideoRef.current) videoTrack.attach(localVideoRef.current);
+
+        // Enumerate cameras AFTER permissions are granted (labels now available)
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams = devices.filter((d) => d.kind === "videoinput");
+        setCameras(cams);
+        setSelectedCameraId(cams[0]?.deviceId ?? "");
 
         socketRef.current?.emit("stream-start");
       }
@@ -351,13 +358,29 @@ export default function StreamPage() {
     setCameraOff((c) => !c);
   }, [cameraOff]);
 
-  const switchCamera = useCallback(async () => {
-    if (cameras.length < 2 || !localVideoTrackRef.current) return;
-    const nextIdx = (currentCamIdx + 1) % cameras.length;
-    setCurrentCamIdx(nextIdx);
-    const nextCam = cameras[nextIdx];
-    await localVideoTrackRef.current.restartTrack({ deviceId: nextCam.deviceId });
-  }, [cameras, currentCamIdx]);
+  const switchToCamera = useCallback(async (deviceId: string) => {
+    const room = roomRef.current;
+    if (!room || switchingCamera) return;
+    setSwitchingCamera(true);
+    try {
+      // v2 API: switches the active device and re-publishes automatically
+      await room.switchActiveDevice("videoinput", deviceId);
+      // Re-attach the new track to the local preview element
+      const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const newVideoTrack = camPub?.videoTrack as LocalVideoTrack | undefined;
+      if (newVideoTrack) {
+        localVideoTrackRef.current = newVideoTrack;
+        if (localVideoRef.current) {
+          newVideoTrack.detach();
+          newVideoTrack.attach(localVideoRef.current);
+        }
+      }
+      setSelectedCameraId(deviceId);
+    } finally {
+      setSwitchingCamera(false);
+      setShowCamSelector(false);
+    }
+  }, [switchingCamera]);
 
   // ─── Render ────────────────────────────────────────────────────────────────
   const isLive = appState === "live";
@@ -533,17 +556,76 @@ export default function StreamPage() {
 
                 {isLive && isAdmin && (
                   <>
+                    {/* Mic toggle */}
                     <Button onClick={toggleMute} variant="outline" size="icon" title={muted ? "Activar mic" : "Silenciar"}>
                       {muted ? <MicOff className="h-4 w-4 text-red-400" /> : <Mic className="h-4 w-4" />}
                     </Button>
+
+                    {/* Camera toggle */}
                     <Button onClick={toggleCamera} variant="outline" size="icon" title={cameraOff ? "Activar cámara" : "Apagar cámara"}>
                       {cameraOff ? <VideoOff className="h-4 w-4 text-red-400" /> : <Video className="h-4 w-4" />}
                     </Button>
-                    {cameras.length > 1 && (
-                      <Button onClick={switchCamera} variant="outline" size="icon" title="Cambiar cámara">
-                        <SwitchCamera className="h-4 w-4" />
+
+                    {/* Camera selector dropdown */}
+                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        className="gap-1.5 h-9 px-3 text-sm"
+                        title="Cambiar cámara"
+                        onClick={() => setShowCamSelector((v) => !v)}
+                        disabled={switchingCamera || cameras.length === 0}
+                      >
+                        {switchingCamera ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <SwitchCamera className="h-4 w-4" />
+                        )}
+                        <span className="hidden sm:inline max-w-[90px] truncate">
+                          {cameras.find((c) => c.deviceId === selectedCameraId)?.label ||
+                            (cameras.length === 0 ? "Sin cámaras" : "Cámara")}
+                        </span>
+                        <ChevronDown className="h-3 w-3 opacity-60" />
                       </Button>
-                    )}
+
+                      <AnimatePresence>
+                        {showCamSelector && cameras.length > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                            transition={{ duration: 0.12 }}
+                            className="absolute bottom-full mb-2 left-0 z-50 min-w-[200px] max-w-[280px] rounded-xl border border-border/60 overflow-hidden shadow-2xl"
+                            style={{ background: "hsl(var(--background))" }}
+                          >
+                            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border/40">
+                              Seleccionar cámara
+                            </div>
+                            {cameras.map((cam, idx) => (
+                              <button
+                                key={cam.deviceId}
+                                onClick={() => switchToCamera(cam.deviceId)}
+                                disabled={switchingCamera}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors hover:bg-white/5 ${
+                                  cam.deviceId === selectedCameraId
+                                    ? "text-yellow-400 font-semibold"
+                                    : "text-foreground"
+                                }`}
+                              >
+                                <SwitchCamera className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                                <span className="truncate">
+                                  {cam.label || `Cámara ${idx + 1}`}
+                                </span>
+                                {cam.deviceId === selectedCameraId && (
+                                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-yellow-400 shrink-0" />
+                                )}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Stop broadcast */}
                     <Button onClick={stopBroadcast} variant="destructive" className="gap-2">
                       <LogOut className="h-4 w-4" />
                       Detener
