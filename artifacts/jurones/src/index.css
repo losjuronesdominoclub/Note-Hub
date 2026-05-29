@@ -106,7 +106,7 @@
   --largos: 221 83% 53%; /* #2563EB */
 
   --app-font-sans: 'Inter', sans-serif;
-  --app-font-display: 'Anton', sans-serif;
+  --app-font-display: 'Bebas Neue', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
   --radius: 0.5rem;
@@ -150,7 +150,6 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--app-font-display);
-    letter-spacing: 0.01em;
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
