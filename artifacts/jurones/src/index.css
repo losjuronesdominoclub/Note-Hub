@@ -227,7 +227,7 @@ html.marine {
   --secondary: 215 50% 16%;
   --secondary-foreground: 0 0% 98%;
   --muted: 215 50% 16%;
-  --muted-foreground: 357 78% 58%;
+  --muted-foreground: 0 0% 90%;
   --accent: 186 100% 50%;
   --accent-foreground: 215 70% 9%;
   --destructive: 0 62.8% 30.6%;
@@ -248,12 +248,12 @@ html.marine body {
 
 @keyframes led-red-pulse {
   0%, 100% {
-    border-color: rgba(220, 38, 38, 0.9);
-    box-shadow: 0 0 10px rgba(220, 38, 38, 0.35), inset 0 0 14px rgba(220, 38, 38, 0.05);
+    border-color: #003866;
+    box-shadow: 0 0 10px rgba(0, 56, 102, 0.5), inset 0 0 14px rgba(0, 56, 102, 0.08);
   }
   50% {
-    border-color: rgba(127, 29, 29, 0.4);
-    box-shadow: 0 0 3px rgba(127, 29, 29, 0.15);
+    border-color: rgba(0, 30, 60, 0.6);
+    box-shadow: 0 0 3px rgba(0, 30, 60, 0.25);
   }
 }
 
@@ -270,7 +270,7 @@ html.marine .glass-card {
   animation: marine-card-flow 9s ease infinite, led-red-pulse 2.5s ease-in-out infinite;
   border-width: 1px;
   border-style: solid;
-  border-color: rgba(220, 38, 38, 0.9);
+  border-color: #003866;
   backdrop-filter: blur(16px);
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.55);
 }
