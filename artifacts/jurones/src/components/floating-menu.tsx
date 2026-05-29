@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { 
-  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, LogOut 
+  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, LogOut 
 } from "lucide-react";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export default function FloatingMenu() {
     { icon: Radio, label: "Live", path: "/live" },
     { icon: History, label: "Records", path: "/history" },
     { icon: Trophy, label: "Ranking", path: "/ranking" },
+    { icon: Star, label: "Puntos", path: "/ranking-points" },
     { icon: Fish, label: "Lisas", path: "/lisas" },
     { icon: Calendar, label: "Eventos", path: "/events" },
     { icon: Users, label: "Jugadores", path: "/players" },

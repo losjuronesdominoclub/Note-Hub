@@ -18,6 +18,7 @@ import MatchLive from "@/pages/match-live";
 import LiveMatches from "@/pages/live";
 import History from "@/pages/history";
 import Ranking from "@/pages/ranking";
+import RankingPoints from "@/pages/ranking-points";
 import Events from "@/pages/events";
 import Lisas from "@/pages/lisas";
 import NotFound from "@/pages/not-found";
@@ -186,6 +187,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/match/:id" component={() => <ProtectedRoute component={MatchLive} />} />
           <Route path="/history" component={() => <ProtectedRoute component={History} />} />
           <Route path="/ranking" component={() => <ProtectedRoute component={Ranking} />} />
+          <Route path="/ranking-points" component={() => <ProtectedRoute component={RankingPoints} />} />
           <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
           <Route path="/lisas" component={() => <ProtectedRoute component={Lisas} />} />
           
