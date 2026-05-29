@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import ScrollToTop from "@/components/scroll-to-top";
 import { motion } from "framer-motion";
 import { useListHistory, useUpdateMatch, getListHistoryQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -486,6 +487,7 @@ export default function History() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ScrollToTop />
     </div>
   );
 }

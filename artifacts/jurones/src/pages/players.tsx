@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import ScrollToTop from "@/components/scroll-to-top";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download } from "lucide-react";
 import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
@@ -757,6 +758,7 @@ export default function Players() {
           )}
         </DialogContent>
       </Dialog>
+      <ScrollToTop />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import ScrollToTop from "@/components/scroll-to-top";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -474,6 +475,7 @@ export default function Lisas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ScrollToTop />
     </div>
   );
 }

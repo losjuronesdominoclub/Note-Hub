@@ -1,4 +1,5 @@
 import React, { useRef, useState, useMemo } from "react";
+import ScrollToTop from "@/components/scroll-to-top";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -294,6 +295,7 @@ export default function DailyResults() {
           ))}
         </div>
       )}
+      <ScrollToTop />
     </div>
   );
 }

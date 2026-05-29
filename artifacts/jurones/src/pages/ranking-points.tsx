@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import ScrollToTop from "@/components/scroll-to-top";
 import { motion } from "framer-motion";
 import { useListPlayers } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -216,7 +217,7 @@ export default function RankingPoints() {
           </div>
         </div>
       </div>
-
+      <ScrollToTop />
     </div>
   );
 }
