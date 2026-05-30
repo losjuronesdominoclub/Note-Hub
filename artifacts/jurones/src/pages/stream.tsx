@@ -336,6 +336,12 @@ export default function StreamPage() {
 
   // UI state
   const [appState, setAppState] = useState<AppState>("idle");
+  // Keep appState in a ref so socket/LiveKit callbacks can read it without stale closure
+  const appStateRef = useRef<AppState>("idle");
+  const setAppStateSynced = useCallback((s: AppState) => {
+    appStateRef.current = s;
+    setAppState(s);
+  }, []);
   const [isAdmin, setIsAdmin] = useState(false);
   // Keep ref in sync
   const setIsAdminSynced = (v: boolean) => { isAdminRef.current = v; setIsAdmin(v); };
@@ -404,6 +410,11 @@ export default function StreamPage() {
     s.on("connect", () => {
       setSocketConnected(true);
       s.emit("join-stream");
+      // If broadcaster is still live after a socket reconnect, re-announce
+      // so the server's streamActive stays in sync.
+      if (isAdminRef.current && appStateRef.current === "live") {
+        s.emit("stream-start");
+      }
     });
     s.on("disconnect", () => setSocketConnected(false));
     s.on("viewer-count", (n: number) => setViewerCount(n));
@@ -438,7 +449,7 @@ export default function StreamPage() {
   };
 
   const connectToRoom = useCallback(async (role: "broadcaster" | "viewer") => {
-    setAppState("connecting");
+    setAppStateSynced("connecting");
     setErrorMsg("");
     try {
       const { token, url } = await getToken(role);
@@ -465,7 +476,12 @@ export default function StreamPage() {
       }
 
       room.on(RoomEvent.Disconnected, () => {
-        setAppState("idle");
+        // If the broadcaster's connection drops, notify the server so viewers
+        // are informed immediately rather than waiting for a timeout.
+        if (isAdminRef.current) {
+          socketRef.current?.emit("stream-stop");
+        }
+        setAppStateSynced("idle");
         setRemoteActive(false);
         // Clean up remote audio elements
         remoteAudioEls.current.forEach((el) => { el.pause(); el.remove(); });
@@ -494,10 +510,10 @@ export default function StreamPage() {
         socketRef.current?.emit("stream-start");
       }
 
-      setAppState("live");
+      setAppStateSynced("live");
     } catch (err: any) {
       setErrorMsg(err?.message ?? "Error de conexión");
-      setAppState("error");
+      setAppStateSynced("error");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userName, user]);
@@ -508,9 +524,9 @@ export default function StreamPage() {
     await roomRef.current?.disconnect();
     roomRef.current = null;
     socketRef.current?.emit("stream-stop");
-    setAppState("idle");
+    setAppStateSynced("idle");
     setRemoteActive(false);
-  }, []);
+  }, [setAppStateSynced]);
 
   const toggleMute = useCallback(() => {
     const track = localAudioTrackRef.current;

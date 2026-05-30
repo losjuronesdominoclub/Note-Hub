@@ -60,8 +60,14 @@ router.post("/stream/token", async (req, res): Promise<void> => {
 
   const isHost = role === "broadcaster";
 
+  // Viewers always get a unique identity so they never collide with the
+  // broadcaster (which would cause LiveKit to kick the broadcaster out).
+  const liveKitIdentity = isHost
+    ? identity
+    : `viewer-${identity}-${Date.now()}`;
+
   const at = new AccessToken(apiKey, apiSecret, {
-    identity,
+    identity: liveKitIdentity,
     name,
     ttl: "6h",
   });
