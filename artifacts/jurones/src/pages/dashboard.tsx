@@ -303,8 +303,9 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 + i * 0.1 }}
+            className="h-full"
           >
-            <Card className="glass-card overflow-hidden relative">
+            <Card className="glass-card overflow-hidden relative h-full">
               <div className={`absolute top-0 right-0 p-4 ${stat.color} opacity-20`}>
                 <stat.icon className="w-24 h-24 -mr-8 -mt-8" />
               </div>
@@ -332,12 +333,13 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
+          className="h-full"
         >
           <Card className="glass-card overflow-hidden relative h-full">
             <div className="absolute top-0 right-0 p-4 text-yellow-500 opacity-20">
               <CalendarDays className="w-24 h-24 -mr-8 -mt-8" />
             </div>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-row items-center justify-between pb-1">
               <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Próximo Evento
               </CardTitle>
@@ -345,11 +347,11 @@ export default function Dashboard() {
                 <CalendarDays className="h-4 w-4 text-yellow-500" />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-1">
               {nextEvent ? (
-                <div className="space-y-1">
-                  <div className="text-lg font-bold leading-tight line-clamp-2">{nextEvent.title}</div>
-                  <div className="text-sm text-muted-foreground font-semibold">
+                <div className="flex flex-col gap-0">
+                  <div className="text-lg font-bold leading-snug line-clamp-2">{nextEvent.title}</div>
+                  <div className="text-xs text-muted-foreground font-semibold mt-0.5">
                     {format(new Date(nextEvent.date + "T12:00:00"), "d 'de' MMM, yyyy", { locale: es })}
                   </div>
                 </div>
