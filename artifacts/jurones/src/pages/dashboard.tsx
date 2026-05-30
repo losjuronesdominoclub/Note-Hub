@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2 } from "lucide-react";
-import { useGetDashboardStats, useGetRecentActivity, useListMatches } from "@workspace/api-client-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2, CalendarDays } from "lucide-react";
+import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +26,18 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
   const { data: activeMatches } = useListMatches({ status: "active" });
+  const { data: events } = useListEvents();
   const activeMatch = activeMatches?.[0] ?? null;
+
+  const nextEvent = React.useMemo(() => {
+    if (!events?.length) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    return (
+      events
+        .filter((e) => e.date >= today)
+        .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
+    );
+  }, [events]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -282,8 +295,8 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* ── Row 2: Partidas Activas · Total Jugadores · Partidas Jugadas ── */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* ── Row 2: Partidas Activas · Total Jugadores · Partidas Jugadas · Próximo Evento ── */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, i) => (
           <motion.div
             key={i}
@@ -313,6 +326,39 @@ export default function Dashboard() {
             </Card>
           </motion.div>
         ))}
+
+        {/* Próximo Evento */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Card className="glass-card overflow-hidden relative h-full">
+            <div className="absolute top-0 right-0 p-4 text-yellow-500 opacity-20">
+              <CalendarDays className="w-24 h-24 -mr-8 -mt-8" />
+            </div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                Próximo Evento
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-yellow-500/10">
+                <CalendarDays className="h-4 w-4 text-yellow-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {nextEvent ? (
+                <div className="space-y-1">
+                  <div className="text-lg font-bold leading-tight line-clamp-2">{nextEvent.title}</div>
+                  <div className="text-sm text-muted-foreground font-semibold">
+                    {format(new Date(nextEvent.date + "T12:00:00"), "d 'de' MMM, yyyy", { locale: es })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">Sin eventos próximos</div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* ── Reset dialog ── */}
