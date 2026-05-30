@@ -1,13 +1,26 @@
 import React from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, ChevronRight, Instagram } from "lucide-react";
+import { Play, Users, Trophy, ChevronRight, Instagram, CalendarDays } from "lucide-react";
 import logoPath from "@assets/logo_1779907396869.png";
-import { useGetDashboardStats } from "@workspace/api-client-react";
+import { useGetDashboardStats, useListEvents } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export default function Home() {
   const { data: stats } = useGetDashboardStats();
+  const { data: events } = useListEvents();
+
+  const nextEvent = React.useMemo(() => {
+    if (!events?.length) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    return (
+      events
+        .filter((e) => e.date >= today)
+        .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
+    );
+  }, [events]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-4rem)] relative">
@@ -55,6 +68,22 @@ export default function Home() {
             <div className="animated-border-card-inner px-6 py-4 flex flex-col items-center">
               <span className="text-3xl font-bold">{stats?.totalPlayers || 0}</span>
               <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Jugadores</span>
+            </div>
+          </div>
+          <div className="animated-border-card min-w-[160px] max-w-[220px]">
+            <div className="animated-border-card-inner px-5 py-4 flex flex-col items-center gap-1">
+              <CalendarDays className="h-5 w-5 text-primary mb-1" />
+              {nextEvent ? (
+                <>
+                  <span className="text-sm font-bold leading-tight text-center line-clamp-2">{nextEvent.title}</span>
+                  <span className="text-xs text-muted-foreground font-semibold">
+                    {format(new Date(nextEvent.date + "T12:00:00"), "d MMM yyyy", { locale: es })}
+                  </span>
+                </>
+              ) : (
+                <span className="text-xs text-muted-foreground">Sin eventos</span>
+              )}
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-1">Próximo Evento</span>
             </div>
           </div>
         </motion.div>
