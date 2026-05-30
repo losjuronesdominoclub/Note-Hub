@@ -51,32 +51,6 @@ export function Header() {
             <span className="sr-only">Toggle Marine</span>
           </Button>
 
-          {/* Lime theme toggle — same size, right next to Purple */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleLime}
-            title={lime ? "Desactivar tema Lime" : "Activar tema Lime"}
-            className="rounded-full relative"
-            style={lime ? {
-              background: "linear-gradient(135deg, #1a1f20 0%, #3C4244 100%)",
-              boxShadow: "0 0 12px rgba(182,255,0,0.6)",
-            } : {}}
-          >
-            <span
-              className="h-[1.2rem] w-[1.2rem] rounded-full flex items-center justify-center transition-all"
-              style={{
-                background: lime
-                  ? "linear-gradient(135deg, #B6FF00, #3C4244)"
-                  : "#B6FF00",
-                border: `2px solid ${lime ? "#B6FF00" : "#7a9e00"}`,
-              }}
-            >
-              {lime && <span className="h-1.5 w-1.5 rounded-full bg-lime-300 animate-pulse" />}
-            </span>
-            <span className="sr-only">Toggle Lime</span>
-          </Button>
-
           {/* Purple theme toggle — same size, right next to Marine */}
           <Button
             variant="ghost"
