@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useMarineTheme } from "@/hooks/use-marine-theme";
+import { usePurpleTheme } from "@/hooks/use-purple-theme";
 import { Button } from "@/components/ui/button";
 import FloatingMenu from "./floating-menu";
 import logoPath from "@assets/logo_1779907396869.png";
@@ -11,6 +12,7 @@ import { Show } from "@clerk/react";
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { marine, toggle: toggleMarine } = useMarineTheme();
+  const { purple, toggle: togglePurple } = usePurpleTheme();
 
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-border/50">
@@ -21,7 +23,7 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-4">
-          {/* Marine theme toggle — same size as Moon/Sun button */}
+          {/* Marine theme toggle */}
           <Button
             variant="ghost"
             size="icon"
@@ -45,6 +47,32 @@ export function Header() {
               {marine && <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />}
             </span>
             <span className="sr-only">Toggle Marine</span>
+          </Button>
+
+          {/* Purple theme toggle — same size, right next to Marine */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={togglePurple}
+            title={purple ? "Desactivar tema Purple" : "Activar tema Purple"}
+            className="rounded-full relative"
+            style={purple ? {
+              background: "linear-gradient(135deg, #34005e 0%, #530296 100%)",
+              boxShadow: "0 0 10px rgba(248,183,40,0.5)",
+            } : {}}
+          >
+            <span
+              className="h-[1.2rem] w-[1.2rem] rounded-full flex items-center justify-center transition-all"
+              style={{
+                background: purple
+                  ? "linear-gradient(135deg, #530296, #8b21e8)"
+                  : "#530296",
+                border: `2px solid ${purple ? "#F8B728" : "#7B2FBE"}`,
+              }}
+            >
+              {purple && <span className="h-1.5 w-1.5 rounded-full bg-yellow-300 animate-pulse" />}
+            </span>
+            <span className="sr-only">Toggle Purple</span>
           </Button>
 
           <Button

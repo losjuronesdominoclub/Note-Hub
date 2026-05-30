@@ -210,6 +210,111 @@
   @apply bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-800 dark:from-red-400 dark:to-red-600;
 }
 
+/* ─── Purple Theme ───────────────────────────────────────────────────────────── */
+html.purple {
+  --background: 273 99% 7%;
+  --foreground: 0 0% 100%;
+  --border: 273 60% 30%;
+  --card: 273 80% 10%;
+  --card-foreground: 0 0% 100%;
+  --card-border: 273 70% 35%;
+  --popover: 273 80% 10%;
+  --popover-foreground: 0 0% 100%;
+  --popover-border: 273 60% 30%;
+
+  --primary: 42 93% 56%;           /* #F8B728 gold — active states, rings, text accents */
+  --primary-foreground: 273 99% 10%;
+  --secondary: 273 60% 16%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 273 60% 14%;
+  --muted-foreground: 273 20% 80%;
+  --accent: 42 93% 56%;
+  --accent-foreground: 273 99% 10%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 273 60% 18%;
+  --ring: 42 93% 56%;
+}
+
+@keyframes purple-bg-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+html.purple body {
+  background: linear-gradient(135deg, #530296, #34005e, #6b04b8, #34005e, #530296) !important;
+  background-size: 400% 400% !important;
+  animation: purple-bg-flow 10s ease infinite !important;
+  background-attachment: fixed !important;
+}
+
+@keyframes purple-card-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes purple-border-glow {
+  0%, 100% {
+    border-color: rgba(139, 33, 232, 0.85);
+    box-shadow: 0 0 16px rgba(83, 2, 150, 0.65), inset 0 0 20px rgba(83, 2, 150, 0.1);
+  }
+  50% {
+    border-color: rgba(248, 183, 40, 0.55);
+    box-shadow: 0 0 10px rgba(248, 183, 40, 0.35), inset 0 0 14px rgba(248, 183, 40, 0.06);
+  }
+}
+
+html.purple .glass-card {
+  background-image: linear-gradient(
+    135deg,
+    rgba(83, 2, 150, 0.55) 0%,
+    rgba(52, 0, 94, 0.88) 40%,
+    rgba(107, 4, 184, 0.45) 70%,
+    rgba(52, 0, 94, 0.88) 100%
+  );
+  background-size: 300% 300%;
+  background-color: rgba(52, 0, 94, 0.88);
+  animation: purple-card-flow 8s ease infinite, purple-border-glow 2.5s ease-in-out infinite;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(139, 33, 232, 0.85);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 32px rgba(52, 0, 94, 0.55);
+}
+
+@keyframes purple-btn-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Primary buttons get the animated purple gradient */
+html.purple .bg-primary {
+  background: linear-gradient(135deg, #530296, #8b21e8, #530296) !important;
+  background-size: 300% 300% !important;
+  animation: purple-btn-flow 3s ease infinite !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+/* Ghost/outline buttons tinted with gold on hover */
+html.purple button:not(.bg-primary):hover,
+html.purple [role="button"]:not(.bg-primary):hover {
+  border-color: rgba(248, 183, 40, 0.35) !important;
+}
+
+html.purple h1,
+html.purple h2 {
+  color: #F8B728;
+}
+
+html.purple h3,
+html.purple h4,
+html.purple h5,
+html.purple h6 {
+  color: #fff;
+}
+
 /* ─── Marine Theme ───────────────────────────────────────────────────────────── */
 html.marine {
   --background: 215 70% 9%;
