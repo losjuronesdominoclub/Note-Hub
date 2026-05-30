@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useListPlayers } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Scale, Search, X, Trophy, Skull, Fish, Percent, Flame, Swords, Users2, ChevronDown } from "lucide-react";
+import {
+  Scale, Search, X, Trophy, Skull, Fish, Percent, Flame,
+  Swords, Users2, ChevronDown, Share2, Loader2,
+} from "lucide-react";
 import ScrollToTop from "@/components/scroll-to-top";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
@@ -144,7 +147,7 @@ function PlayerPicker({
   );
 }
 
-// --- Stat row ---
+// --- Stat row (static version for the share card — no animations) ---
 type StatSide = "left" | "right" | "tie";
 
 function StatRow({
@@ -154,6 +157,7 @@ function StatRow({
   v2,
   format = (x: number) => String(x),
   higherIsBetter = true,
+  animate = true,
 }: {
   icon: React.ElementType;
   label: string;
@@ -161,6 +165,7 @@ function StatRow({
   v2: number;
   format?: (x: number) => string;
   higherIsBetter?: boolean;
+  animate?: boolean;
 }) {
   const winner: StatSide =
     v1 === v2 ? "tie" : higherIsBetter ? (v1 > v2 ? "left" : "right") : (v1 < v2 ? "left" : "right");
@@ -169,6 +174,34 @@ function StatRow({
   const pct1 = Math.round((v1 / total) * 100);
   const pct2 = 100 - pct1;
 
+  const bar1 = animate ? (
+    <motion.div
+      className={`h-full rounded-l-full ${winner === "left" ? "bg-primary" : winner === "tie" ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`}
+      initial={{ width: 0 }}
+      animate={{ width: `${pct1}%` }}
+      transition={{ duration: 0.7, ease: "easeOut" }}
+    />
+  ) : (
+    <div
+      className={`h-full rounded-l-full ${winner === "left" ? "bg-primary" : winner === "tie" ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`}
+      style={{ width: `${pct1}%` }}
+    />
+  );
+
+  const bar2 = animate ? (
+    <motion.div
+      className={`h-full rounded-r-full ${winner === "right" ? "bg-amber-500" : winner === "tie" ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`}
+      initial={{ width: 0 }}
+      animate={{ width: `${pct2}%` }}
+      transition={{ duration: 0.7, ease: "easeOut" }}
+    />
+  ) : (
+    <div
+      className={`h-full rounded-r-full ${winner === "right" ? "bg-amber-500" : winner === "tie" ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`}
+      style={{ width: `${pct2}%` }}
+    />
+  );
+
   return (
     <div className="mb-4">
       <div className="flex items-center justify-center gap-2 mb-2">
@@ -176,7 +209,6 @@ function StatRow({
         <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">{label}</span>
       </div>
       <div className="flex items-center gap-3">
-        {/* Left value */}
         <span
           className={`w-16 text-right text-xl font-black tabular-nums transition-colors ${
             winner === "left" ? "text-primary" : winner === "tie" ? "text-foreground" : "text-muted-foreground"
@@ -185,24 +217,10 @@ function StatRow({
           {format(v1)}
           {winner === "left" && <span className="ml-1 text-xs">★</span>}
         </span>
-
-        {/* Bar */}
         <div className="flex-1 h-3 rounded-full bg-muted overflow-hidden flex">
-          <motion.div
-            className={`h-full rounded-l-full ${winner === "left" ? "bg-primary" : winner === "tie" ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${pct1}%` }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          />
-          <motion.div
-            className={`h-full rounded-r-full ${winner === "right" ? "bg-amber-500" : winner === "tie" ? "bg-muted-foreground/50" : "bg-muted-foreground/30"}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${pct2}%` }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          />
+          {bar1}
+          {bar2}
         </div>
-
-        {/* Right value */}
         <span
           className={`w-16 text-left text-xl font-black tabular-nums transition-colors ${
             winner === "right" ? "text-amber-400" : winner === "tie" ? "text-foreground" : "text-muted-foreground"
@@ -253,6 +271,160 @@ function H2HCard({ label, value, icon: Icon }: { label: string; value: number; i
   );
 }
 
+// --- Shareable snapshot card (rendered off-screen for html2canvas) ---
+function ShareCard({ data }: { data: CompareData }) {
+  const { player1: p1, player2: p2, facedEachOther, playedTogether } = data;
+
+  const statRows: Array<{
+    icon: React.ElementType;
+    label: string;
+    v1: number;
+    v2: number;
+    format?: (x: number) => string;
+    higherIsBetter?: boolean;
+  }> = [
+    { icon: Trophy, label: "Victorias", v1: p1.wins, v2: p2.wins },
+    { icon: Skull, label: "Derrotas", v1: p1.losses, v2: p2.losses, higherIsBetter: false },
+    { icon: Fish, label: "Lisas", v1: p1.lisas, v2: p2.lisas },
+    { icon: Percent, label: "Win Rate", v1: Number(p1.winRate), v2: Number(p2.winRate), format: (x) => `${(x * 100).toFixed(0)}%` },
+    { icon: Flame, label: "Racha", v1: p1.currentStreak, v2: p2.currentStreak },
+  ];
+
+  return (
+    <div
+      style={{
+        width: 480,
+        background: "#141414",
+        borderRadius: 20,
+        padding: 24,
+        fontFamily: "Inter, sans-serif",
+        color: "#f8f8f8",
+      }}
+    >
+      {/* Logo + title */}
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <p style={{ fontSize: 10, letterSpacing: 4, color: "#888", textTransform: "uppercase", marginBottom: 4 }}>
+          Los Jurones Domino Club
+        </p>
+        <p style={{ fontSize: 22, fontWeight: 900, letterSpacing: 2, marginBottom: 0 }}>COMPARE</p>
+      </div>
+
+      {/* Player headers */}
+      <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 20 }}>
+        {[p1, p2].map((p, i) => {
+          const isLeft = i === 0;
+          const color = isLeft ? "#e81111" : "#f59e0b";
+          return (
+            <div key={p.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+              <div
+                style={{
+                  width: 72, height: 72, borderRadius: "50%",
+                  border: `3px solid ${color}`,
+                  overflow: "hidden",
+                  background: isLeft ? "rgba(232,17,17,0.15)" : "rgba(245,158,11,0.15)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 24, fontWeight: 900, color,
+                }}
+              >
+                {p.avatarUrl ? (
+                  <img
+                    src={avatarSrc(p.avatarUrl)}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  initials(p.name)
+                )}
+              </div>
+              <p style={{ fontWeight: 900, color, fontSize: 14, textAlign: "center", maxWidth: 120 }}>{p.name}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: "#2a2a2a", marginBottom: 16 }} />
+
+      {/* Stats */}
+      <p style={{ fontSize: 9, letterSpacing: 3, color: "#666", textTransform: "uppercase", textAlign: "center", marginBottom: 12 }}>
+        Estadísticas
+      </p>
+      {statRows.map((row) => {
+        const v1 = row.v1;
+        const v2 = row.v2;
+        const higherIsBetter = row.higherIsBetter !== false;
+        const winner: StatSide =
+          v1 === v2 ? "tie" : higherIsBetter ? (v1 > v2 ? "left" : "right") : (v1 < v2 ? "left" : "right");
+        const total = v1 + v2 || 1;
+        const pct1 = Math.round((v1 / total) * 100);
+        const pct2 = 100 - pct1;
+        const fmt = row.format ?? ((x: number) => String(x));
+
+        return (
+          <div key={row.label} style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 9, letterSpacing: 2, color: "#888", textTransform: "uppercase", textAlign: "center", marginBottom: 4 }}>
+              {row.label}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{
+                width: 52, textAlign: "right", fontSize: 18, fontWeight: 900,
+                color: winner === "left" ? "#e81111" : winner === "tie" ? "#f8f8f8" : "#555",
+              }}>
+                {fmt(v1)}{winner === "left" ? " ★" : ""}
+              </span>
+              <div style={{ flex: 1, height: 10, borderRadius: 999, background: "#2a2a2a", overflow: "hidden", display: "flex" }}>
+                <div style={{
+                  width: `${pct1}%`, height: "100%",
+                  background: winner === "left" ? "#e81111" : winner === "tie" ? "#555" : "#333",
+                  borderRadius: "999px 0 0 999px",
+                }} />
+                <div style={{
+                  width: `${pct2}%`, height: "100%",
+                  background: winner === "right" ? "#f59e0b" : winner === "tie" ? "#555" : "#333",
+                  borderRadius: "0 999px 999px 0",
+                }} />
+              </div>
+              <span style={{
+                width: 52, textAlign: "left", fontSize: 18, fontWeight: 900,
+                color: winner === "right" ? "#f59e0b" : winner === "tie" ? "#f8f8f8" : "#555",
+              }}>
+                {winner === "right" ? "★ " : ""}{fmt(v2)}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Divider */}
+      <div style={{ height: 1, background: "#2a2a2a", margin: "16px 0" }} />
+
+      {/* H2H */}
+      <p style={{ fontSize: 9, letterSpacing: 3, color: "#666", textTransform: "uppercase", textAlign: "center", marginBottom: 12 }}>
+        Historial entre ellos
+      </p>
+      <div style={{ display: "flex", gap: 12 }}>
+        {[
+          { label: "Veces enfrentados", value: facedEachOther },
+          { label: "Veces como equipo", value: playedTogether },
+        ].map((item) => (
+          <div key={item.label} style={{
+            flex: 1, background: "#1c1c1c", border: "1px solid #2a2a2a", borderRadius: 14,
+            padding: "12px 8px", textAlign: "center",
+          }}>
+            <p style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>{item.value}</p>
+            <p style={{ fontSize: 9, color: "#666", letterSpacing: 1.5, textTransform: "uppercase", marginTop: 4 }}>{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer watermark */}
+      <p style={{ fontSize: 9, color: "#444", textAlign: "center", marginTop: 16, letterSpacing: 2 }}>
+        jurones.replit.app
+      </p>
+    </div>
+  );
+}
+
 export default function Compare() {
   const { data: players = [], isLoading } = useListPlayers();
 
@@ -261,6 +433,9 @@ export default function Compare() {
   const [compareData, setCompareData] = useState<CompareData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   const options: PlayerOption[] = useMemo(
     () => players.map((p) => ({ id: p.id, name: p.name, avatarUrl: p.avatarUrl ?? null })),
@@ -289,16 +464,74 @@ export default function Compare() {
     }
   };
 
-  // Auto-compare when both players are selected
   React.useEffect(() => {
     if (canCompare) runCompare();
     else setCompareData(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p1?.id, p2?.id]);
 
+  const handleShare = useCallback(async () => {
+    if (!shareCardRef.current || !compareData) return;
+    setIsSharing(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(shareCardRef.current, {
+        backgroundColor: "#141414",
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+      });
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("Canvas vacío"))),
+          "image/jpeg",
+          0.92
+        );
+      });
+
+      const name1 = compareData.player1.name.replace(/\s+/g, "_");
+      const name2 = compareData.player2.name.replace(/\s+/g, "_");
+      const filename = `compare_${name1}_vs_${name2}.jpg`;
+
+      if (navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: "image/jpeg" })] })) {
+        await navigator.share({
+          title: `${compareData.player1.name} vs ${compareData.player2.name} — Los Jurones`,
+          files: [new File([blob], filename, { type: "image/jpeg" })],
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      console.error("Share error:", e);
+    } finally {
+      setIsSharing(false);
+    }
+  }, [compareData]);
+
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 pb-24">
       <ScrollToTop />
+
+      {/* Hidden share card rendered off-screen for html2canvas */}
+      <div
+        ref={shareCardRef}
+        style={{
+          position: "fixed",
+          top: -9999,
+          left: -9999,
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      >
+        {compareData && <ShareCard data={compareData} />}
+      </div>
 
       {/* Header */}
       <motion.div
@@ -385,6 +618,23 @@ export default function Compare() {
             transition={{ duration: 0.4 }}
             className="space-y-4"
           >
+            {/* Share button */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleShare}
+                disabled={isSharing}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSharing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Share2 className="h-4 w-4 text-primary" />
+                )}
+                {isSharing ? "Generando..." : "Compartir"}
+              </button>
+            </div>
+
             {/* Player headers */}
             <div className="glass-card rounded-2xl p-5">
               <div className="grid grid-cols-2 gap-4">
@@ -398,39 +648,15 @@ export default function Compare() {
               <h2 className="text-center text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-5">
                 Estadísticas
               </h2>
-
+              <StatRow icon={Trophy} label="Victorias" v1={compareData.player1.wins} v2={compareData.player2.wins} />
+              <StatRow icon={Skull} label="Derrotas" v1={compareData.player1.losses} v2={compareData.player2.losses} higherIsBetter={false} />
+              <StatRow icon={Fish} label="Lisas" v1={compareData.player1.lisas} v2={compareData.player2.lisas} />
               <StatRow
-                icon={Trophy}
-                label="Victorias"
-                v1={compareData.player1.wins}
-                v2={compareData.player2.wins}
-              />
-              <StatRow
-                icon={Skull}
-                label="Derrotas"
-                v1={compareData.player1.losses}
-                v2={compareData.player2.losses}
-                higherIsBetter={false}
-              />
-              <StatRow
-                icon={Fish}
-                label="Lisas"
-                v1={compareData.player1.lisas}
-                v2={compareData.player2.lisas}
-              />
-              <StatRow
-                icon={Percent}
-                label="Win Rate"
-                v1={Number(compareData.player1.winRate)}
-                v2={Number(compareData.player2.winRate)}
+                icon={Percent} label="Win Rate"
+                v1={Number(compareData.player1.winRate)} v2={Number(compareData.player2.winRate)}
                 format={(x) => `${(x * 100).toFixed(0)}%`}
               />
-              <StatRow
-                icon={Flame}
-                label="Racha"
-                v1={compareData.player1.currentStreak}
-                v2={compareData.player2.currentStreak}
-              />
+              <StatRow icon={Flame} label="Racha" v1={compareData.player1.currentStreak} v2={compareData.player2.currentStreak} />
             </div>
 
             {/* Head to head */}
@@ -439,16 +665,8 @@ export default function Compare() {
                 Historial entre ellos
               </h2>
               <div className="flex gap-3">
-                <H2HCard
-                  icon={Swords}
-                  label="Veces enfrentados"
-                  value={compareData.facedEachOther}
-                />
-                <H2HCard
-                  icon={Users2}
-                  label="Veces como equipo"
-                  value={compareData.playedTogether}
-                />
+                <H2HCard icon={Swords} label="Veces enfrentados" value={compareData.facedEachOther} />
+                <H2HCard icon={Users2} label="Veces como equipo" value={compareData.playedTogether} />
               </div>
               {compareData.facedEachOther === 0 && compareData.playedTogether === 0 && (
                 <p className="text-center text-muted-foreground text-xs mt-4">
