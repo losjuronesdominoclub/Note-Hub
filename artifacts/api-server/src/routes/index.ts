@@ -9,6 +9,7 @@ import lisasRouter from "./lisas";
 import resetRouter from "./reset";
 import dailyResultsRouter from "./daily-results";
 import streamRouter from "./stream";
+import compareRouter from "./compare";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(lisasRouter);
 router.use(resetRouter);
 router.use(dailyResultsRouter);
 router.use(streamRouter);
+router.use(compareRouter);
 
 export default router;
