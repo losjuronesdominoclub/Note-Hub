@@ -5,7 +5,6 @@ import React, {
   useState,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import {
   Room,
   RoomEvent,
@@ -35,21 +34,16 @@ import {
   ChevronDown,
   Maximize2,
   Minimize2,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useListMatches, useGetMatch } from "@workspace/api-client-react";
 import { useUser } from "@clerk/react";
 
 const ADMIN_CODE = "110880";
 const ROOM_NAME = "jurones-stream";
-
-interface LiveMatch {
-  id: number;
-  shortosScore: number;
-  largosScore: number;
-  status: string;
-  type: string;
-}
 
 interface ChatMessage {
   id: number;
@@ -65,31 +59,155 @@ type AppState =
   | "live"
   | "error";
 
-// ─── Score overlay pulled from live matches ───────────────────────────────────
-function ScoreOverlay() {
-  const { data: matches } = useQuery<LiveMatch[]>({
-    queryKey: ["matches-live-overlay"],
-    queryFn: async () => {
-      const r = await fetch("/api/matches?status=in_progress");
-      return r.ok ? r.json() : [];
-    },
-    refetchInterval: 5000,
+function avatarSrc(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("http")) return path;
+  const slug = path.startsWith("/objects/") ? path.slice("/objects/".length) : path;
+  return `/api/storage/objects/${slug}`;
+}
+
+// ─── Minimal score bar inside the video ───────────────────────────────────────
+function ScoreOverlay({ matchId }: { matchId: number | null }) {
+  const { data: match } = useGetMatch(matchId ?? 0, {
+    query: { enabled: matchId !== null, refetchInterval: 3000 },
   });
-
-  const live = matches?.[0];
-  if (!live) return null;
-
+  if (!match) return null;
   return (
     <div
       className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-4 py-2 rounded-xl text-white font-bold text-lg shadow-2xl"
       style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.12)" }}
     >
-      <span className="text-yellow-400">{live.type === "cortos" ? "Cortos" : "Largos"}</span>
-      <span className="text-2xl tabular-nums">{live.shortosScore}</span>
-      <span className="text-muted-foreground text-sm">vs</span>
-      <span className="text-2xl tabular-nums">{live.largosScore}</span>
+      <span className="text-red-400 text-sm font-black uppercase tracking-widest">Cortos</span>
+      <span className="text-2xl tabular-nums text-red-300">{match.shortosScore}</span>
+      <span className="text-muted-foreground text-xs">vs</span>
+      <span className="text-2xl tabular-nums text-blue-300">{match.largosScore}</span>
+      <span className="text-blue-400 text-sm font-black uppercase tracking-widest">Largos</span>
       <span className="ml-1 text-xs bg-red-600 px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>
     </div>
+  );
+}
+
+// ─── Full match score card (same design as Live module) ───────────────────────
+function StreamScoreCard({ matchId }: { matchId: number }) {
+  const { data: match } = useGetMatch(matchId, {
+    query: { refetchInterval: 3000 },
+  });
+  if (!match) return null;
+
+  const cortosPlayers = match.players.filter((p) => p.team === "cortos");
+  const largosPlayers = match.players.filter((p) => p.team === "largos");
+  const isFinished = match.status === "finished";
+  const isLisa = isFinished && (match.shortosScore === 0 || match.largosScore === 0);
+  const cortosWin = match.winnerTeam === "cortos";
+  const largosWin = match.winnerTeam === "largos";
+
+  return (
+    <motion.div
+      key={matchId}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card rounded-3xl overflow-hidden"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border/50">
+        <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+          Partida #{match.matchNumber}
+        </span>
+        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-red-400">
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          {isFinished ? "Finalizada" : "En vivo"}
+        </div>
+      </div>
+
+      {/* Winner banner */}
+      <AnimatePresence>
+        {isFinished && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className={`flex items-center justify-center gap-3 py-4 px-6 ${cortosWin ? "bg-red-500/20" : "bg-blue-500/20"}`}
+          >
+            <Trophy className={`h-6 w-6 ${cortosWin ? "text-red-400" : "text-blue-400"}`} />
+            <span className={`text-xl font-black uppercase tracking-widest ${cortosWin ? "text-red-400" : "text-blue-400"}`}>
+              ¡Ganan los {match.winnerTeam}!{isLisa ? " 🐟 ¡LISA!" : ""}
+            </span>
+            <Trophy className={`h-6 w-6 ${cortosWin ? "text-red-400" : "text-blue-400"}`} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scoreboard */}
+      <div className="grid grid-cols-3 items-stretch divide-x divide-border/50">
+        {/* Cortos */}
+        <div className={`flex flex-col items-center justify-between gap-4 p-6 bg-gradient-to-b from-red-500/10 to-transparent ${cortosWin ? "ring-2 ring-red-500/40 ring-inset" : ""}`}>
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-red-500">Cortos</span>
+          <div className={`text-[5.5rem] font-black tabular-nums leading-none tracking-tighter ${cortosWin ? "text-red-400" : "text-foreground"}`}>
+            {match.shortosScore}
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            {cortosPlayers.map(({ player }) => (
+              <div key={player.id} className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-red-500/40 bg-red-500/10">
+                <Avatar className="h-9 w-9 shrink-0">
+                  <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                  <AvatarFallback className="text-xs font-bold bg-red-500/20 text-red-400">
+                    {player.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-semibold text-sm leading-tight">{player.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Center VS */}
+        <div className="flex flex-col items-center justify-center gap-2 p-4">
+          <div className="text-2xl font-black text-muted-foreground/40">VS</div>
+          <div className="w-px flex-1 bg-border/30 my-1" />
+          <div className="text-[10px] text-muted-foreground uppercase tracking-widest">200 pts</div>
+        </div>
+
+        {/* Largos */}
+        <div className={`flex flex-col items-center justify-between gap-4 p-6 bg-gradient-to-b from-blue-500/10 to-transparent ${largosWin ? "ring-2 ring-blue-500/40 ring-inset" : ""}`}>
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-blue-500">Largos</span>
+          <div className={`text-[5.5rem] font-black tabular-nums leading-none tracking-tighter ${largosWin ? "text-blue-400" : "text-foreground"}`}>
+            {match.largosScore}
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            {largosPlayers.map(({ player }) => (
+              <div key={player.id} className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-blue-500/40 bg-blue-500/10">
+                <Avatar className="h-9 w-9 shrink-0">
+                  <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                  <AvatarFallback className="text-xs font-bold bg-blue-500/20 text-blue-400">
+                    {player.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-semibold text-sm leading-tight">{player.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bars */}
+      <div className="grid grid-cols-2 gap-0 border-t border-border/50">
+        <div className="h-2 bg-red-500/10">
+          <motion.div
+            className="h-full bg-red-500"
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min((match.shortosScore / 200) * 100, 100)}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+        <div className="h-2 bg-blue-500/10">
+          <motion.div
+            className="h-full bg-blue-500 ml-auto"
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min((match.largosScore / 200) * 100, 100)}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -235,6 +353,22 @@ export default function StreamPage() {
   const [showCamSelector, setShowCamSelector] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
+
+  // Active matches for score panel
+  const { data: activeMatches } = useListMatches(
+    { status: "active" },
+    { query: { refetchInterval: 5000 } }
+  );
+
+  // Auto-select first match when matches load
+  useEffect(() => {
+    if (!activeMatches || activeMatches.length === 0) return;
+    setSelectedMatchId((prev) => {
+      if (prev !== null && activeMatches.some((m) => m.id === prev)) return prev;
+      return activeMatches[0].id;
+    });
+  }, [activeMatches]);
 
   // Fullscreen toggle
   const toggleFullscreen = useCallback(() => {
@@ -551,7 +685,7 @@ export default function StreamPage() {
               )}
 
               {/* Score overlay */}
-              {isLive && <ScoreOverlay />}
+              {isLive && <ScoreOverlay matchId={selectedMatchId} />}
 
               {/* Fullscreen button */}
               <button
@@ -734,6 +868,36 @@ export default function StreamPage() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+      )}
+
+      {/* Match selector + Score card */}
+      {activeMatches && activeMatches.length > 0 && (
+        <div className="space-y-4">
+          {/* Selector — only shown when multiple matches are active */}
+          {activeMatches.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">Partida:</span>
+              {activeMatches.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setSelectedMatchId(m.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors border ${
+                    selectedMatchId === m.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border/50 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                  }`}
+                >
+                  #{m.matchNumber ?? m.id}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Score card */}
+          {selectedMatchId !== null && (
+            <StreamScoreCard matchId={selectedMatchId} />
+          )}
         </div>
       )}
 
