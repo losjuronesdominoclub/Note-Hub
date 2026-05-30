@@ -33,6 +33,8 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -203,6 +205,7 @@ export default function StreamPage() {
   const roomRef = useRef<Room | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const localVideoTrackRef = useRef<LocalVideoTrack | null>(null);
   const localAudioTrackRef = useRef<LocalAudioTrack | null>(null);
 
@@ -231,6 +234,25 @@ export default function StreamPage() {
   const [switchingCamera, setSwitchingCamera] = useState(false);
   const [showCamSelector, setShowCamSelector] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    const el = videoContainerRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+
+  // Sync fullscreen state with browser events
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
 
   // Check LiveKit config on mount
   useEffect(() => {
@@ -467,6 +489,7 @@ export default function StreamPage() {
           {/* Video area */}
           <div className="flex-1 min-w-0">
             <div
+              ref={videoContainerRef}
               className="relative w-full rounded-2xl overflow-hidden bg-black"
               style={{ aspectRatio: "16/9" }}
             >
@@ -529,6 +552,19 @@ export default function StreamPage() {
 
               {/* Score overlay */}
               {isLive && <ScoreOverlay />}
+
+              {/* Fullscreen button */}
+              <button
+                onClick={toggleFullscreen}
+                className="absolute bottom-3 right-3 z-30 h-8 w-8 flex items-center justify-center rounded-lg transition-opacity hover:opacity-100 opacity-60 active:scale-95"
+                style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
+                title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+              >
+                {isFullscreen
+                  ? <Minimize2 className="h-4 w-4 text-white" />
+                  : <Maximize2 className="h-4 w-4 text-white" />
+                }
+              </button>
             </div>
 
             {/* Controls */}
