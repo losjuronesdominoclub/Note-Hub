@@ -315,6 +315,103 @@ html.purple h6 {
   color: #fff;
 }
 
+/* ─── Lime / Matrix Theme ───────────────────────────────────────────────────── */
+html.lime {
+  --background: 0 0% 4%;
+  --foreground: 0 0% 100%;
+  --border: 77 100% 50%;
+  --card: 195 8% 10%;
+  --card-foreground: 0 0% 100%;
+  --popover: 195 8% 10%;
+  --popover-foreground: 0 0% 100%;
+
+  --primary: 77 100% 50%;           /* #B6FF00 lime */
+  --primary-foreground: 0 0% 5%;
+  --secondary: 195 8% 18%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 195 8% 14%;
+  --muted-foreground: 195 5% 72%;
+  --accent: 77 100% 50%;
+  --accent-foreground: 0 0% 5%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 195 8% 16%;
+  --ring: 77 100% 50%;
+}
+
+@keyframes lime-bg-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+html.lime body {
+  background: linear-gradient(135deg, #000000, #3C4244, #1a1f20, #3C4244, #000000) !important;
+  background-size: 400% 400% !important;
+  animation: lime-bg-flow 10s ease infinite !important;
+  background-attachment: fixed !important;
+}
+
+@keyframes lime-card-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes lime-border-glow {
+  0%, 100% {
+    border-color: rgba(182, 255, 0, 0.75);
+    box-shadow: 0 0 16px rgba(182, 255, 0, 0.35), inset 0 0 20px rgba(182, 255, 0, 0.04);
+  }
+  50% {
+    border-color: rgba(60, 66, 68, 0.9);
+    box-shadow: 0 0 10px rgba(60, 66, 68, 0.5), inset 0 0 14px rgba(60, 66, 68, 0.1);
+  }
+}
+
+html.lime .glass-card {
+  background-image: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.88) 0%,
+    rgba(60, 66, 68, 0.72) 40%,
+    rgba(182, 255, 0, 0.06) 70%,
+    rgba(60, 66, 68, 0.72) 100%
+  );
+  background-size: 300% 300%;
+  animation: lime-card-flow 8s ease infinite, lime-border-glow 2.5s ease-in-out infinite;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(182, 255, 0, 0.75);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 32px rgba(182, 255, 0, 0.08);
+}
+
+@keyframes lime-btn-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Primary buttons — animated purple gradient, fully rounded */
+html.lime .bg-primary {
+  background: linear-gradient(135deg, #530296, #8b21e8, #530296) !important;
+  background-size: 300% 300% !important;
+  animation: lime-btn-flow 3s ease infinite !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  border-radius: 9999px !important;
+}
+
+html.lime h1,
+html.lime h2 {
+  color: #B6FF00;
+}
+
+html.lime h3,
+html.lime h4,
+html.lime h5,
+html.lime h6 {
+  color: #3C4244;
+}
+
 /* ─── Marine Theme ───────────────────────────────────────────────────────────── */
 html.marine {
   --background: 215 70% 9%;

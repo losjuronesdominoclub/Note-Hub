@@ -4,6 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useMarineTheme } from "@/hooks/use-marine-theme";
 import { usePurpleTheme } from "@/hooks/use-purple-theme";
+import { useLimeTheme } from "@/hooks/use-lime-theme";
 import { Button } from "@/components/ui/button";
 import FloatingMenu from "./floating-menu";
 import logoPath from "@assets/logo_1779907396869.png";
@@ -13,6 +14,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const { marine, toggle: toggleMarine } = useMarineTheme();
   const { purple, toggle: togglePurple } = usePurpleTheme();
+  const { lime, toggle: toggleLime } = useLimeTheme();
 
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-border/50">
@@ -47,6 +49,32 @@ export function Header() {
               {marine && <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />}
             </span>
             <span className="sr-only">Toggle Marine</span>
+          </Button>
+
+          {/* Lime theme toggle — same size, right next to Purple */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleLime}
+            title={lime ? "Desactivar tema Lime" : "Activar tema Lime"}
+            className="rounded-full relative"
+            style={lime ? {
+              background: "linear-gradient(135deg, #1a1f20 0%, #3C4244 100%)",
+              boxShadow: "0 0 12px rgba(182,255,0,0.6)",
+            } : {}}
+          >
+            <span
+              className="h-[1.2rem] w-[1.2rem] rounded-full flex items-center justify-center transition-all"
+              style={{
+                background: lime
+                  ? "linear-gradient(135deg, #B6FF00, #3C4244)"
+                  : "#B6FF00",
+                border: `2px solid ${lime ? "#B6FF00" : "#7a9e00"}`,
+              }}
+            >
+              {lime && <span className="h-1.5 w-1.5 rounded-full bg-lime-300 animate-pulse" />}
+            </span>
+            <span className="sr-only">Toggle Lime</span>
           </Button>
 
           {/* Purple theme toggle — same size, right next to Marine */}

@@ -13,10 +13,13 @@ export function usePurpleTheme() {
     const root = document.documentElement;
     if (purple) {
       root.classList.add("purple");
-      // Mutual exclusion — deactivate marine theme
+      // Mutual exclusion — deactivate marine and lime themes
       root.classList.remove("marine");
+      root.classList.remove("lime");
       localStorage.removeItem("jurones-marine");
+      localStorage.removeItem("jurones-lime");
       window.dispatchEvent(new Event("jurones-marine-off"));
+      window.dispatchEvent(new Event("jurones-lime-off"));
     } else {
       root.classList.remove("purple");
     }
