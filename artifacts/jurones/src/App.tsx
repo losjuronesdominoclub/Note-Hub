@@ -26,6 +26,7 @@ import LisasRecibidas from "@/pages/lisas-recibidas";
 import DailyResults from "@/pages/daily-results";
 import Stream from "@/pages/stream";
 import Compare from "@/pages/compare";
+import Rules from "@/pages/rules";
 import NotFound from "@/pages/not-found";
 import logoPath from "@assets/logo_1779907396869.png";
 
@@ -199,6 +200,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/daily-results" component={() => <ProtectedRoute component={DailyResults} />} />
           <Route path="/stream" component={() => <ProtectedRoute component={Stream} />} />
           <Route path="/compare" component={() => <ProtectedRoute component={Compare} />} />
+          <Route path="/rules" component={() => <ProtectedRoute component={Rules} />} />
           
           <Route path="/live" component={() => <PublicOrProtectedRoute component={LiveMatches} />} />
           
