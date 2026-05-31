@@ -21,6 +21,7 @@ import Ranking from "@/pages/ranking";
 import RankingPoints from "@/pages/ranking-points";
 import Events from "@/pages/events";
 import Lisas from "@/pages/lisas";
+import LisasRecibidas from "@/pages/lisas-recibidas";
 import DailyResults from "@/pages/daily-results";
 import Stream from "@/pages/stream";
 import Compare from "@/pages/compare";
@@ -193,6 +194,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/ranking-points" component={() => <ProtectedRoute component={RankingPoints} />} />
           <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
           <Route path="/lisas" component={() => <ProtectedRoute component={Lisas} />} />
+          <Route path="/lisas-recibidas" component={() => <ProtectedRoute component={LisasRecibidas} />} />
           <Route path="/daily-results" component={() => <ProtectedRoute component={DailyResults} />} />
           <Route path="/stream" component={() => <ProtectedRoute component={Stream} />} />
           <Route path="/compare" component={() => <ProtectedRoute component={Compare} />} />
