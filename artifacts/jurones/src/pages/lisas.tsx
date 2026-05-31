@@ -298,16 +298,6 @@ export default function Lisas() {
                     </div>
                   </div>
 
-                  {/* Edit button — siempre visible */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEdit(item)}
-                    className="shrink-0 gap-1.5 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full h-8 px-3"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Editar
-                  </Button>
                 </motion.div>
               </React.Fragment>
             );

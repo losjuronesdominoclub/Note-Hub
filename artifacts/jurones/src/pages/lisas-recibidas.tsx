@@ -294,16 +294,6 @@ export default function LisasRecibidas() {
                     </div>
                   </div>
 
-                  {/* Edit button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEdit(item)}
-                    className="shrink-0 gap-1.5 border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-full h-8 px-3"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Editar
-                  </Button>
                 </motion.div>
               </React.Fragment>
             );
