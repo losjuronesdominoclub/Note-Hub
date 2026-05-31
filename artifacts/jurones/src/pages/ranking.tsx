@@ -171,12 +171,13 @@ export default function Ranking() {
       <div className="flex justify-end gap-2">
         <Button
           variant="outline"
+          size="icon"
           onClick={handleShare}
           disabled={!ranking || ranking.length === 0}
-          className="flex items-center gap-2 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+          className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+          title="Compartir"
         >
           <Share2 className="h-4 w-4" />
-          Compartir
         </Button>
         <Button
           variant="outline"
