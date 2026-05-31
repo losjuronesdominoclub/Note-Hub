@@ -8,6 +8,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DevModeProvider } from "@/contexts/dev-mode-context";
 
 import Layout from "@/components/layout";
 import Home from "@/pages/home";
@@ -211,12 +212,14 @@ function ClerkProviderWithRoutes() {
 function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="jurones-theme">
-      <TooltipProvider>
-        <WouterRouter base={basePath}>
-          <ClerkProviderWithRoutes />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <DevModeProvider>
+        <TooltipProvider>
+          <WouterRouter base={basePath}>
+            <ClerkProviderWithRoutes />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </DevModeProvider>
     </ThemeProvider>
   );
 }

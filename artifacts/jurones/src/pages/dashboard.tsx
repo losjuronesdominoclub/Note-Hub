@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2, CalendarDays } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2, CalendarDays, Terminal, ShieldCheck, ShieldOff } from "lucide-react";
+import { useDevMode } from "@/contexts/dev-mode-context";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -40,6 +41,33 @@ export default function Dashboard() {
   }, [events]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { isDevMode, enableDevMode, disableDevMode } = useDevMode();
+
+  // Dev mode dialog
+  const [isDevDialogOpen, setIsDevDialogOpen] = useState(false);
+  const [devCode, setDevCode] = useState("");
+  const [devCodeError, setDevCodeError] = useState(false);
+
+  const openDevDialog = () => {
+    if (isDevMode) {
+      disableDevMode();
+      toast({ title: "Dev Mode desactivado", description: "Modo administrador deshabilitado." });
+      return;
+    }
+    setDevCode("");
+    setDevCodeError(false);
+    setIsDevDialogOpen(true);
+  };
+
+  const handleDevCodeVerify = () => {
+    if (devCode === "110880") {
+      enableDevMode();
+      setIsDevDialogOpen(false);
+      toast({ title: "Dev Mode activado", description: "Modo administrador habilitado. Los controles de edición están visibles." });
+    } else {
+      setDevCodeError(true);
+    }
+  };
 
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [resetStep, setResetStep] = useState<"code" | "confirm">("code");
@@ -126,15 +154,34 @@ export default function Dashboard() {
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Dev Mode toggle */}
           <Button
             size="icon"
             variant="outline"
-            title="Reset estadísticas"
-            onClick={openReset}
-            className="h-10 w-10 rounded-full border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/60 transition-all"
+            title={isDevMode ? "Desactivar Dev Mode" : "Activar Dev Mode"}
+            onClick={openDevDialog}
+            className={`h-10 w-10 rounded-full transition-all ${
+              isDevMode
+                ? "border-amber-500/60 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+                : "border-muted-foreground/30 text-muted-foreground hover:bg-muted/40"
+            }`}
           >
-            <RotateCcw className="h-4 w-4" />
+            {isDevMode ? <ShieldCheck className="h-4 w-4" /> : <Terminal className="h-4 w-4" />}
           </Button>
+
+          {/* Reset — solo visible en Dev Mode */}
+          {isDevMode && (
+            <Button
+              size="icon"
+              variant="outline"
+              title="Reset estadísticas"
+              onClick={openReset}
+              className="h-10 w-10 rounded-full border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/60 transition-all"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
+
           <Link href="/match/new">
             <Button size="icon" title="Nueva Partida" className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40">
               <Play className="h-6 w-6 fill-current" />
@@ -362,6 +409,52 @@ export default function Dashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* ── Dev Mode dialog ── */}
+      <Dialog open={isDevDialogOpen} onOpenChange={(o) => { setIsDevDialogOpen(o); if (!o) { setDevCode(""); setDevCodeError(false); } }}>
+        <DialogContent className="glass-card sm:max-w-[380px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-400">
+              <Terminal className="h-5 w-5" />
+              Dev Mode
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Ingresa el código de administrador para habilitar el modo de edición.</p>
+            <div className="grid gap-2">
+              <Label>Código</Label>
+              <Input
+                type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={devCode}
+                onChange={(e) => { setDevCode(e.target.value); setDevCodeError(false); }}
+                placeholder="••••••"
+                className="bg-background text-center text-xl tracking-widest"
+                onKeyDown={(e) => e.key === "Enter" && handleDevCodeVerify()}
+                autoFocus
+              />
+              {devCodeError && (
+                <div className="flex items-center gap-2 text-sm text-destructive">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  Código incorrecto
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDevDialogOpen(false)} className="flex-1">Cancelar</Button>
+            <Button
+              onClick={handleDevCodeVerify}
+              disabled={!devCode}
+              className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Activar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Reset dialog ── */}
       <Dialog open={isResetOpen} onOpenChange={(o) => { setIsResetOpen(o); if (!o) { setResetCode(""); setResetCodeError(false); setResetStep("code"); } }}>

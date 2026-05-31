@@ -16,6 +16,7 @@ import {
 import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useDevMode } from "@/contexts/dev-mode-context";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -44,6 +45,7 @@ interface ImportResult {
 export default function Lisas() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isDevMode } = useDevMode();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Import state
@@ -298,6 +300,18 @@ export default function Lisas() {
                     </div>
                   </div>
 
+                  {/* Edit button — solo en Dev Mode */}
+                  {isDevMode && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEdit(item)}
+                      className="shrink-0 gap-1.5 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full h-8 px-3"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Editar
+                    </Button>
+                  )}
                 </motion.div>
               </React.Fragment>
             );
