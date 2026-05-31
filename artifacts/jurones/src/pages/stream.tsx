@@ -360,6 +360,8 @@ export default function StreamPage() {
   const [showChat, setShowChat] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
+  // Whether native fullscreen API is available (fails in sandboxed iframes)
+  const nativeFullscreenAvailable = typeof document !== "undefined" && !!document.documentElement.requestFullscreen;
 
   // Active matches for score panel
   const { data: activeMatches } = useListMatches(
@@ -376,23 +378,51 @@ export default function StreamPage() {
     });
   }, [activeMatches]);
 
-  // Fullscreen toggle
+  // Fullscreen toggle — tries native API first, falls back to CSS pseudo-fullscreen
   const toggleFullscreen = useCallback(() => {
     const el = videoContainerRef.current;
     if (!el) return;
+
+    // If already in CSS pseudo-fullscreen, exit it
+    if (!document.fullscreenElement && isFullscreen) {
+      setIsFullscreen(false);
+      return;
+    }
+
     if (!document.fullscreenElement) {
-      el.requestFullscreen().catch(() => {});
+      // Try native fullscreen
+      el.requestFullscreen().catch(() => {
+        // Native API failed (sandboxed iframe) — use CSS pseudo-fullscreen
+        setIsFullscreen(true);
+      });
     } else {
       document.exitFullscreen().catch(() => {});
     }
-  }, []);
+  }, [isFullscreen]);
 
-  // Sync fullscreen state with browser events
+  // Sync fullscreen state with browser native fullscreen events
   useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const onChange = () => {
+      if (document.fullscreenElement) {
+        setIsFullscreen(true);
+      } else {
+        setIsFullscreen(false);
+      }
+    };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
+
+  // Escape key exits CSS pseudo-fullscreen
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen && !document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isFullscreen]);
 
   // Check LiveKit config on mount
   useEffect(() => {
@@ -640,8 +670,12 @@ export default function StreamPage() {
           <div className="flex-1 min-w-0">
             <div
               ref={videoContainerRef}
-              className="relative w-full rounded-2xl overflow-hidden bg-black"
-              style={{ aspectRatio: "16/9" }}
+              className={`relative overflow-hidden bg-black ${
+                isFullscreen && !document.fullscreenElement
+                  ? "fixed inset-0 z-[9999] w-screen h-screen rounded-none"
+                  : "w-full rounded-2xl"
+              }`}
+              style={isFullscreen && !document.fullscreenElement ? {} : { aspectRatio: "16/9" }}
             >
               {/* Local video (broadcaster) */}
               <video
