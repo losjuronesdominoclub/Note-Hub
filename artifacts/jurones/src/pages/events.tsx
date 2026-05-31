@@ -115,12 +115,24 @@ export default function Events() {
         allowTaint: true,
         logging: false,
       });
-      const url = canvas.toDataURL("image/jpeg", 0.92);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `jurones_evento_${event.id}.jpg`;
-      a.click();
-      toast({ title: "¡Imagen generada!", description: `Tarjeta del evento "${event.title}" descargada.` });
+      const fileName = `jurones_evento_${event.id}.jpg`;
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Canvas empty"))), "image/jpeg", 0.92);
+      });
+      const file = new File([blob], fileName, { type: "image/jpeg" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${event.title} — Los Jurones` });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Descargado", description: `Tarjeta del evento "${event.title}" guardada.` });
+      }
     } catch {
       toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
     }

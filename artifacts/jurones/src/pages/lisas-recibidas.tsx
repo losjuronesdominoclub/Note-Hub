@@ -81,12 +81,24 @@ export default function LisasRecibidas() {
         allowTaint: true,
         logging: false,
       });
-      const url = canvas.toDataURL("image/jpeg", 0.92);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `jurones_lisas_recibidas_${new Date().toISOString().slice(0, 10)}.jpg`;
-      a.click();
-      toast({ title: "¡Imagen generada!", description: "Top 10 de Lisas Recibidas descargado." });
+      const fileName = `jurones_lisas_recibidas_${new Date().toISOString().slice(0, 10)}.jpg`;
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Canvas empty"))), "image/jpeg", 0.92);
+      });
+      const file = new File([blob], fileName, { type: "image/jpeg" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Lisas Recibidas — Los Jurones" });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Descargado", description: "Top 10 de Lisas Recibidas guardado." });
+      }
     } catch {
       toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
     }
