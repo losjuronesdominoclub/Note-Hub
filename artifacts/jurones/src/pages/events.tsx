@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   useListEvents,
@@ -8,7 +8,7 @@ import {
   getListEventsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, MapPin, Clock, Users, Plus, Pencil, Trash2, Clipboard } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Clock, Users, Plus, Pencil, Trash2, Clipboard, Share2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import html2canvas from "html2canvas";
 
 type EventType = {
   id: number;
@@ -100,6 +101,30 @@ export default function Events() {
   const deleteEvent = useDeleteEvent();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const shareRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  const handleShareEvent = async (event: EventType) => {
+    const el = shareRefs.current[event.id];
+    if (!el) return;
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#0f0f13",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+      const url = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `jurones_evento_${event.id}.jpg`;
+      a.click();
+      toast({ title: "¡Imagen generada!", description: `Tarjeta del evento "${event.title}" descargada.` });
+    } catch {
+      toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
+    }
+  };
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -207,6 +232,15 @@ export default function Events() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        title="Compartir evento"
+                        onClick={() => handleShareEvent(event as EventType)}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
                         title="Editar evento"
                         onClick={() => openEdit(event as EventType)}
                       >
@@ -269,6 +303,58 @@ export default function Events() {
                   </Button>
                 </CardFooter>
               </Card>
+
+              {/* Hidden share card per event */}
+              <div className="absolute left-[-9999px] top-0 pointer-events-none" aria-hidden>
+                <div
+                  ref={(el) => { shareRefs.current[(event as EventType).id] = el; }}
+                  style={{
+                    width: 480,
+                    background: "#0f0f13",
+                    borderRadius: 20,
+                    padding: "28px 28px 22px",
+                    fontFamily: "Inter, system-ui, sans-serif",
+                  }}
+                >
+                  {/* Club tag */}
+                  <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, letterSpacing: "0.18em", marginBottom: 14 }}>
+                    LOS JURONES DOMINO CLUB
+                  </div>
+                  {/* Title */}
+                  <div style={{ fontSize: 24, fontWeight: 900, color: "#f3f4f6", lineHeight: 1.2, marginBottom: 16 }}>
+                    {(event as EventType).title}
+                  </div>
+                  {/* Divider */}
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.08)", marginBottom: 16 }} />
+                  {/* Date */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                    <span style={{ fontSize: 14, color: "#a78bfa" }}>📅</span>
+                    <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>
+                      {format(new Date((event as EventType).date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                    </span>
+                  </div>
+                  {(event as EventType).time && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <span style={{ fontSize: 14, color: "#a78bfa" }}>🕐</span>
+                      <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>{(event as EventType).time}</span>
+                    </div>
+                  )}
+                  {(event as EventType).location && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <span style={{ fontSize: 14, color: "#a78bfa" }}>📍</span>
+                      <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>{(event as EventType).location}</span>
+                    </div>
+                  )}
+                  {(event as EventType).description && (
+                    <div style={{ marginTop: 14, padding: "12px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 10, fontSize: 13, color: "#9ca3af", lineHeight: 1.5 }}>
+                      {(event as EventType).description}
+                    </div>
+                  )}
+                  <div style={{ marginTop: 18, textAlign: "center", fontSize: 10, color: "#374151", letterSpacing: "0.15em", fontWeight: 700 }}>
+                    LOSJURONESDOMINOCLUB.COM
+                  </div>
+                </div>
+              </div>
             </motion.div>
           ))
         ) : (

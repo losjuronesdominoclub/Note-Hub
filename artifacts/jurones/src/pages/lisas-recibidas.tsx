@@ -13,10 +13,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Skull, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil } from "lucide-react";
+import { Skull, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil, Share2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useDevMode } from "@/contexts/dev-mode-context";
+import html2canvas from "html2canvas";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -47,6 +48,7 @@ export default function LisasRecibidas() {
   const queryClient = useQueryClient();
   const { isDevMode } = useDevMode();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shareRef = useRef<HTMLDivElement | null>(null);
 
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [adminCode, setAdminCode] = useState("");
@@ -67,6 +69,28 @@ export default function LisasRecibidas() {
       return res.json();
     },
   });
+
+  const handleShare = async () => {
+    const el = shareRef.current;
+    if (!el || !ranking || ranking.length === 0) return;
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#0f0f13",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+      const url = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `jurones_lisas_recibidas_${new Date().toISOString().slice(0, 10)}.jpg`;
+      a.click();
+      toast({ title: "¡Imagen generada!", description: "Top 10 de Lisas Recibidas descargado." });
+    } catch {
+      toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
+    }
+  };
 
   const handleExport = () => {
     if (!ranking || ranking.length === 0) return;
@@ -201,6 +225,16 @@ export default function LisasRecibidas() {
           <Button
             variant="outline"
             size="sm"
+            onClick={handleShare}
+            disabled={!ranking || ranking.length === 0}
+            className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-full"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartir
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleExport}
             disabled={!ranking || ranking.length === 0}
             className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-full"
@@ -319,6 +353,61 @@ export default function LisasRecibidas() {
           <p>No hay jugadores registrados.</p>
         </div>
       )}
+
+      {/* Hidden share card for html2canvas */}
+      <div className="absolute left-[-9999px] top-0 pointer-events-none" aria-hidden>
+        <div
+          ref={shareRef}
+          style={{
+            width: 480,
+            background: "#0f0f13",
+            borderRadius: 20,
+            padding: "24px 24px 20px",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#f87171", letterSpacing: "-0.3px" }}>
+              💀 Lisas Recibidas
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, letterSpacing: "0.12em" }}>
+              LOS JURONES
+            </div>
+          </div>
+          {(ranking ?? []).filter(e => e.lisasRecibidas > 0).slice(0, 10).map((item, index) => (
+            <div
+              key={item.player.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: index === 0 ? "rgba(248,113,113,0.12)" : index === 1 ? "rgba(248,113,113,0.07)" : index === 2 ? "rgba(248,113,113,0.04)" : "rgba(255,255,255,0.03)",
+                borderRadius: 10,
+                padding: "8px 12px",
+                marginBottom: 5,
+                border: `1px solid ${index === 0 ? "rgba(248,113,113,0.35)" : index === 1 ? "rgba(248,113,113,0.18)" : index === 2 ? "rgba(248,113,113,0.12)" : "rgba(255,255,255,0.06)"}`,
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 900, color: index === 0 ? "#f87171" : index === 1 ? "#fb923c" : index === 2 ? "#fbbf24" : "#6b7280", width: 22, textAlign: "center" }}>
+                {index < 3 ? ["💀","2°","3°"][index] : `#${index + 1}`}
+              </span>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#f3f4f6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {item.player.name}
+              </span>
+              <span style={{ fontSize: 22, fontWeight: 900, color: "#f87171" }}>
+                {item.lisasRecibidas}
+              </span>
+              <span style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, marginLeft: 2 }}>
+                {item.lisasRecibidas === 1 ? "recibida" : "recibidas"}
+              </span>
+            </div>
+          ))}
+          <div style={{ marginTop: 14, textAlign: "center", fontSize: 10, color: "#374151", letterSpacing: "0.15em", fontWeight: 700 }}>
+            LOSJURONESDOMINOCLUB.COM
+          </div>
+        </div>
+      </div>
 
       {/* Edit dialog */}
       <Dialog open={!!editEntry} onOpenChange={(o) => { if (!o) setEditEntry(null); }}>

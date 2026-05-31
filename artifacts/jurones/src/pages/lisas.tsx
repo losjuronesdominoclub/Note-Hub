@@ -13,10 +13,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil } from "lucide-react";
+import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil, Share2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useDevMode } from "@/contexts/dev-mode-context";
+import html2canvas from "html2canvas";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -47,6 +48,7 @@ export default function Lisas() {
   const queryClient = useQueryClient();
   const { isDevMode } = useDevMode();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shareRef = useRef<HTMLDivElement | null>(null);
 
   // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -69,6 +71,29 @@ export default function Lisas() {
       return res.json();
     },
   });
+
+  // --- Share image ---
+  const handleShare = async () => {
+    const el = shareRef.current;
+    if (!el || !ranking || ranking.length === 0) return;
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#0f0f13",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+      const url = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `jurones_lisas_${new Date().toISOString().slice(0, 10)}.jpg`;
+      a.click();
+      toast({ title: "¡Imagen generada!", description: "Top 10 de Lisas descargado." });
+    } catch {
+      toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
+    }
+  };
 
   // --- Export ---
   const handleExport = () => {
@@ -205,6 +230,16 @@ export default function Lisas() {
           <Button
             variant="outline"
             size="sm"
+            onClick={handleShare}
+            disabled={!ranking || ranking.length === 0}
+            className="gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartir
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleExport}
             disabled={!ranking || ranking.length === 0}
             className="gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full"
@@ -323,6 +358,61 @@ export default function Lisas() {
           <p>No hay jugadores registrados.</p>
         </div>
       )}
+
+      {/* Hidden share card for html2canvas */}
+      <div className="absolute left-[-9999px] top-0 pointer-events-none" aria-hidden>
+        <div
+          ref={shareRef}
+          style={{
+            width: 480,
+            background: "#0f0f13",
+            borderRadius: 20,
+            padding: "24px 24px 20px",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#22d3ee", letterSpacing: "-0.3px" }}>
+              🐟 Ranking de Lisas
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, letterSpacing: "0.12em" }}>
+              LOS JURONES
+            </div>
+          </div>
+          {(ranking ?? []).filter(e => e.lisas > 0).slice(0, 10).map((item, index) => (
+            <div
+              key={item.player.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: index === 0 ? "rgba(34,211,238,0.10)" : index === 1 ? "rgba(34,211,238,0.06)" : index === 2 ? "rgba(34,211,238,0.04)" : "rgba(255,255,255,0.03)",
+                borderRadius: 10,
+                padding: "8px 12px",
+                marginBottom: 5,
+                border: `1px solid ${index === 0 ? "rgba(34,211,238,0.30)" : index === 1 ? "rgba(34,211,238,0.15)" : index === 2 ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.06)"}`,
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 900, color: index === 0 ? "#f59e0b" : index === 1 ? "#cbd5e1" : index === 2 ? "#b45309" : "#6b7280", width: 22, textAlign: "center" }}>
+                {index < 3 ? ["🥇","🥈","🥉"][index] : `#${index + 1}`}
+              </span>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#f3f4f6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {item.player.name}
+              </span>
+              <span style={{ fontSize: 22, fontWeight: 900, color: "#22d3ee" }}>
+                {item.lisas}
+              </span>
+              <span style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, marginLeft: 2 }}>
+                {item.lisas === 1 ? "lisa" : "lisas"}
+              </span>
+            </div>
+          ))}
+          <div style={{ marginTop: 14, textAlign: "center", fontSize: 10, color: "#374151", letterSpacing: "0.15em", fontWeight: 700 }}>
+            LOSJURONESDOMINOCLUB.COM
+          </div>
+        </div>
+      </div>
 
       {/* Edit dialog */}
       <Dialog open={!!editEntry} onOpenChange={(o) => { if (!o) setEditEntry(null); }}>

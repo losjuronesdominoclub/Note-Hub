@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Trophy, Medal, Flame, Download, Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Trophy, Medal, Flame, Download, Upload, CheckCircle2, AlertCircle, Loader2, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import html2canvas from "html2canvas";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -24,6 +25,7 @@ export default function Ranking() {
   const { toast } = useToast();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shareRef = useRef<HTMLDivElement | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importAdminCode, setImportAdminCode] = useState("");
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -38,6 +40,28 @@ export default function Ranking() {
       case 2: return "text-slate-300 bg-slate-300/10 border-slate-300/50";
       case 3: return "text-amber-600 bg-amber-600/10 border-amber-600/50";
       default: return "text-muted-foreground bg-muted border-border";
+    }
+  };
+
+  const handleShare = async () => {
+    const el = shareRef.current;
+    if (!el || !ranking || ranking.length === 0) return;
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#0f0f13",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+      const url = canvas.toDataURL("image/jpeg", 0.92);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `jurones_ranking_${new Date().toISOString().slice(0, 10)}.jpg`;
+      a.click();
+      toast({ title: "¡Imagen generada!", description: "Top 10 del Global Ranking descargado." });
+    } catch {
+      toast({ title: "Error", description: "No se pudo generar la imagen.", variant: "destructive" });
     }
   };
 
@@ -135,6 +159,15 @@ export default function Ranking() {
       <div className="flex justify-end gap-2">
         <Button
           variant="outline"
+          onClick={handleShare}
+          disabled={!ranking || ranking.length === 0}
+          className="flex items-center gap-2 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+        >
+          <Share2 className="h-4 w-4" />
+          Compartir
+        </Button>
+        <Button
+          variant="outline"
           onClick={handleExport}
           disabled={!ranking || ranking.length === 0}
           className="flex items-center gap-2 border-border hover:border-primary"
@@ -205,6 +238,61 @@ export default function Ranking() {
           Aún no hay suficientes datos para generar el ranking.
         </div>
       )}
+
+      {/* Hidden share card for html2canvas */}
+      <div className="absolute left-[-9999px] top-0 pointer-events-none" aria-hidden>
+        <div
+          ref={shareRef}
+          style={{
+            width: 480,
+            background: "#0f0f13",
+            borderRadius: 20,
+            padding: "24px 24px 20px",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: "#f59e0b", letterSpacing: "-0.3px" }}>
+              🏆 Global Ranking
+            </div>
+            <div style={{ flex: 1 }} />
+            <div style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, letterSpacing: "0.12em" }}>
+              LOS JURONES
+            </div>
+          </div>
+          {(ranking ?? []).slice(0, 10).map((item, index) => (
+            <div
+              key={item.player.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: index === 0 ? "rgba(245,158,11,0.10)" : index === 1 ? "rgba(203,213,225,0.06)" : index === 2 ? "rgba(180,83,9,0.08)" : "rgba(255,255,255,0.03)",
+                borderRadius: 10,
+                padding: "8px 12px",
+                marginBottom: 5,
+                border: `1px solid ${index === 0 ? "rgba(245,158,11,0.25)" : index === 1 ? "rgba(203,213,225,0.15)" : index === 2 ? "rgba(180,83,9,0.20)" : "rgba(255,255,255,0.06)"}`,
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 900, color: index === 0 ? "#f59e0b" : index === 1 ? "#cbd5e1" : index === 2 ? "#b45309" : "#6b7280", width: 22, textAlign: "center" }}>
+                {index < 3 ? ["🥇","🥈","🥉"][index] : `#${index + 1}`}
+              </span>
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#f3f4f6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {item.player.name}
+              </span>
+              <span style={{ fontSize: 12, color: "#9ca3af", marginRight: 8 }}>
+                {item.player.wins}V – {item.player.losses}D
+              </span>
+              <span style={{ fontSize: 16, fontWeight: 900, color: index === 0 ? "#f59e0b" : "#a78bfa", minWidth: 44, textAlign: "right" }}>
+                {(Number(item.player.winRate) * 100).toFixed(0)}%
+              </span>
+            </div>
+          ))}
+          <div style={{ marginTop: 14, textAlign: "center", fontSize: 10, color: "#374151", letterSpacing: "0.15em", fontWeight: 700 }}>
+            LOSJURONESDOMINOCLUB.COM
+          </div>
+        </div>
+      </div>
 
       {/* Hidden file input */}
       <input
