@@ -209,6 +209,46 @@ export default function MatchLive() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <style>{`
+        @keyframes cortos-border-anim {
+          0%,100% { background-position: 0% 50%; }
+          50%      { background-position: 100% 50%; }
+        }
+        @keyframes largos-border-anim {
+          0%,100% { background-position: 0% 50%; }
+          50%      { background-position: 100% 50%; }
+        }
+        .cortos-input-wrap {
+          background: linear-gradient(90deg, #CD2221, #6F212A, #CD2221);
+          background-size: 200% 200%;
+          animation: cortos-border-anim 2s ease infinite;
+          padding: 2px;
+          border-radius: 10px;
+        }
+        .largos-input-wrap {
+          background: linear-gradient(90deg, #6DCDE6, #6DE6BF, #6DCDE6);
+          background-size: 200% 200%;
+          animation: largos-border-anim 2s ease infinite;
+          padding: 2px;
+          border-radius: 10px;
+        }
+        .match-score-input {
+          width: 100%;
+          height: 44px;
+          text-align: center;
+          background: #111;
+          border: none;
+          border-radius: 8px;
+          color: #f3f4f6;
+          font-size: 20px;
+          font-weight: 700;
+          outline: none;
+        }
+        .match-score-input::placeholder { color: #4b5563; }
+        .match-score-input::-webkit-inner-spin-button,
+        .match-score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+      `}</style>
+
       {/* Cancel match dialog */}
       <Dialog open={showCancelDialog} onOpenChange={(o) => { if (!o) { setShowCancelDialog(false); setCancelCode(""); } }}>
         <DialogContent className="bg-[#141414] border-[#2a2a2a]">
@@ -367,42 +407,48 @@ export default function MatchLive() {
             <div className="space-y-4">
               {cortosPlayers.map(({ player }) => (
                 <Card key={player.id} className="bg-background/50 border-red-500/20">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border border-red-500/50">
-                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
-                      <AvatarFallback className="bg-red-500/20 text-red-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 font-semibold">{player.name}</div>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar className="h-12 w-12 border border-red-500/50">
+                        <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                        <AvatarFallback className="bg-red-500/20 text-red-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 font-semibold">{player.name}</div>
+                    </div>
                     {!isFinished && (
-                      <div className="flex flex-col gap-2 w-32">
-                        <div className="flex gap-2">
-                          <Input 
-                            type="number" 
+                      <div className="flex flex-col gap-2">
+                        <div className="cortos-input-wrap">
+                          <input
+                            type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            placeholder="Pts" 
-                            className="w-16 h-8 text-center"
+                            placeholder="Pts"
+                            maxLength={3}
+                            className="match-score-input"
                             value={pointsInput[player.id] || ""}
-                            onChange={(e) => setPointsInput({ ...pointsInput, [player.id]: e.target.value })}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              setPointsInput({ ...pointsInput, [player.id]: val });
+                            }}
                           />
-                          <Button 
-                            size="sm" 
-                            className="h-8 flex-1 bg-red-600 hover:bg-red-700 text-white"
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white font-bold"
                             disabled={submitting || !pointsInput[player.id]}
                             onClick={() => handleAddScore(player.id, "cortos", parseInt(pointsInput[player.id] || "0"))}
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            + Sumar
+                          </Button>
+                          <Button
+                            className="flex-1 h-10 font-bold"
+                            style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
+                            disabled={submitting}
+                            onClick={() => handleAddScore(player.id, "cortos", 30, true)}
+                          >
+                            +30
                           </Button>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-8 border-red-500/50 text-red-500 hover:bg-red-500/10"
-                          disabled={submitting}
-                          onClick={() => handleAddScore(player.id, "cortos", 30, true)}
-                        >
-                          +30 Rápido
-                        </Button>
                       </div>
                     )}
                   </CardContent>
@@ -423,42 +469,48 @@ export default function MatchLive() {
             <div className="space-y-4">
               {largosPlayers.map(({ player }) => (
                 <Card key={player.id} className="bg-background/50 border-blue-500/20">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border border-blue-500/50">
-                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
-                      <AvatarFallback className="bg-blue-500/20 text-blue-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 font-semibold">{player.name}</div>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar className="h-12 w-12 border border-blue-500/50">
+                        <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                        <AvatarFallback className="bg-blue-500/20 text-blue-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 font-semibold">{player.name}</div>
+                    </div>
                     {!isFinished && (
-                      <div className="flex flex-col gap-2 w-32">
-                        <div className="flex gap-2">
-                          <Input 
-                            type="number" 
+                      <div className="flex flex-col gap-2">
+                        <div className="largos-input-wrap">
+                          <input
+                            type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            placeholder="Pts" 
-                            className="w-16 h-8 text-center"
+                            placeholder="Pts"
+                            maxLength={3}
+                            className="match-score-input"
                             value={pointsInput[player.id] || ""}
-                            onChange={(e) => setPointsInput({ ...pointsInput, [player.id]: e.target.value })}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              setPointsInput({ ...pointsInput, [player.id]: val });
+                            }}
                           />
-                          <Button 
-                            size="sm" 
-                            className="h-8 flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold"
                             disabled={submitting || !pointsInput[player.id]}
                             onClick={() => handleAddScore(player.id, "largos", parseInt(pointsInput[player.id] || "0"))}
                           >
-                            <ChevronUp className="h-4 w-4" />
+                            + Sumar
+                          </Button>
+                          <Button
+                            className="flex-1 h-10 font-bold"
+                            style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
+                            disabled={submitting}
+                            onClick={() => handleAddScore(player.id, "largos", 30, true)}
+                          >
+                            +30
                           </Button>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-8 border-blue-500/50 text-blue-500 hover:bg-blue-500/10"
-                          disabled={submitting}
-                          onClick={() => handleAddScore(player.id, "largos", 30, true)}
-                        >
-                          +30 Rápido
-                        </Button>
                       </div>
                     )}
                   </CardContent>
