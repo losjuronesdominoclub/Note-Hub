@@ -124,11 +124,32 @@ function SegmentCard({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(segmentToText(segment));
     toast({ title: "Copiado", description: `"${segment.title}" copiado al portapapeles.` });
   }, [segment, toast]);
+
+  const handleSegmentTts = useCallback(() => {
+    if (!("speechSynthesis" in window)) {
+      toast({ title: "No disponible", description: "Tu navegador no soporta síntesis de voz.", variant: "destructive" });
+      return;
+    }
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(segmentToText(segment));
+    utter.lang = "es-ES";
+    utter.rate = 0.95;
+    utter.onend = () => setSpeaking(false);
+    utter.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(utter);
+    setSpeaking(true);
+  }, [segment, speaking, toast]);
 
   const handleEditOpen = () => {
     setDraft(segmentToText(segment));
@@ -182,6 +203,15 @@ function SegmentCard({
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-7 w-7 transition-colors ${speaking ? "text-green-400 hover:text-red-400" : "text-muted-foreground hover:text-green-400"}`}
+            title={speaking ? "Detener narración" : "Narrar este segmento"}
+            onClick={(e) => { e.stopPropagation(); handleSegmentTts(); }}
+          >
+            {speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+          </Button>
           <Button
             variant="ghost"
             size="icon"
