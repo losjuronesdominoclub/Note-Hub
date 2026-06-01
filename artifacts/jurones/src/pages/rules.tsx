@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  BookOpen, Search, Share2, Printer, Copy, Pencil, Check, Volume2, VolumeX, ChevronDown, ChevronUp,
+  BookOpen, Search, Share2, Printer, Copy, Pencil, Check, Volume2, VolumeX, ChevronDown, ChevronUp, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -273,11 +273,25 @@ export default function Rules() {
   const { toast } = useToast();
   const { isDevMode } = useDevMode();
 
-  const [segments, setSegments] = useState<Segment[]>(DEFAULT_SEGMENTS);
+  const STORAGE_KEY = "jurones_rules_segments";
+
+  const [segments, setSegments] = useState<Segment[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved) as Segment[];
+    } catch { /* ignore */ }
+    return DEFAULT_SEGMENTS;
+  });
   const [search, setSearch] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(segments));
+    } catch { /* ignore */ }
+  }, [segments]);
 
   const filtered = segments.filter((s) =>
     search.trim() === ""
@@ -288,6 +302,11 @@ export default function Rules() {
 
   const handleEdit = (id: string, updated: Segment) => {
     setSegments((prev) => prev.map((s) => (s.id === id ? updated : s)));
+  };
+
+  const handleReset = () => {
+    setSegments(DEFAULT_SEGMENTS);
+    toast({ title: "Restablecido", description: "Las reglas volvieron al texto original." });
   };
 
   // ── Print ──
@@ -456,17 +475,28 @@ export default function Rules() {
           <Printer className="h-4 w-4" />
         </Button>
 
-        {/* Edit mode toggle (dev only) */}
+        {/* Edit mode toggle + reset (dev only) */}
         {isDevMode && (
-          <Button
-            variant={editMode ? "default" : "outline"}
-            size="icon"
-            onClick={() => setEditMode((m) => !m)}
-            title={editMode ? "Desactivar edición" : "Activar edición"}
-            className={editMode ? "bg-yellow-500 hover:bg-yellow-600 text-black" : "border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          <>
+            <Button
+              variant={editMode ? "default" : "outline"}
+              size="icon"
+              onClick={() => setEditMode((m) => !m)}
+              title={editMode ? "Desactivar edición" : "Activar edición"}
+              className={editMode ? "bg-yellow-500 hover:bg-yellow-600 text-black" : "border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleReset}
+              title="Restablecer texto original"
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
 
