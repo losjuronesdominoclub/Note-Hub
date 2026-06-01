@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  BookOpen, Search, Share2, Printer, Copy, Pencil, Check, Volume2, VolumeX, ChevronDown, ChevronUp, RotateCcw,
+  BookOpen, Search, Share2, Printer, Copy, Pencil, Check, Volume2, VolumeX, ChevronDown, ChevronUp, RotateCcw, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -309,6 +309,34 @@ export default function Rules() {
     toast({ title: "Restablecido", description: "Las reglas volvieron al texto original." });
   };
 
+  // ── Add segment ──
+  const [isAdding, setIsAdding] = useState(false);
+  const [addDraft, setAddDraft] = useState("");
+
+  const handleAddOpen = () => {
+    setAddDraft("Nuevo segmento\n\n1. Primera regla\n2. Segunda regla");
+    setIsAdding(true);
+  };
+
+  const handleAddSave = () => {
+    const lines = addDraft.split("\n").filter((l) => l.trim() !== "");
+    if (!lines.length) return;
+    const title = lines[0];
+    const items = lines.slice(1).map((l) => {
+      const bullet = l.startsWith("•");
+      const text = l.replace(/^[•\d]+[.)]\s*/, "").trim();
+      return { text, bullet };
+    });
+    const newSeg: Segment = {
+      id: `custom_${Date.now()}`,
+      title,
+      items,
+    };
+    setSegments((prev) => [...prev, newSeg]);
+    setIsAdding(false);
+    toast({ title: "Segmento añadido", description: `"${title}" agregado al reglamento.` });
+  };
+
   // ── Print ──
   const handlePrint = () => {
     const content = allText(segments);
@@ -475,7 +503,7 @@ export default function Rules() {
           <Printer className="h-4 w-4" />
         </Button>
 
-        {/* Edit mode toggle + reset (dev only) */}
+        {/* Edit mode toggle + add + reset (dev only) */}
         {isDevMode && (
           <>
             <Button
@@ -486,6 +514,15 @@ export default function Rules() {
               className={editMode ? "bg-yellow-500 hover:bg-yellow-600 text-black" : "border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"}
             >
               <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleAddOpen}
+              title="Agregar segmento"
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+            >
+              <Plus className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
@@ -517,6 +554,32 @@ export default function Rules() {
           ))
         )}
       </div>
+
+      {/* Add segment modal */}
+      {isAdding && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-[#141414] border border-border rounded-2xl w-full max-w-lg p-5 space-y-4">
+            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+              <Plus className="h-4 w-4 text-green-400" /> Nuevo segmento
+            </h3>
+            <Textarea
+              value={addDraft}
+              onChange={(e) => setAddDraft(e.target.value)}
+              rows={12}
+              className="font-mono text-sm bg-[#1a1a1a] border-[#333] text-gray-200 resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              La primera línea es el título. Usa <code>•</code> para viñetas o <code>1.</code> para numerados.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" onClick={() => setIsAdding(false)}>Cancelar</Button>
+              <Button onClick={handleAddSave} className="gap-2 bg-green-600 hover:bg-green-700 text-white">
+                <Check className="h-4 w-4" /> Agregar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ScrollToTop />
     </div>
