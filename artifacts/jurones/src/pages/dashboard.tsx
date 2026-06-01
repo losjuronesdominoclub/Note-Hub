@@ -150,6 +150,14 @@ export default function Dashboard() {
                 Stream
               </button>
             </Link>
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95 active:rotate-180"
+              style={{ background: "rgba(255,255,255,0.08)", color: "#9ca3af" }}
+              title="Actualizar"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
           </div>
           <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
         </div>
