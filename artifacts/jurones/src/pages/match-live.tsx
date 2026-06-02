@@ -210,25 +210,19 @@ export default function MatchLive() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <style>{`
-        @keyframes cortos-border-anim {
-          0%,100% { background-position: 0% 50%; }
-          50%      { background-position: 100% 50%; }
-        }
-        @keyframes largos-border-anim {
-          0%,100% { background-position: 0% 50%; }
-          50%      { background-position: 100% 50%; }
+        @keyframes border-fade {
+          0%,100% { opacity: 1; }
+          50%      { opacity: 0.25; }
         }
         .cortos-input-wrap {
-          background: linear-gradient(90deg, #CD2221, #6F212A, #CD2221);
-          background-size: 200% 200%;
-          animation: cortos-border-anim 2s ease infinite;
+          background: linear-gradient(135deg, #CD2221, #6F212A);
+          animation: border-fade 1.8s ease-in-out infinite;
           padding: 2px;
           border-radius: 10px;
         }
         .largos-input-wrap {
-          background: linear-gradient(90deg, #307EFF, #162744, #307EFF);
-          background-size: 200% 200%;
-          animation: largos-border-anim 2s ease infinite;
+          background: linear-gradient(135deg, #307EFF, #162744);
+          animation: border-fade 1.8s ease-in-out infinite;
           padding: 2px;
           border-radius: 10px;
         }
