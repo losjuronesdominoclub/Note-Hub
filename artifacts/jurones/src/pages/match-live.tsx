@@ -210,23 +210,34 @@ export default function MatchLive() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <style>{`
-        @keyframes border-fade {
-          0%,100% { opacity: 1; }
-          50%      { opacity: 0.25; }
+        @keyframes spin-border {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
         }
-        .cortos-input-wrap {
-          background: linear-gradient(135deg, #CD2221, #6F212A);
-          animation: border-fade 1.8s ease-in-out infinite;
-          padding: 2px;
-          border-radius: 10px;
-        }
+        .cortos-input-wrap,
         .largos-input-wrap {
-          background: linear-gradient(135deg, #307EFF, #162744);
-          animation: border-fade 1.8s ease-in-out infinite;
+          position: relative;
           padding: 2px;
           border-radius: 10px;
+          overflow: hidden;
+        }
+        .cortos-input-wrap::before {
+          content: '';
+          position: absolute;
+          inset: -100%;
+          background: conic-gradient(from 0deg, #CD2221, #6F212A, #CD2221, #6F212A, #CD2221);
+          animation: spin-border 2.5s linear infinite;
+        }
+        .largos-input-wrap::before {
+          content: '';
+          position: absolute;
+          inset: -100%;
+          background: conic-gradient(from 0deg, #307EFF, #162744, #307EFF, #162744, #307EFF);
+          animation: spin-border 2.5s linear infinite;
         }
         .match-score-input {
+          position: relative;
+          z-index: 1;
           width: 100%;
           height: 44px;
           text-align: center;
