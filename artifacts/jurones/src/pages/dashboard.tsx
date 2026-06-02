@@ -289,8 +289,27 @@ export default function Dashboard() {
                   </Button>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  Aún no hay suficientes datos para el ranking.
+                <div className="flex flex-col items-center text-center gap-4 py-4">
+                  <div className="relative">
+                    <Avatar className="h-28 w-28 border-4 border-yellow-500/40 shadow-xl shadow-yellow-500/10">
+                      <AvatarImage src="/logo.png" className="object-cover" />
+                      <AvatarFallback className="text-3xl font-bold bg-muted">LJ</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-3 -right-2 bg-yellow-500/40 text-yellow-950 p-1.5 rounded-full shadow-lg">
+                      <Medal className="h-6 w-6 text-yellow-500" />
+                    </div>
+                  </div>
+                  <div className="w-full space-y-3">
+                    <h3 className="text-2xl font-bold">Los Jurones</h3>
+                    <div className="flex items-center justify-center">
+                      <span className="text-sm text-muted-foreground px-3 py-1 rounded-full bg-muted">
+                        Sin partidas registradas aún
+                      </span>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="rounded-full w-full" asChild>
+                    <Link href="/ranking">Ver Ranking Completo</Link>
+                  </Button>
                 </div>
               )}
             </CardContent>

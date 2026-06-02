@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, count } from "drizzle-orm";
+import { eq, desc, count, gt } from "drizzle-orm";
 import { db, playersTable, matchesTable, scoreLogTable, matchPlayersTable } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -16,10 +16,11 @@ router.get("/stats/dashboard", async (_req, res): Promise<void> => {
   const totalMatches = totalMatchesRow?.count ?? 0;
   const activeMatches = activeMatchesRow?.count ?? 0;
 
-  // Top player by wins
+  // Top player by wins — only players with at least 1 win
   const [topPlayer] = await db
     .select()
     .from(playersTable)
+    .where(gt(playersTable.wins, 0))
     .orderBy(desc(playersTable.wins))
     .limit(1);
 
