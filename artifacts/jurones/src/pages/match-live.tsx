@@ -404,7 +404,7 @@ export default function MatchLive() {
               <div className="text-7xl font-black tabular-nums tracking-tighter mt-2">{match.shortosScore}</div>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               {cortosPlayers.map(({ player }) => (
                 <Card key={player.id} className="bg-background/50 border-red-500/20">
                   <CardContent className="p-4">
@@ -466,7 +466,7 @@ export default function MatchLive() {
               <div className="text-7xl font-black tabular-nums tracking-tighter mt-2">{match.largosScore}</div>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               {largosPlayers.map(({ player }) => (
                 <Card key={player.id} className="bg-background/50 border-blue-500/20">
                   <CardContent className="p-4">
