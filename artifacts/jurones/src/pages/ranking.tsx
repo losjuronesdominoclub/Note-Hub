@@ -230,7 +230,7 @@ export default function Ranking() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
                 <div className="flex items-center gap-4 text-sm mt-1">
-                  <span className="text-muted-foreground">{item.player.wins}V - {item.player.losses}D</span>
+                  <span className="text-muted-foreground font-medium">{(Number(item.player.winRate) * 100).toFixed(0)}% WR</span>
                   {item.player.currentStreak > 2 && (
                     <span className="flex items-center text-orange-500 font-medium text-xs bg-orange-500/10 px-2 py-0.5 rounded">
                       <Flame className="w-3 h-3 mr-1" /> Racha x{item.player.currentStreak}
@@ -240,8 +240,12 @@ export default function Ranking() {
               </div>
 
               <div className="text-right pl-4 border-l border-border">
-                <div className="text-2xl font-black text-primary">{(Number(item.player.winRate) * 100).toFixed(0)}%</div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Win Rate</div>
+                <div className="text-2xl font-black">
+                  <span className="text-red-500">{item.player.wins}V</span>
+                  <span className="text-muted-foreground mx-1 text-lg">-</span>
+                  <span className="text-gray-500">{item.player.losses}D</span>
+                </div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">V - D</div>
               </div>
             </motion.div>
           ))}
