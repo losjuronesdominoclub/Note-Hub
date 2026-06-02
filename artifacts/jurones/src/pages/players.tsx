@@ -337,6 +337,10 @@ export default function Players() {
 
   const [formData, setFormData] = useState({ name: "", avatarUrl: "", currentStreak: 0 });
 
+  const [createStep, setCreateStep] = useState<"code" | "fields">("code");
+  const [createCode, setCreateCode] = useState("");
+  const [createCodeError, setCreateCodeError] = useState(false);
+
   const [editStep, setEditStep] = useState<"code" | "fields">("code");
   const [editCode, setEditCode] = useState("");
   const [editCodeError, setEditCodeError] = useState(false);
@@ -378,6 +382,15 @@ export default function Players() {
         toast({ title: "Jugador eliminado", description: "El jugador ha sido eliminado." });
       },
     });
+  };
+
+  const handleVerifyCreateCode = () => {
+    if (createCode === "110880") {
+      setCreateStep("fields");
+      setCreateCodeError(false);
+    } else {
+      setCreateCodeError(true);
+    }
   };
 
   const handleVerifyEditCode = () => {
@@ -451,7 +464,7 @@ export default function Players() {
           <h1 className="text-3xl font-bold tracking-tight">Jugadores</h1>
           <p className="text-muted-foreground mt-1">Gestiona los miembros del club.</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={(o) => { setIsCreateOpen(o); if (!o) setFormData({ name: "", avatarUrl: "" }); }}>
+        <Dialog open={isCreateOpen} onOpenChange={(o) => { setIsCreateOpen(o); if (!o) { setFormData({ name: "", avatarUrl: "", currentStreak: 0 }); setCreateStep("code"); setCreateCode(""); setCreateCodeError(false); } }}>
           <DialogTrigger asChild>
             <Button className="rounded-full shadow-lg font-bold">
               <Plus className="mr-2 h-5 w-5" /> Nuevo Jugador
@@ -461,29 +474,68 @@ export default function Players() {
             <DialogHeader>
               <DialogTitle>Crear Jugador</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-5 py-4">
-              <AvatarPicker
-                value={formData.avatarUrl}
-                onChange={(p) => setFormData({ ...formData, avatarUrl: p })}
-                initials={formData.name.substring(0, 2).toUpperCase()}
-              />
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nombre</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ej. Juan Pérez"
-                  className="bg-background"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                />
+
+            {createStep === "code" ? (
+              <div className="space-y-4 py-2">
+                <p className="text-sm text-muted-foreground">Ingresa el código de administrador para crear un nuevo jugador.</p>
+                <div className="grid gap-2">
+                  <Label>Código secreto</Label>
+                  <Input
+                    type="password"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={createCode}
+                    onChange={(e) => { setCreateCode(e.target.value); setCreateCodeError(false); }}
+                    placeholder="••••••"
+                    className="bg-background text-center text-xl tracking-widest"
+                    onKeyDown={(e) => e.key === "Enter" && handleVerifyCreateCode()}
+                    autoFocus
+                  />
+                  {createCodeError && (
+                    <div className="flex items-center gap-2 text-sm text-destructive">
+                      <XCircle className="h-4 w-4 shrink-0" />
+                      Código incorrecto
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="flex-1">Cancelar</Button>
+                  <Button onClick={handleVerifyCreateCode} disabled={!createCode} className="flex-1">Verificar</Button>
+                </DialogFooter>
               </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleCreate} disabled={createPlayer.isPending || !formData.name.trim()} className="w-full">
-                {createPlayer.isPending ? "Creando..." : "Crear Jugador"}
-              </Button>
-            </DialogFooter>
+            ) : (
+              <div className="space-y-4 py-2">
+                <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  Código verificado correctamente
+                </div>
+                <div className="grid gap-5">
+                  <AvatarPicker
+                    value={formData.avatarUrl}
+                    onChange={(p) => setFormData({ ...formData, avatarUrl: p })}
+                    initials={formData.name.substring(0, 2).toUpperCase()}
+                  />
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nombre</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Ej. Juan Pérez"
+                      className="bg-background"
+                      onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="flex-1">Cancelar</Button>
+                  <Button onClick={handleCreate} disabled={createPlayer.isPending || !formData.name.trim()} className="flex-1">
+                    {createPlayer.isPending ? "Creando..." : "Crear Jugador"}
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
