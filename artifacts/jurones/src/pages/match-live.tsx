@@ -210,30 +210,15 @@ export default function MatchLive() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <style>{`
-        @keyframes spin-border {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        .cortos-input-wrap,
-        .largos-input-wrap {
-          position: relative;
+        .cortos-input-wrap {
           padding: 2px;
           border-radius: 10px;
-          overflow: hidden;
+          background: #CD2221;
         }
-        .cortos-input-wrap::before {
-          content: '';
-          position: absolute;
-          inset: -100%;
-          background: conic-gradient(from 0deg, #CD2221, #6F212A, #CD2221, #6F212A, #CD2221);
-          animation: spin-border 2.5s linear infinite;
-        }
-        .largos-input-wrap::before {
-          content: '';
-          position: absolute;
-          inset: -100%;
-          background: conic-gradient(from 0deg, #307EFF, #162744, #307EFF, #162744, #307EFF);
-          animation: spin-border 2.5s linear infinite;
+        .largos-input-wrap {
+          padding: 2px;
+          border-radius: 10px;
+          background: #307EFF;
         }
         .match-score-input {
           position: relative;
