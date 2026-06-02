@@ -11,6 +11,7 @@ import resetRouter from "./reset";
 import dailyResultsRouter from "./daily-results";
 import streamRouter from "./stream";
 import compareRouter from "./compare";
+import rulesRouter from "./rules";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(resetRouter);
 router.use(dailyResultsRouter);
 router.use(streamRouter);
 router.use(compareRouter);
+router.use(rulesRouter);
 
 export default router;

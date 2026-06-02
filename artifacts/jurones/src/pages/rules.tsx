@@ -269,29 +269,34 @@ function SegmentCard({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+async function saveRulesToApi(segs: Segment[]): Promise<void> {
+  await fetch("/api/rules", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(segs),
+  });
+}
+
 export default function Rules() {
   const { toast } = useToast();
   const { isDevMode } = useDevMode();
 
-  const STORAGE_KEY = "jurones_rules_segments";
-
-  const [segments, setSegments] = useState<Segment[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved) as Segment[];
-    } catch { /* ignore */ }
-    return DEFAULT_SEGMENTS;
-  });
+  const [segments, setSegments] = useState<Segment[]>(DEFAULT_SEGMENTS);
+  const [rulesLoading, setRulesLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(segments));
-    } catch { /* ignore */ }
-  }, [segments]);
+    fetch("/api/rules")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setSegments(data as Segment[]);
+      })
+      .catch(() => { /* keep DEFAULT_SEGMENTS */ })
+      .finally(() => setRulesLoading(false));
+  }, []);
 
   const filtered = segments.filter((s) =>
     search.trim() === ""
@@ -301,11 +306,16 @@ export default function Rules() {
   );
 
   const handleEdit = (id: string, updated: Segment) => {
-    setSegments((prev) => prev.map((s) => (s.id === id ? updated : s)));
+    setSegments((prev) => {
+      const next = prev.map((s) => (s.id === id ? updated : s));
+      saveRulesToApi(next).catch(() => {});
+      return next;
+    });
   };
 
   const handleReset = () => {
     setSegments(DEFAULT_SEGMENTS);
+    saveRulesToApi(DEFAULT_SEGMENTS).catch(() => {});
     toast({ title: "Restablecido", description: "Las reglas volvieron al texto original." });
   };
 
@@ -332,7 +342,11 @@ export default function Rules() {
       title,
       items,
     };
-    setSegments((prev) => [...prev, newSeg]);
+    setSegments((prev) => {
+      const next = [...prev, newSeg];
+      saveRulesToApi(next).catch(() => {});
+      return next;
+    });
     setIsAdding(false);
     toast({ title: "Segmento añadido", description: `"${title}" agregado al reglamento.` });
   };
@@ -539,7 +553,9 @@ export default function Rules() {
 
       {/* Segments list */}
       <div ref={printRef} className="space-y-3">
-        {filtered.length === 0 ? (
+        {rulesLoading ? (
+          <div className="text-center py-16 text-muted-foreground animate-pulse">Cargando reglamento…</div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             No se encontraron segmentos para <strong>"{search}"</strong>.
           </div>
