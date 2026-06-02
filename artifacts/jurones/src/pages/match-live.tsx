@@ -226,7 +226,7 @@ export default function MatchLive() {
           border-radius: 10px;
         }
         .largos-input-wrap {
-          background: linear-gradient(90deg, #6DCDE6, #6DE6BF, #6DCDE6);
+          background: linear-gradient(90deg, #307EFF, #162744, #307EFF);
           background-size: 200% 200%;
           animation: largos-border-anim 2s ease infinite;
           padding: 2px;
