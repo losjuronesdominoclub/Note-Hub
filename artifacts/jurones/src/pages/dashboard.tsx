@@ -191,8 +191,8 @@ export default function Dashboard() {
           )}
 
           <Link href="/match/new">
-            <Button size="icon" title="Nueva Partida" className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40">
-              <Play className="h-6 w-6 fill-current" />
+            <Button className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5">
+              <Play className="h-4 w-4 fill-current" /> + Crear Partida
             </Button>
           </Link>
         </div>
