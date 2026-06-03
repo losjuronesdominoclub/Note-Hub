@@ -80,10 +80,12 @@ async function recalculatePlayerStats(playerId: number) {
   let losses = 0;
   let totalPoints = 0;
   let streak = 0;
+  let topPts = 0;
   let lastResult: string | null = null;
 
   for (const m of playerMatches) {
     totalPoints += m.playerPoints;
+    if (m.playerPoints > topPts) topPts = m.playerPoints;
     if (m.winnerTeam === m.team) {
       wins++;
     } else if (m.winnerTeam != null) {
@@ -99,7 +101,7 @@ async function recalculatePlayerStats(playerId: number) {
 
   await db
     .update(playersTable)
-    .set({ wins, losses, totalPoints, winRate, currentStreak: streak })
+    .set({ wins, losses, totalPoints, winRate, currentStreak: streak, topPts })
     .where(eq(playersTable.id, playerId));
 }
 

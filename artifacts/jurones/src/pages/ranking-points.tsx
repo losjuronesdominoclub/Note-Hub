@@ -5,7 +5,7 @@ import { useListPlayers } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, Share2, Medal } from "lucide-react";
+import { Star, Share2, Medal, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 
@@ -37,6 +37,11 @@ export default function RankingPoints() {
 
   const sorted = [...(players ?? [])].sort((a, b) => (b.totalPoints ?? 0) - (a.totalPoints ?? 0));
   const top10 = sorted.slice(0, 10);
+
+  // Record #1: player with highest topPts, only shown if > 120
+  const recordHolder = [...(players ?? [])]
+    .filter(p => (p.topPts ?? 0) > 120)
+    .sort((a, b) => (b.topPts ?? 0) - (a.topPts ?? 0))[0] ?? null;
 
   const handleShare = async () => {
     if (!shareRef.current || top10.length === 0) return;
@@ -82,6 +87,46 @@ export default function RankingPoints() {
         </Button>
       </div>
 
+      {/* Record #1 Banner */}
+      {!isLoading && recordHolder && (
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative overflow-hidden rounded-2xl border border-[#e8b03f]/40 bg-gradient-to-br from-[#e8b03f]/10 via-[#e8b03f]/5 to-transparent p-5 sm:p-6 shadow-lg shadow-[#e8b03f]/10"
+        >
+          {/* Glow */}
+          <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-[#e8b03f]/15 blur-3xl" />
+
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* #1 label */}
+            <div className="shrink-0 text-center">
+              <p className="text-[10px] uppercase tracking-widest text-[#e8b03f]/70 font-bold mb-0.5">Récord</p>
+              <p className="text-4xl sm:text-5xl font-black text-[#e8b03f] leading-none">#1</p>
+            </div>
+
+            {/* Avatar */}
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 border-2 border-[#e8b03f]/50 shadow-lg shadow-[#e8b03f]/20">
+              <AvatarImage src={avatarSrc(recordHolder.avatarUrl)} className="object-cover" />
+              <AvatarFallback className="bg-[#e8b03f]/10 text-[#e8b03f] text-xl font-black">
+                {recordHolder.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+
+            {/* Name + pts */}
+            <div className="flex-1 min-w-0">
+              <p className="text-lg sm:text-2xl font-black truncate">{recordHolder.name}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mt-0.5">Puntuación individual más alta</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Trophy className="h-5 w-5 text-[#e8b03f] shrink-0" />
+                <span className="text-3xl sm:text-4xl font-black text-[#e8b03f]">{recordHolder.topPts}</span>
+                <span className="text-xs text-[#e8b03f]/60 font-semibold uppercase tracking-widest self-end mb-1">pts</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Ranking list */}
       {isLoading ? (
         <div className="space-y-3">
@@ -118,9 +163,18 @@ export default function RankingPoints() {
                 {/* Name + stats */}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-base truncate">{player.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {player.wins}V · {player.losses}D · {(Number(player.winRate) * 100).toFixed(0)}% WR
-                  </p>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <p className="text-xs text-muted-foreground">
+                      {player.wins}V · {player.losses}D · {(Number(player.winRate) * 100).toFixed(0)}% WR
+                    </p>
+                    {(player.topPts ?? 0) > 0 && (
+                      <p className="flex items-center gap-1 text-xs text-[#e8b03f]/80">
+                        <Trophy className="h-3 w-3 text-[#e8b03f]" />
+                        <span className="font-bold">{player.topPts}</span>
+                        <span className="text-[#e8b03f]/50">top</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Points */}
@@ -196,6 +250,13 @@ export default function RankingPoints() {
                 <div style={{ flex: 1, fontWeight: 700, fontSize: 15, color: "#f3f4f6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {player.name}
                 </div>
+
+                {/* Top PTS */}
+                {(player.topPts ?? 0) > 0 && (
+                  <div style={{ fontSize: 11, color: "#e8b03f", marginRight: 6, display: "flex", alignItems: "center", gap: 3 }}>
+                    🏆 {player.topPts}
+                  </div>
+                )}
 
                 {/* W/L */}
                 <div style={{ fontSize: 11, color: "#9ca3af", marginRight: 8 }}>

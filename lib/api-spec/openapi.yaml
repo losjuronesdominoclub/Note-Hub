@@ -523,7 +523,7 @@ components:
     # ─── Player ───────────────────────────────────────────────────────────
     Player:
       type: object
-      required: [id, name, wins, losses, totalPoints, winRate, currentStreak, extraLisas, createdAt]
+      required: [id, name, wins, losses, totalPoints, winRate, currentStreak, extraLisas, topPts, createdAt]
       properties:
         id:
           type: integer
@@ -542,6 +542,8 @@ components:
         currentStreak:
           type: integer
         extraLisas:
+          type: integer
+        topPts:
           type: integer
         createdAt:
           type: string

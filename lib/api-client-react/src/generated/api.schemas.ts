@@ -20,6 +20,7 @@ export interface Player {
   winRate: number;
   currentStreak: number;
   extraLisas: number;
+  topPts: number;
   createdAt: string;
 }
 
