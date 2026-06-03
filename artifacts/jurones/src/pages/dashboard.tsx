@@ -120,81 +120,84 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-500">
 
       {/* ── Header + Nueva Partida ── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <a
-              href="https://www.instagram.com/losjuronesdominoclub/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-pink-500 transition-colors group"
-            >
-              <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
-            </a>
-            <Link href="/daily-results">
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
-                style={{ background: "#e8b03f", color: "#1a1209" }}
-              >
-                <BarChart2 className="h-3.5 w-3.5" />
-                Resultados
-              </button>
-            </Link>
-            <Link href="/stream">
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
-                style={{ background: "#dc2626", color: "#fff" }}
-              >
-                <Tv2 className="h-3.5 w-3.5" />
-                Stream
-              </button>
-            </Link>
-            <button
-              onClick={() => window.location.reload()}
-              className="flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95 active:rotate-180"
-              style={{ background: "rgba(255,255,255,0.08)", color: "#9ca3af" }}
-              title="Actualizar"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <p className="text-muted-foreground mt-1">Resumen del club y actividad reciente.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Dev Mode toggle */}
-          <Button
-            size="icon"
-            variant="outline"
-            title={isDevMode ? "Desactivar Dev Mode" : "Activar Dev Mode"}
-            onClick={openDevDialog}
-            className={`h-10 w-10 rounded-full transition-all ${
-              isDevMode
-                ? "border-amber-500/60 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
-                : "border-muted-foreground/30 text-muted-foreground hover:bg-muted/40"
-            }`}
+      <div className="flex flex-col gap-3">
+        {/* Row 1: title + icon links */}
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight mr-1">Dashboard</h1>
+          <a
+            href="https://www.instagram.com/losjuronesdominoclub/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-pink-500 transition-colors group"
           >
-            {isDevMode ? <ShieldCheck className="h-4 w-4" /> : <Terminal className="h-4 w-4" />}
-          </Button>
+            <Instagram className="h-6 w-6 group-hover:scale-110 transition-transform" />
+          </a>
+          <Link href="/daily-results">
+            <button
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
+              style={{ background: "#e8b03f", color: "#1a1209" }}
+            >
+              <BarChart2 className="h-3.5 w-3.5" />
+              Resultados
+            </button>
+          </Link>
+          <Link href="/stream">
+            <button
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
+              style={{ background: "#dc2626", color: "#fff" }}
+            >
+              <Tv2 className="h-3.5 w-3.5" />
+              Stream
+            </button>
+          </Link>
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95 active:rotate-180"
+            style={{ background: "rgba(255,255,255,0.08)", color: "#9ca3af" }}
+            title="Actualizar"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        </div>
 
-          {/* Reset — solo visible en Dev Mode */}
-          {isDevMode && (
+        {/* Row 2: subtitle + action buttons */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-muted-foreground">Resumen del club y actividad reciente.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Dev Mode toggle */}
             <Button
               size="icon"
               variant="outline"
-              title="Reset estadísticas"
-              onClick={openReset}
-              className="h-10 w-10 rounded-full border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/60 transition-all"
+              title={isDevMode ? "Desactivar Dev Mode" : "Activar Dev Mode"}
+              onClick={openDevDialog}
+              className={`h-10 w-10 rounded-full transition-all ${
+                isDevMode
+                  ? "border-amber-500/60 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+                  : "border-muted-foreground/30 text-muted-foreground hover:bg-muted/40"
+              }`}
             >
-              <RotateCcw className="h-4 w-4" />
+              {isDevMode ? <ShieldCheck className="h-4 w-4" /> : <Terminal className="h-4 w-4" />}
             </Button>
-          )}
 
-          <Link href="/match/new">
-            <Button className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5">
-              <Play className="h-4 w-4 fill-current" /> + Crear Partida
-            </Button>
-          </Link>
+            {/* Reset — solo visible en Dev Mode */}
+            {isDevMode && (
+              <Button
+                size="icon"
+                variant="outline"
+                title="Reset estadísticas"
+                onClick={openReset}
+                className="h-10 w-10 rounded-full border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/60 transition-all"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
+
+            <Link href="/match/new">
+              <Button className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5">
+                <Play className="h-4 w-4 fill-current" /> + Crear Partida
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
