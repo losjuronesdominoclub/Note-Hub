@@ -36,6 +36,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 
+const TZ = "America/Santo_Domingo"; // AST — UTC-4, sin cambio de horario
+
+/** Parse a "yyyy-mm-dd" string as local midnight (avoids UTC off-by-one). */
+function parseEventDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Today's date string in AST (yyyy-mm-dd). */
+function todayInAST(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 type EventType = {
   id: number;
   title: string;
@@ -228,17 +246,42 @@ export default function Events() {
         {isLoading ? (
           <div className="col-span-full text-center py-20 text-muted-foreground">Cargando eventos...</div>
         ) : events && events.length > 0 ? (
-          events.map((event, index) => (
+          events.map((event, index) => {
+            const today = todayInAST();
+            const isToday = event.date === today;
+            const isPast = event.date < today;
+
+            return (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="glass-card h-full flex flex-col hover:border-primary/50 transition-colors">
+              <Card className={`glass-card h-full flex flex-col transition-colors ${
+                isToday
+                  ? "border-yellow-500/60 hover:border-yellow-500"
+                  : isPast
+                  ? "border-border/30 opacity-70 hover:opacity-100"
+                  : "hover:border-primary/50"
+              }`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-xl leading-tight">{event.title}</CardTitle>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        {isToday && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                            Hoy
+                          </span>
+                        )}
+                        {isPast && (
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted/40 text-muted-foreground border border-border/40">
+                            Pasado
+                          </span>
+                        )}
+                      </div>
+                      <CardTitle className="text-xl leading-tight">{event.title}</CardTitle>
+                    </div>
                     <div className="flex gap-1 shrink-0">
                       <Button
                         variant="ghost"
@@ -274,12 +317,13 @@ export default function Events() {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <CalendarIcon className="h-4 w-4 text-primary" />
-                      {format(new Date(event.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                      {format(parseEventDate(event.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
                     </div>
                     {event.time && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="h-4 w-4 text-primary" />
-                        {event.time}
+                        <span>{event.time} hrs</span>
+                        <span className="text-[10px] text-muted-foreground/50 font-mono uppercase">AST</span>
                       </div>
                     )}
                     {event.location && (
@@ -309,9 +353,10 @@ export default function Events() {
                   <Button
                     variant="secondary"
                     className="w-full"
+                    disabled={isPast}
                     onClick={() => toast({ title: "Asistencia", description: "Función de asistencia próximamente..." })}
                   >
-                    Asistiré
+                    {isPast ? "Evento finalizado" : "Asistiré"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -342,13 +387,14 @@ export default function Events() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                     <span style={{ fontSize: 14, color: "#a78bfa" }}>📅</span>
                     <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>
-                      {format(new Date((event as EventType).date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                      {format(parseEventDate((event as EventType).date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
                     </span>
                   </div>
                   {(event as EventType).time && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                       <span style={{ fontSize: 14, color: "#a78bfa" }}>🕐</span>
-                      <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>{(event as EventType).time}</span>
+                      <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>{(event as EventType).time} hrs</span>
+                      <span style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, letterSpacing: "0.1em" }}>AST</span>
                     </div>
                   )}
                   {(event as EventType).location && (
@@ -368,7 +414,8 @@ export default function Events() {
                 </div>
               </div>
             </motion.div>
-          ))
+          );
+          })
         ) : (
           <div className="col-span-full text-center py-20 text-muted-foreground glass-card rounded-2xl">
             No hay eventos programados.
@@ -402,7 +449,9 @@ export default function Events() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Hora (Opcional)</Label>
+                <Label className="flex items-center gap-1">
+                  Hora <span className="text-[10px] text-muted-foreground font-mono">(24h · AST)</span>
+                </Label>
                 <Input
                   type="time"
                   value={formData.time}
@@ -470,7 +519,9 @@ export default function Events() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Hora (Opcional)</Label>
+                <Label className="flex items-center gap-1">
+                  Hora <span className="text-[10px] text-muted-foreground font-mono">(24h · AST)</span>
+                </Label>
                 <Input
                   type="time"
                   value={editForm.time}
