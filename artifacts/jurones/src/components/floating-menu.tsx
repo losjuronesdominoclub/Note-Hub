@@ -42,7 +42,8 @@ export default function FloatingMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-16 left-0 mb-2 w-64 glass-card rounded-2xl overflow-hidden shadow-2xl flex flex-col p-2"
+            className="absolute bottom-16 left-0 mb-2 w-64 glass-card rounded-2xl shadow-2xl flex flex-col p-2"
+          style={{ maxHeight: "calc(100dvh - 7rem)", overflowY: "auto" }}
           >
             {menuItems.map((item, index) => {
               const isActive = location === item.path;
