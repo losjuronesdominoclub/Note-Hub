@@ -4,9 +4,28 @@ import { db, matchesTable, matchPlayersTable, playersTable } from "@workspace/db
 
 const router: IRouter = Router();
 
-// GET /daily-results
-// Returns match results grouped by day (descending), with per-player G/P/Lisas
-router.get("/daily-results", async (_req, res): Promise<void> => {
+/** Convert a Date to a local yyyy-mm-dd string in the given IANA timezone. */
+function toLocalDateStr(date: Date, tz: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date);
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+    return `${get("year")}-${get("month")}-${get("day")}`;
+  } catch {
+    // Fallback to UTC if tz is invalid
+    return date.toISOString().slice(0, 10);
+  }
+}
+
+// GET /daily-results?tz=America/Santo_Domingo
+// Returns match results grouped by local calendar day (descending), with per-player G/P/Lisas
+router.get("/daily-results", async (req, res): Promise<void> => {
+  const tz = typeof req.query.tz === "string" && req.query.tz ? req.query.tz : "UTC";
+
   const finishedMatches = await db
     .select()
     .from(matchesTable)
@@ -28,11 +47,11 @@ router.get("/daily-results", async (_req, res): Promise<void> => {
   const playerMap = new Map(allPlayers.map((p) => [p.id, p]));
   const matchMap = new Map(finishedMatches.map((m) => [m.id, m]));
 
-  // Group matches by calendar date (UTC date string yyyy-mm-dd)
+  // Group matches by local calendar date in the client's timezone
   const dateGroupMap = new Map<string, number[]>();
   for (const match of finishedMatches) {
     const ts = match.finishedAt ?? match.createdAt;
-    const dateStr = new Date(ts).toISOString().slice(0, 10);
+    const dateStr = toLocalDateStr(new Date(ts), tz);
     if (!dateGroupMap.has(dateStr)) dateGroupMap.set(dateStr, []);
     dateGroupMap.get(dateStr)!.push(match.id);
   }

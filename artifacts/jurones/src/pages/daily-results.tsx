@@ -44,10 +44,12 @@ function winRate(wins: number, losses: number): string {
 }
 
 export default function DailyResults() {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const { data: days, isLoading } = useQuery<DayResult[]>({
-    queryKey: ["daily-results"],
+    queryKey: ["daily-results", tz],
     queryFn: async () => {
-      const res = await fetch("/api/daily-results");
+      const res = await fetch(`/api/daily-results?tz=${encodeURIComponent(tz)}`);
       if (!res.ok) throw new Error("Error cargando resultados");
       return res.json();
     },
