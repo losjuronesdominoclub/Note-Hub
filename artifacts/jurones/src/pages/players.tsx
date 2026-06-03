@@ -462,7 +462,7 @@ export default function Players() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Jugadores</h1>
-          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Gestiona los miembros del club.</p>
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Gestiona los miembros del club.</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={(o) => { setIsCreateOpen(o); if (!o) { setFormData({ name: "", avatarUrl: "", currentStreak: 0 }); setCreateStep("code"); setCreateCode(""); setCreateCodeError(false); } }}>
           <DialogTrigger asChild>

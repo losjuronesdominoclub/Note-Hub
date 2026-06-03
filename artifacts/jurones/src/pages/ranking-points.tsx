@@ -69,7 +69,7 @@ export default function RankingPoints() {
             <Star className="h-8 w-8 text-yellow-400" />
             Ranking de Puntos
           </h1>
-          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Clasificación por puntuación total acumulada.</p>
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Clasificación por puntuación total acumulada.</p>
         </div>
         <Button
           size="icon"

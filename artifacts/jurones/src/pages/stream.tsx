@@ -618,7 +618,7 @@ export default function StreamPage() {
               </span>
             )}
           </h1>
-          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Transmisión en vivo de Los Jurones Domino Club.</p>
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Transmisión en vivo de Los Jurones Domino Club.</p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Eye className="h-4 w-4" />

@@ -164,7 +164,7 @@ export default function Ranking() {
       <div className="text-center space-y-4 mb-6">
         <Trophy className="w-16 h-16 mx-auto text-primary" />
         <h1 className="text-4xl font-black tracking-tighter uppercase">Global Ranking</h1>
-        <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Los mejores jugadores del club, clasificados por tasa de victoria.</p>
+        <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Los mejores jugadores del club, clasificados por tasa de victoria.</p>
       </div>
 
       {/* Action buttons */}

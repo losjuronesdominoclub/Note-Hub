@@ -231,7 +231,7 @@ export default function Lisas() {
             <Fish className="w-14 h-14 text-cyan-400 relative" />
           </div>
           <h1 className="text-4xl font-black tracking-tighter uppercase">Lisas</h1>
-          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">
             Jugadores con más victorias <span className="text-cyan-400 font-semibold">200 – 0</span>.
             Una Lisa es la victoria perfecta.
           </p>

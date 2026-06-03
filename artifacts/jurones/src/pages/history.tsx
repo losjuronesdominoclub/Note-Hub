@@ -250,7 +250,7 @@ export default function History() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Records</h1>
-            <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Historial de partidas finalizadas.</p>
+            <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Historial de partidas finalizadas.</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

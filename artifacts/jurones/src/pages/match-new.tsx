@@ -191,7 +191,7 @@ export default function MatchNew() {
           )}
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Nueva Partida</h1>
-            <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">
+            <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">
               {survivorMode
                 ? survivorLockedTeam
                   ? `Elige los 2 retadores del equipo ${challengerTeamLabel}`

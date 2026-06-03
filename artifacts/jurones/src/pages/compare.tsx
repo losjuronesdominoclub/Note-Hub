@@ -543,7 +543,7 @@ export default function Compare() {
           <Scale className="h-6 w-6 text-primary" />
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">COMPARE</h1>
         </div>
-        <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Enfrenta a dos jugadores cara a cara</p>
+        <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Enfrenta a dos jugadores cara a cara</p>
       </motion.div>
 
       {/* Selectors */}

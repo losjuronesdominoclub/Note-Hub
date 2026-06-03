@@ -227,7 +227,7 @@ export default function LisasRecibidas() {
             <Skull className="w-14 h-14 text-red-400 relative" />
           </div>
           <h1 className="text-4xl font-black tracking-tighter uppercase">Lisas Recibidas</h1>
-          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">
             Jugadores con más derrotas <span className="text-red-400 font-semibold">0 – 200</span>.
             La deshonra de salir en blanco.
           </p>
