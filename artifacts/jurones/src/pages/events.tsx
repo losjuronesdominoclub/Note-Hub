@@ -44,6 +44,16 @@ function parseEventDate(dateStr: string): Date {
   return new Date(y, m - 1, d);
 }
 
+/** Convert "HH:MM" (24h) to "h:MM AM/PM" (12h). */
+function format12h(time: string): string {
+  const [hStr, mStr] = time.split(":");
+  let h = parseInt(hStr, 10);
+  const m = mStr ?? "00";
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+
 /** Today's date string in AST (yyyy-mm-dd). */
 function todayInAST(): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -322,7 +332,7 @@ export default function Events() {
                     {event.time && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="h-4 w-4 text-primary" />
-                        <span>{event.time} hrs</span>
+                        <span>{format12h(event.time)}</span>
                         <span className="text-[10px] text-muted-foreground/50 font-mono uppercase">AST</span>
                       </div>
                     )}
@@ -393,7 +403,7 @@ export default function Events() {
                   {(event as EventType).time && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                       <span style={{ fontSize: 14, color: "#a78bfa" }}>🕐</span>
-                      <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>{(event as EventType).time} hrs</span>
+                      <span style={{ fontSize: 14, color: "#d1d5db", fontWeight: 600 }}>{format12h((event as EventType).time!)}</span>
                       <span style={{ fontSize: 10, color: "#6b7280", fontWeight: 700, letterSpacing: "0.1em" }}>AST</span>
                     </div>
                   )}
