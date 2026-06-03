@@ -8,14 +8,63 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, Download, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, Download, CheckCircle2, AlertCircle, Loader2, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const TZ = "America/Santo_Domingo";
+
+function buildMatchText(match: any): string {
+  const date = new Date(match.finishedAt ?? match.createdAt);
+  const dateStr = date.toLocaleDateString("es-DO", {
+    timeZone: TZ,
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const num = String(match.matchNumber).padStart(3, "0");
+
+  const cortos: string[] = (match.players ?? [])
+    .filter((p: any) => p.team === "cortos")
+    .map((p: any) => p.player?.name ?? p.playerName ?? "");
+
+  const largos: string[] = (match.players ?? [])
+    .filter((p: any) => p.team === "largos")
+    .map((p: any) => p.player?.name ?? p.playerName ?? "");
+
+  const lines: string[] = [];
+  lines.push(`Partida #${num} ${dateStr}`);
+  lines.push("", "");
+  lines.push("Cortos");
+  lines.push(String(match.shortosScore));
+  cortos.forEach((name, i) => { if (i > 0) lines.push(""); lines.push(name); });
+  lines.push("");
+  lines.push("VS");
+  lines.push("Largos");
+  lines.push(String(match.largosScore));
+  largos.forEach((name, i) => { if (i > 0) lines.push(""); lines.push(name); });
+
+  return lines.join("\n");
+}
 
 export default function History() {
   const { data: matches, isLoading } = useListHistory();
   const updateMatch = useUpdateMatch();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  const handleCopy = (match: any) => {
+    const text = buildMatchText(match);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedId(match.id);
+      setTimeout(() => setCopiedId(null), 1800);
+    }).catch(() => {
+      toast({ title: "Error", description: "No se pudo copiar al portapapeles.", variant: "destructive" });
+    });
+  };
 
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -243,6 +292,15 @@ export default function History() {
                       </span>
                     </div>
                     <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 transition-colors ${copiedId === match.id ? "text-green-400 hover:text-green-400" : "hover:text-primary"}`}
+                        title="Copiar datos de la partida"
+                        onClick={() => handleCopy(match)}
+                      >
+                        {copiedId === match.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => openEdit(match)}>
                         <Edit2 className="h-3.5 w-3.5" />
                       </Button>
