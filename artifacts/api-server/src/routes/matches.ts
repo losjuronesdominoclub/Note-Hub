@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, asc, and, sql } from "drizzle-orm";
 import { db, matchesTable, matchPlayersTable, scoreLogTable, playersTable } from "@workspace/db";
 import { z } from "zod";
 import {
@@ -699,7 +699,13 @@ router.get("/ranking", async (_req, res): Promise<void> => {
   const players = await db
     .select()
     .from(playersTable)
-    .orderBy(desc(playersTable.wins), desc(playersTable.winRate), desc(playersTable.currentStreak));
+    .orderBy(
+      desc(playersTable.wins),
+      asc(playersTable.losses),
+      desc(playersTable.totalPoints),
+      desc(playersTable.winRate),
+      desc(playersTable.currentStreak),
+    );
 
   const ranked = players.map((player, idx) => ({ position: idx + 1, player }));
   res.json(ranked);
