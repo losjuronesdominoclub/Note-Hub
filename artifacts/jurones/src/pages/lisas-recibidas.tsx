@@ -220,7 +220,7 @@ export default function LisasRecibidas() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
+      <div className="flex flex-col gap-4 mb-2">
         <div className="text-center sm:text-left space-y-3">
           <div className="relative inline-flex items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-red-500/10 blur-2xl scale-150" />
@@ -233,7 +233,7 @@ export default function LisasRecibidas() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
