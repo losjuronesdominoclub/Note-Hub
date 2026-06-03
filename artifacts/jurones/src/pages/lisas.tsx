@@ -303,7 +303,7 @@ export default function Lisas() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.04, layout: { type: "spring", stiffness: 300, damping: 30 } }}
-                  className={`flex items-center gap-4 p-4 rounded-2xl glass-card relative overflow-hidden ${
+                  className={`flex items-center gap-2 px-3 py-3 rounded-2xl glass-card relative overflow-hidden ${
                     hasLisas && lisasRank < 3
                       ? "border " + getPositionColor(lisasRank).split(" ")[2]
                       : hasLisas ? "" : "opacity-50"
@@ -314,35 +314,35 @@ export default function Lisas() {
                   )}
 
                   {/* Position badge */}
-                  <div className={`w-12 h-12 flex items-center justify-center font-black text-xl rounded-full shrink-0 ${
+                  <div className={`w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm rounded-full ${
                     hasLisas ? getPositionColor(lisasRank) : "text-muted-foreground/40 bg-muted/30 border-border/20"
                   }`}>
-                    {hasLisas && lisasRank < 3 ? <Medal className="w-6 h-6" /> : hasLisas ? `#${lisasRank + 1}` : "—"}
+                    {hasLisas && lisasRank < 3 ? <Medal className="w-4 h-4" /> : hasLisas ? `#${lisasRank + 1}` : "—"}
                   </div>
 
                   {/* Avatar */}
-                  <Avatar className={`h-14 w-14 border-2 shrink-0 ${hasLisas && lisasRank === 0 ? "border-cyan-400" : "border-transparent"}`}>
+                  <Avatar className={`h-10 w-10 shrink-0 border-2 ${hasLisas && lisasRank === 0 ? "border-cyan-400" : "border-transparent"}`}>
                     <AvatarImage src={avatarSrc(item.player.avatarUrl)} className="object-cover" />
-                    <AvatarFallback className="bg-cyan-500/20 text-cyan-400 font-bold">
+                    <AvatarFallback className="bg-cyan-500/20 text-cyan-400 font-bold text-xs">
                       {item.player.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 
                   {/* Name & stats */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {item.player.wins}V · {item.player.losses}D · WR {(Number(item.player.winRate) * 100).toFixed(0)}%
+                    <h3 className="font-bold text-base truncate">{item.player.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {item.player.wins}V · {item.player.losses}D · {(Number(item.player.winRate) * 100).toFixed(0)}% WR
                     </p>
                   </div>
 
                   {/* Lisa count */}
-                  <div className={`text-right pl-4 border-l border-border shrink-0 ${!hasLisas ? "opacity-40" : ""}`}>
-                    <div className="flex items-center justify-end gap-2">
-                      <Fish className={`h-5 w-5 ${hasLisas ? "text-cyan-400" : "text-muted-foreground"}`} />
-                      <span className={`text-3xl font-black ${hasLisas ? "text-cyan-400" : "text-muted-foreground"}`}>{item.lisas}</span>
+                  <div className={`text-right pl-2 border-l border-border shrink-0 ${!hasLisas ? "opacity-40" : ""}`}>
+                    <div className="flex items-center justify-end gap-1">
+                      <Fish className={`h-4 w-4 ${hasLisas ? "text-cyan-400" : "text-muted-foreground"}`} />
+                      <span className={`text-xl font-black ${hasLisas ? "text-cyan-400" : "text-muted-foreground"}`}>{item.lisas}</span>
                     </div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                    <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">
                       {item.lisas === 1 ? "Lisa" : "Lisas"}
                     </div>
                   </div>
@@ -351,12 +351,11 @@ export default function Lisas() {
                   {isDevMode && (
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon"
                       onClick={() => openEdit(item)}
-                      className="shrink-0 gap-1.5 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full h-8 px-3"
+                      className="shrink-0 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full h-8 w-8"
                     >
                       <Pencil className="h-3.5 w-3.5" />
-                      Editar
                     </Button>
                   )}
                 </motion.div>

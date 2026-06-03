@@ -212,40 +212,40 @@ export default function Ranking() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`flex items-center gap-4 p-4 rounded-2xl glass-card relative overflow-hidden ${index < 3 ? 'border ' + getPositionColor(index + 1).split(' ')[2] : ''}`}
+              className={`flex items-center gap-2 px-3 py-3 rounded-2xl glass-card relative overflow-hidden ${index < 3 ? 'border ' + getPositionColor(index + 1).split(' ')[2] : ''}`}
             >
               {index === 0 && <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent pointer-events-none" />}
 
-              <div className={`w-12 h-12 flex items-center justify-center font-black text-xl rounded-full ${getPositionColor(index + 1)}`}>
-                {index < 3 ? <Medal className="w-6 h-6" /> : `#${index + 1}`}
+              <div className={`w-9 h-9 shrink-0 flex items-center justify-center font-black text-sm rounded-full ${getPositionColor(index + 1)}`}>
+                {index < 3 ? <Medal className="w-4 h-4" /> : `#${index + 1}`}
               </div>
 
-              <Avatar className={`h-14 w-14 border-2 ${index === 0 ? 'border-yellow-500' : 'border-transparent'}`}>
+              <Avatar className={`h-10 w-10 shrink-0 border-2 ${index === 0 ? 'border-yellow-500' : 'border-transparent'}`}>
                 <AvatarImage src={avatarSrc(item.player.avatarUrl)} className="object-cover" />
-                <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">
                   {item.player.name.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg truncate">{item.player.name}</h3>
-                <div className="flex items-center gap-4 text-sm mt-1">
+                <h3 className="font-bold text-base truncate">{item.player.name}</h3>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs mt-0.5">
                   <span className="text-muted-foreground font-medium">{(Number(item.player.winRate) * 100).toFixed(0)}% WR</span>
                   {item.player.currentStreak > 2 && (
-                    <span className="flex items-center text-orange-500 font-medium text-xs bg-orange-500/10 px-2 py-0.5 rounded">
-                      <Flame className="w-3 h-3 mr-1" /> Racha x{item.player.currentStreak}
+                    <span className="flex items-center text-orange-500 font-medium bg-orange-500/10 px-1.5 py-0.5 rounded">
+                      <Flame className="w-3 h-3 mr-0.5" /> x{item.player.currentStreak}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="text-right pl-4 border-l border-border">
-                <div className="text-2xl font-black">
+              <div className="text-right pl-2 border-l border-border shrink-0">
+                <div className="text-xl font-black leading-tight">
                   <span className="text-red-500">{item.player.wins}V</span>
-                  <span className="text-muted-foreground mx-1 text-lg">-</span>
+                  <span className="text-muted-foreground mx-0.5 text-base">-</span>
                   <span className="text-gray-500">{item.player.losses}D</span>
                 </div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">V - D</div>
+                <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">V - D</div>
               </div>
             </motion.div>
           ))}
