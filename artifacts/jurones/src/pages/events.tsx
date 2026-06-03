@@ -243,7 +243,7 @@ export default function Events() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Eventos</h1>
-          <p className="text-muted-foreground mt-1">Torneos y reuniones del club.</p>
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Torneos y reuniones del club.</p>
         </div>
 
         <Button className="rounded-full shadow-lg font-bold" onClick={() => setIsCreateOpen(true)}>

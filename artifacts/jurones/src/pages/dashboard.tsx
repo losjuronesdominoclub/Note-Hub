@@ -162,7 +162,7 @@ export default function Dashboard() {
 
         {/* Row 2: subtitle + action buttons */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-muted-foreground">Resumen del club y actividad reciente.</p>
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Resumen del club y actividad reciente.</p>
           <div className="flex flex-wrap items-center gap-2">
             {/* Dev Mode toggle */}
             <Button

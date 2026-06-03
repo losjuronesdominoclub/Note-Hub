@@ -117,7 +117,7 @@ export default function DailyResults() {
             <BarChart2 className="h-8 w-8" style={{ color: "#e8b03f" }} />
             Resultados Diarios
           </h1>
-          <p className="text-muted-foreground mt-1">Rendimiento de cada jugador por jornada.</p>
+          <p className="text-muted-foreground mt-1 uppercase tracking-[0.3em] text-xs">Rendimiento de cada jugador por jornada.</p>
         </div>
       </div>
 
