@@ -92,10 +92,12 @@ async function recalculatePlayerStats(playerId: number) {
   }
 
   // topPts = highest single scoring entry (ronda) from score_log
+  // Only counts entries from 2026-06-04 12:00 PM AST (= 16:00 UTC) onwards
+  const TOP_PTS_ACTIVATION = new Date("2026-06-04T16:00:00.000Z");
   const scoreRows = await db
     .select({ points: scoreLogTable.points })
     .from(scoreLogTable)
-    .where(eq(scoreLogTable.playerId, playerId));
+    .where(and(eq(scoreLogTable.playerId, playerId), sql`${scoreLogTable.createdAt} >= ${TOP_PTS_ACTIVATION}`));
 
   const topPts = scoreRows.reduce((max, r) => (r.points > max ? r.points : max), 0);
 
