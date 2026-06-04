@@ -437,9 +437,26 @@ router.delete("/matches/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  if (parsed.data.adminCode !== ADMIN_CODE) {
+  const GUEST_CANCEL_CODE = "invitado";
+  const isAdmin = parsed.data.adminCode === ADMIN_CODE;
+  const isGuest = parsed.data.adminCode === GUEST_CANCEL_CODE;
+
+  if (!isAdmin && !isGuest) {
     res.status(401).json({ error: "Invalid admin code" });
     return;
+  }
+
+  // "invitado" can only cancel active (in-progress) matches
+  if (isGuest) {
+    const [check] = await db.select({ status: matchesTable.status }).from(matchesTable).where(eq(matchesTable.id, params.data.id));
+    if (!check) {
+      res.status(404).json({ error: "Match not found" });
+      return;
+    }
+    if (check.status !== "active") {
+      res.status(403).json({ error: "El código invitado solo puede cancelar partidas en curso." });
+      return;
+    }
   }
 
   const [match] = await db
