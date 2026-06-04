@@ -80,18 +80,24 @@ async function recalculatePlayerStats(playerId: number) {
   let losses = 0;
   let totalPoints = 0;
   let streak = 0;
-  let topPts = 0;
   let lastResult: string | null = null;
 
   for (const m of playerMatches) {
     totalPoints += m.playerPoints;
-    if (m.playerPoints > topPts) topPts = m.playerPoints;
     if (m.winnerTeam === m.team) {
       wins++;
     } else if (m.winnerTeam != null) {
       losses++;
     }
   }
+
+  // topPts = highest single scoring entry (ronda) from score_log
+  const scoreRows = await db
+    .select({ points: scoreLogTable.points })
+    .from(scoreLogTable)
+    .where(eq(scoreLogTable.playerId, playerId));
+
+  const topPts = scoreRows.reduce((max, r) => (r.points > max ? r.points : max), 0);
 
   const total = wins + losses;
   const winRate = total > 0 ? wins / total : 0;
