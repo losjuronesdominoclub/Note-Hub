@@ -13,5 +13,7 @@ export interface MatchPlayer {
   playerId: number;
   team: MatchPlayerTeam;
   playerPoints: number;
+  /** @nullable */
+  substitutedAt?: string | null;
   player: Player;
 }

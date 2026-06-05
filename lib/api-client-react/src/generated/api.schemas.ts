@@ -83,6 +83,8 @@ export interface MatchPlayer {
   playerId: number;
   team: MatchPlayerTeam;
   playerPoints: number;
+  /** @nullable */
+  substitutedAt?: string | null;
   player: Player;
 }
 
@@ -116,6 +118,11 @@ export interface MatchDetail {
   finishedAt?: string | null;
   players: MatchPlayer[];
   scoreLog: ScoreLogEntry[];
+}
+
+export interface SubstituteMatchBody {
+  outPlayerId: number;
+  inPlayerId: number;
 }
 
 export interface MatchInput {

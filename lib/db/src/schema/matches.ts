@@ -20,6 +20,7 @@ export const matchPlayersTable = pgTable("match_players", {
   playerId: integer("player_id").notNull().references(() => playersTable.id, { onDelete: "cascade" }),
   team: text("team").notNull(), // cortos | largos
   playerPoints: integer("player_points").notNull().default(0),
+  substitutedAt: timestamp("substituted_at", { withTimezone: true }),
 });
 
 export const scoreLogTable = pgTable("score_log", {

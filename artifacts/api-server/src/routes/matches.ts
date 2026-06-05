@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, asc, and, sql } from "drizzle-orm";
+import { eq, desc, asc, and, sql, isNull } from "drizzle-orm";
 import { db, matchesTable, matchPlayersTable, scoreLogTable, playersTable } from "@workspace/db";
 import { z } from "zod";
 import {
@@ -19,7 +19,7 @@ const ADMIN_CODE = process.env.ADMIN_CODE ?? "110880";
 
 const router: IRouter = Router();
 
-async function buildMatchDetail(matchId: number) {
+async function buildMatchDetail(matchId: number, activeOnly = true) {
   const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, matchId));
   if (!match) return null;
 
@@ -29,11 +29,16 @@ async function buildMatchDetail(matchId: number) {
       playerId: matchPlayersTable.playerId,
       team: matchPlayersTable.team,
       playerPoints: matchPlayersTable.playerPoints,
+      substitutedAt: matchPlayersTable.substitutedAt,
       player: playersTable,
     })
     .from(matchPlayersTable)
     .innerJoin(playersTable, eq(matchPlayersTable.playerId, playersTable.id))
-    .where(eq(matchPlayersTable.matchId, matchId));
+    .where(
+      activeOnly
+        ? and(eq(matchPlayersTable.matchId, matchId), isNull(matchPlayersTable.substitutedAt))
+        : eq(matchPlayersTable.matchId, matchId)
+    );
 
   const scoreLog = await db
     .select({
@@ -119,7 +124,7 @@ router.get("/matches/busy-players", async (_req, res): Promise<void> => {
     .selectDistinct({ playerId: matchPlayersTable.playerId })
     .from(matchPlayersTable)
     .innerJoin(matchesTable, eq(matchPlayersTable.matchId, matchesTable.id))
-    .where(eq(matchesTable.status, "active"));
+    .where(and(eq(matchesTable.status, "active"), isNull(matchPlayersTable.substitutedAt)));
 
   res.json({ busyPlayerIds: rows.map(r => r.playerId) });
 });
@@ -709,6 +714,48 @@ router.post("/matches/:id/reset", async (req, res): Promise<void> => {
   res.json(detail);
 });
 
+// POST /matches/:id/substitute — swap a player during an active match
+const SubstituteMatchParams = z.object({ id: z.coerce.number() });
+const SubstituteMatchBody = z.object({ outPlayerId: z.number(), inPlayerId: z.number() });
+
+router.post("/matches/:id/substitute", async (req, res): Promise<void> => {
+  const params = SubstituteMatchParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const body = SubstituteMatchBody.safeParse(req.body);
+  if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
+
+  const { outPlayerId, inPlayerId } = body.data;
+
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
+  if (!match) { res.status(404).json({ error: "Partida no encontrada" }); return; }
+  if (match.status !== "active") { res.status(400).json({ error: "Solo se puede sustituir en partidas activas" }); return; }
+
+  const [outRow] = await db
+    .select()
+    .from(matchPlayersTable)
+    .where(and(eq(matchPlayersTable.matchId, params.data.id), eq(matchPlayersTable.playerId, outPlayerId), isNull(matchPlayersTable.substitutedAt)));
+  if (!outRow) { res.status(404).json({ error: "El jugador saliente no está activo en esta partida" }); return; }
+
+  const [inPlayer] = await db.select().from(playersTable).where(eq(playersTable.id, inPlayerId));
+  if (!inPlayer) { res.status(404).json({ error: "El jugador entrante no existe" }); return; }
+
+  const alreadyActive = await db
+    .select({ id: matchPlayersTable.id })
+    .from(matchPlayersTable)
+    .where(and(eq(matchPlayersTable.matchId, params.data.id), eq(matchPlayersTable.playerId, inPlayerId), isNull(matchPlayersTable.substitutedAt)));
+  if (alreadyActive.length > 0) { res.status(400).json({ error: "El jugador entrante ya está activo en la partida" }); return; }
+
+  // Mark outgoing player as substituted out
+  await db.update(matchPlayersTable).set({ substitutedAt: new Date() }).where(eq(matchPlayersTable.id, outRow.id));
+
+  // Insert incoming player into the same team, starting from 0 points
+  await db.insert(matchPlayersTable).values({ matchId: params.data.id, playerId: inPlayerId, team: outRow.team, playerPoints: 0 });
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
 // GET /history (finished matches)
 router.get("/history", async (_req, res): Promise<void> => {
   const finishedMatches = await db
@@ -717,7 +764,7 @@ router.get("/history", async (_req, res): Promise<void> => {
     .where(eq(matchesTable.status, "finished"))
     .orderBy(desc(matchesTable.finishedAt));
 
-  const results = await Promise.all(finishedMatches.map((m) => buildMatchDetail(m.id)));
+  const results = await Promise.all(finishedMatches.map((m) => buildMatchDetail(m.id, false)));
   res.json(results.filter(Boolean));
 });
 

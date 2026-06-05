@@ -39,6 +39,7 @@ import type {
   PlayerUpdate,
   RankedPlayer,
   ScoreInput,
+  SubstituteMatchBody,
   UploadUrlRequest,
   UploadUrlResponse
 } from './api.schemas';
@@ -1240,6 +1241,78 @@ export const useFinishMatch = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getFinishMatchMutationOptions(options));
+    }
+
+export const getSubstituteMatchPlayerUrl = (id: number,) => {
+
+
+
+
+  return `/api/matches/${id}/substitute`
+}
+
+/**
+ * @summary Substitute a player during an active match
+ */
+export const substituteMatchPlayer = async (id: number,
+    substituteMatchBody: SubstituteMatchBody, options?: RequestInit): Promise<MatchDetail> => {
+
+  return customFetch<MatchDetail>(getSubstituteMatchPlayerUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      substituteMatchBody,)
+  }
+);}
+
+
+
+
+export const getSubstituteMatchPlayerMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof substituteMatchPlayer>>, TError,{id: number;data: BodyType<SubstituteMatchBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof substituteMatchPlayer>>, TError,{id: number;data: BodyType<SubstituteMatchBody>}, TContext> => {
+
+const mutationKey = ['substituteMatchPlayer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof substituteMatchPlayer>>, {id: number;data: BodyType<SubstituteMatchBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  substituteMatchPlayer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubstituteMatchPlayerMutationResult = NonNullable<Awaited<ReturnType<typeof substituteMatchPlayer>>>
+    export type SubstituteMatchPlayerMutationBody = BodyType<SubstituteMatchBody>
+    export type SubstituteMatchPlayerMutationError = ErrorType<void>
+
+    /**
+ * @summary Substitute a player during an active match
+ */
+export const useSubstituteMatchPlayer = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof substituteMatchPlayer>>, TError,{id: number;data: BodyType<SubstituteMatchBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof substituteMatchPlayer>>,
+        TError,
+        {id: number;data: BodyType<SubstituteMatchBody>},
+        TContext
+      > => {
+      return useMutation(getSubstituteMatchPlayerMutationOptions(options));
     }
 
 export const getListHistoryUrl = () => {

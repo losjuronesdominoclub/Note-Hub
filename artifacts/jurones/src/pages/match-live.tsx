@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { useGetMatch, useCreateMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
+import { useGetMatch, useCreateMatch, useListPlayers, getGetMatchQueryKey } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users, ArrowLeftRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
@@ -49,6 +50,15 @@ export default function MatchLive() {
   const [elapsed, setElapsed] = useState("00:00:00");
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean } | null>(null);
+
+  // Substitute state
+  const [showSubDialog, setShowSubDialog] = useState(false);
+  const [subOutPlayerId, setSubOutPlayerId] = useState<string>("");
+  const [subInPlayerId, setSubInPlayerId] = useState<string>("");
+  const [showSubConfirm, setShowSubConfirm] = useState(false);
+  const [substituting, setSubstituting] = useState(false);
+
+  const { data: allPlayers } = useListPlayers();
 
   useEffect(() => {
     if (match?.status === "finished") {
@@ -187,6 +197,40 @@ export default function MatchLive() {
     }
   };
 
+  const openSubDialog = () => {
+    setSubOutPlayerId("");
+    setSubInPlayerId("");
+    setShowSubConfirm(false);
+    setShowSubDialog(true);
+  };
+
+  const handleSubstitute = async () => {
+    if (!subOutPlayerId || !subInPlayerId) return;
+    setSubstituting(true);
+    try {
+      const res = await fetch(`/api/matches/${matchId}/substitute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ outPlayerId: parseInt(subOutPlayerId), inPlayerId: parseInt(subInPlayerId) }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ variant: "destructive", title: "Error", description: err.error || "No se pudo realizar la sustitución." });
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
+      setShowSubDialog(false);
+      setShowSubConfirm(false);
+      const outName = match?.players.find(p => p.playerId === parseInt(subOutPlayerId))?.player?.name ?? "";
+      const inName = allPlayers?.find(p => p.id === parseInt(subInPlayerId))?.name ?? "";
+      toast({ title: "Sustitución realizada", description: `${outName} → ${inName}` });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo realizar la sustitución." });
+    } finally {
+      setSubstituting(false);
+    }
+  };
+
   const handleUndoScore = async () => {
     try {
       const res = await fetch(`/api/matches/${matchId}/undo-score`, { method: "POST" });
@@ -292,6 +336,122 @@ export default function MatchLive() {
         </DialogContent>
       </Dialog>
 
+      {/* Substitute player dialog */}
+      {(() => {
+        const activePlayerIds = new Set((match?.players ?? []).map(p => p.playerId));
+        const availablePlayers = (allPlayers ?? []).filter(p => !activePlayerIds.has(p.id));
+        const subOutPlayer = match?.players.find(p => p.playerId === parseInt(subOutPlayerId || "0"));
+        const subInPlayer = availablePlayers.find(p => p.id === parseInt(subInPlayerId || "0"));
+        return (
+          <Dialog open={showSubDialog} onOpenChange={(o) => { if (!o) { setShowSubDialog(false); setShowSubConfirm(false); } }}>
+            <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-white flex items-center gap-2">
+                  <ArrowLeftRight className="h-5 w-5 text-green-400" /> Cambiar Jugador
+                </DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  Selecciona el jugador que sale y el jugador que entra.
+                </DialogDescription>
+              </DialogHeader>
+
+              {!showSubConfirm ? (
+                <div className="space-y-5 py-2">
+                  {/* Select outgoing player */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm font-medium">Jugador que sale</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(match?.players ?? []).map(({ playerId, player, team }) => (
+                        <button
+                          key={playerId}
+                          onClick={() => { setSubOutPlayerId(String(playerId)); setSubInPlayerId(""); }}
+                          className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${
+                            subOutPlayerId === String(playerId)
+                              ? team === "cortos"
+                                ? "border-red-500 bg-red-500/15"
+                                : "border-blue-500 bg-blue-500/15"
+                              : "border-[#2a2a2a] hover:border-[#3a3a3a] bg-[#1a1a1a]"
+                          }`}
+                        >
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                            <AvatarFallback className={`text-xs ${team === "cortos" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"}`}>
+                              {player.name.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-white truncate">{player.name}</div>
+                            <div className={`text-[10px] uppercase font-bold ${team === "cortos" ? "text-red-400" : "text-blue-400"}`}>{team}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Select incoming player */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm font-medium">Jugador que entra</Label>
+                    <Select value={subInPlayerId} onValueChange={setSubInPlayerId} disabled={!subOutPlayerId}>
+                      <SelectTrigger className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-10">
+                        <SelectValue placeholder={subOutPlayerId ? "Seleccionar jugador…" : "Primero elige quién sale"} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+                        {availablePlayers.map(p => (
+                          <SelectItem key={p.id} value={String(p.id)} className="text-white focus:bg-[#2a2a2a]">
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                        {availablePlayers.length === 0 && (
+                          <div className="px-3 py-2 text-sm text-gray-500">No hay jugadores disponibles</div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <DialogFooter className="gap-2 pt-2">
+                    <Button variant="outline" onClick={() => setShowSubDialog(false)}
+                      className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() => setShowSubConfirm(true)}
+                      disabled={!subOutPlayerId || !subInPlayerId}
+                      className="bg-green-600 hover:bg-green-500 text-white font-bold gap-2"
+                    >
+                      <ArrowLeftRight className="h-4 w-4" /> Continuar
+                    </Button>
+                  </DialogFooter>
+                </div>
+              ) : (
+                <div className="space-y-4 py-2">
+                  <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-4 text-sm text-gray-200 leading-relaxed">
+                    ¿Está seguro de sustituir a{" "}
+                    <span className="font-bold text-white">{subOutPlayer?.player?.name}</span>
+                    {" "}por{" "}
+                    <span className="font-bold text-white">{subInPlayer?.name}</span>
+                    {"? "}
+                    La partida continuará con el marcador actual.
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <Button variant="outline" onClick={() => setShowSubConfirm(false)}
+                      className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+                      Volver
+                    </Button>
+                    <Button
+                      onClick={handleSubstitute}
+                      disabled={substituting}
+                      className="bg-green-600 hover:bg-green-500 text-white font-bold gap-2"
+                    >
+                      <ArrowLeftRight className="h-4 w-4" />
+                      {substituting ? "Sustituyendo…" : "Confirmar"}
+                    </Button>
+                  </DialogFooter>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
       {/* Cancel match dialog */}
       <Dialog open={showCancelDialog} onOpenChange={(o) => { if (!o) { setShowCancelDialog(false); setCancelCode(""); } }}>
         <DialogContent className="bg-[#141414] border-[#2a2a2a]">
@@ -362,6 +522,15 @@ export default function MatchLive() {
             <span className="font-mono text-base font-bold tabular-nums tracking-widest">{elapsed}</span>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openSubDialog}
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10 gap-2"
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+              Cambiar jugador
+            </Button>
             <Button
               variant="outline"
               size="sm"

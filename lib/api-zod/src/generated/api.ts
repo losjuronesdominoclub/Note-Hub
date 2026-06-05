@@ -215,6 +215,7 @@ export const GetMatchResponse = zod.object({
   "playerId": zod.number(),
   "team": zod.enum(['cortos', 'largos']),
   "playerPoints": zod.number(),
+  "substitutedAt": zod.string().nullish(),
   "player": zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -309,6 +310,7 @@ export const AddScoreResponse = zod.object({
   "playerId": zod.number(),
   "team": zod.enum(['cortos', 'largos']),
   "playerPoints": zod.number(),
+  "substitutedAt": zod.string().nullish(),
   "player": zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -355,6 +357,59 @@ export const FinishMatchResponse = zod.object({
   "playerId": zod.number(),
   "team": zod.enum(['cortos', 'largos']),
   "playerPoints": zod.number(),
+  "substitutedAt": zod.string().nullish(),
+  "player": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "totalPoints": zod.number(),
+  "winRate": zod.number(),
+  "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
+  "topPts": zod.number(),
+  "createdAt": zod.string()
+})
+})),
+  "scoreLog": zod.array(zod.object({
+  "id": zod.number(),
+  "playerId": zod.number(),
+  "team": zod.enum(['cortos', 'largos']),
+  "points": zod.number(),
+  "createdAt": zod.string(),
+  "playerName": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Substitute a player during an active match
+ */
+export const SubstituteMatchPlayerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SubstituteMatchPlayerBody = zod.object({
+  "outPlayerId": zod.number(),
+  "inPlayerId": zod.number()
+})
+
+export const SubstituteMatchPlayerResponse = zod.object({
+  "id": zod.number(),
+  "matchNumber": zod.string(),
+  "status": zod.enum(['active', 'finished']),
+  "shortosScore": zod.number(),
+  "largosScore": zod.number(),
+  "winnerTeam": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "finishedAt": zod.string().nullish(),
+  "players": zod.array(zod.object({
+  "id": zod.number(),
+  "playerId": zod.number(),
+  "team": zod.enum(['cortos', 'largos']),
+  "playerPoints": zod.number(),
+  "substitutedAt": zod.string().nullish(),
   "player": zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -397,6 +452,7 @@ export const ListHistoryResponseItem = zod.object({
   "playerId": zod.number(),
   "team": zod.enum(['cortos', 'largos']),
   "playerPoints": zod.number(),
+  "substitutedAt": zod.string().nullish(),
   "player": zod.object({
   "id": zod.number(),
   "name": zod.string(),

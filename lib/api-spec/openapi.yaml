@@ -350,6 +350,35 @@ paths:
         "404":
           description: Not found
 
+  /matches/{id}/substitute:
+    post:
+      operationId: substituteMatchPlayer
+      tags: [matches]
+      summary: Substitute a player during an active match
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubstituteMatchBody"
+      responses:
+        "200":
+          description: Updated match detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchDetail"
+        "400":
+          description: Validation error
+        "404":
+          description: Not found
+
   # ─── History ─────────────────────────────────────────────────────────────
   /history:
     get:
@@ -641,8 +670,19 @@ components:
           enum: [cortos, largos]
         playerPoints:
           type: integer
+        substitutedAt:
+          type: ["string", "null"]
         player:
           $ref: "#/components/schemas/Player"
+
+    SubstituteMatchBody:
+      type: object
+      required: [outPlayerId, inPlayerId]
+      properties:
+        outPlayerId:
+          type: integer
+        inPlayerId:
+          type: integer
 
     MatchInput:
       type: object
