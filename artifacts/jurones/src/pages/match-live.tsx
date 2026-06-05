@@ -412,7 +412,7 @@ export default function MatchLive() {
                           </button>
                         )}
                       </div>
-                      <ScrollArea className="max-h-40">
+                      <ScrollArea className="h-36">
                         <div className="p-1">
                           {availablePlayers
                             .filter(p => p.name.toLowerCase().includes(subSearch.toLowerCase()))
