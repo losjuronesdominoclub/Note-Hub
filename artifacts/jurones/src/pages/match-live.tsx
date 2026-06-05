@@ -47,6 +47,8 @@ export default function MatchLive() {
   const [cancelCode, setCancelCode] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [elapsed, setElapsed] = useState("00:00:00");
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean } | null>(null);
 
   useEffect(() => {
     if (match?.status === "finished") {
@@ -94,9 +96,34 @@ export default function MatchLive() {
     }, 250);
   };
 
+  const executeScore = async (playerId: number, team: "cortos" | "largos", actualPoints: number, isQuickThirty: boolean) => {
+    setSubmitting(true);
+    setShowFinishConfirm(false);
+    setPendingScore(null);
+    try {
+      await fetch(`/api/matches/${matchId}/score`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId, team, points: actualPoints, isQuickThirty })
+      });
+      setPointsInput(prev => ({ ...prev, [playerId]: "" }));
+      queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
+
+      const newScore = (team === "cortos" ? match!.shortosScore : match!.largosScore) + actualPoints;
+      if (newScore >= 200) {
+        await fetch(`/api/matches/${matchId}/finish`, { method: "POST" });
+        queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo añadir el puntaje.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleAddScore = async (playerId: number, team: "cortos" | "largos", points: number, isQuickThirty = false) => {
     if (match?.status === "finished") return;
-    
+
     let actualPoints = points;
     if (isQuickThirty) {
       const currentScore = team === "cortos" ? match!.shortosScore : match!.largosScore;
@@ -111,27 +138,16 @@ export default function MatchLive() {
       if (!points || isNaN(points) || points <= 0) return;
     }
 
-    setSubmitting(true);
-    try {
-      await fetch(`/api/matches/${matchId}/score`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId, team, points: actualPoints, isQuickThirty })
-      });
-      setPointsInput(prev => ({ ...prev, [playerId]: "" }));
-      queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
-      
-      // Check win condition locally for immediate feedback
-      const newScore = (team === "cortos" ? match!.shortosScore : match!.largosScore) + actualPoints;
-      if (newScore >= 200) {
-        await fetch(`/api/matches/${matchId}/finish`, { method: "POST" });
-        queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
-      }
-    } catch (e) {
-      toast({ title: "Error", description: "No se pudo añadir el puntaje.", variant: "destructive" });
-    } finally {
-      setSubmitting(false);
+    const currentScore = team === "cortos" ? match!.shortosScore : match!.largosScore;
+    const newScore = currentScore + actualPoints;
+
+    if (newScore >= 200) {
+      setPendingScore({ playerId, team, points: actualPoints, isQuickThirty });
+      setShowFinishConfirm(true);
+      return;
     }
+
+    await executeScore(playerId, team, actualPoints, isQuickThirty);
   };
 
   const handleReset = async () => {
@@ -238,6 +254,43 @@ export default function MatchLive() {
         .match-score-input::-webkit-inner-spin-button,
         .match-score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
       `}</style>
+
+      {/* Finish confirmation dialog */}
+      <Dialog open={showFinishConfirm} onOpenChange={(o) => { if (!o) { setShowFinishConfirm(false); setPendingScore(null); } }}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a]">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-400" /> Confirmar finalización de partida
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 text-sm leading-relaxed">
+              {pendingScore && (() => {
+                const teamName = pendingScore.team === "cortos" ? "Cortos" : "Largos";
+                const currentScore = pendingScore.team === "cortos" ? match?.shortosScore ?? 0 : match?.largosScore ?? 0;
+                const newScore = currentScore + pendingScore.points;
+                return `Con esta anotación el equipo ${teamName} alcanzará ${newScore} puntos y la partida finalizará. ¿Está seguro de continuar?`;
+              })()}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => { setShowFinishConfirm(false); setPendingScore(null); }}
+              disabled={submitting}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => pendingScore && executeScore(pendingScore.playerId, pendingScore.team, pendingScore.points, pendingScore.isQuickThirty)}
+              disabled={submitting}
+              className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold gap-2"
+            >
+              <Trophy className="h-4 w-4" />
+              {submitting ? "Registrando…" : "Sí, finalizar partida"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel match dialog */}
       <Dialog open={showCancelDialog} onOpenChange={(o) => { if (!o) { setShowCancelDialog(false); setCancelCode(""); } }}>
