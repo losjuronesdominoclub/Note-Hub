@@ -291,7 +291,7 @@ export default function History() {
                         {new Date(match.finishedAt || match.createdAt).toLocaleDateString("es-DO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
-                    <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
