@@ -55,6 +55,7 @@ export default function MatchLive() {
   const [showSubDialog, setShowSubDialog] = useState(false);
   const [subOutPlayerId, setSubOutPlayerId] = useState<string>("");
   const [subInPlayerId, setSubInPlayerId] = useState<string>("");
+  const [subSearch, setSubSearch] = useState("");
   const [showSubConfirm, setShowSubConfirm] = useState(false);
   const [substituting, setSubstituting] = useState(false);
 
@@ -200,6 +201,7 @@ export default function MatchLive() {
   const openSubDialog = () => {
     setSubOutPlayerId("");
     setSubInPlayerId("");
+    setSubSearch("");
     setShowSubConfirm(false);
     setShowSubDialog(true);
   };
@@ -387,24 +389,58 @@ export default function MatchLive() {
                     </div>
                   </div>
 
-                  {/* Select incoming player */}
+                  {/* Select incoming player with search */}
                   <div className="space-y-2">
                     <Label className="text-gray-300 text-sm font-medium">Jugador que entra</Label>
-                    <Select value={subInPlayerId} onValueChange={setSubInPlayerId} disabled={!subOutPlayerId}>
-                      <SelectTrigger className="bg-[#1a1a1a] border-[#2a2a2a] text-white h-10">
-                        <SelectValue placeholder={subOutPlayerId ? "Seleccionar jugador…" : "Primero elige quién sale"} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-                        {availablePlayers.map(p => (
-                          <SelectItem key={p.id} value={String(p.id)} className="text-white focus:bg-[#2a2a2a]">
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                        {availablePlayers.length === 0 && (
-                          <div className="px-3 py-2 text-sm text-gray-500">No hay jugadores disponibles</div>
+                    <div className={`rounded-xl border ${!subOutPlayerId ? "opacity-50 pointer-events-none" : ""} border-[#2a2a2a] bg-[#1a1a1a] overflow-hidden`}>
+                      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#2a2a2a]">
+                        <svg className="h-4 w-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                        </svg>
+                        <input
+                          type="text"
+                          placeholder={subOutPlayerId ? "Buscar jugador…" : "Primero elige quién sale"}
+                          value={subSearch}
+                          onChange={e => { setSubSearch(e.target.value); setSubInPlayerId(""); }}
+                          className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
+                        />
+                        {subSearch && (
+                          <button onClick={() => { setSubSearch(""); setSubInPlayerId(""); }} className="text-gray-500 hover:text-gray-300">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         )}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                      <ScrollArea className="max-h-40">
+                        <div className="p-1">
+                          {availablePlayers
+                            .filter(p => p.name.toLowerCase().includes(subSearch.toLowerCase()))
+                            .map(p => (
+                              <button
+                                key={p.id}
+                                onClick={() => { setSubInPlayerId(String(p.id)); setSubSearch(p.name); }}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                                  subInPlayerId === String(p.id)
+                                    ? "bg-green-500/20 text-green-300"
+                                    : "text-gray-200 hover:bg-[#2a2a2a]"
+                                }`}
+                              >
+                                <Avatar className="h-6 w-6 shrink-0">
+                                  <AvatarImage src={avatarSrc(p.avatarUrl)} className="object-cover" />
+                                  <AvatarFallback className="text-[10px] bg-[#333]">{p.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                {p.name}
+                              </button>
+                            ))}
+                          {availablePlayers.filter(p => p.name.toLowerCase().includes(subSearch.toLowerCase())).length === 0 && (
+                            <div className="px-3 py-3 text-sm text-gray-500 text-center">
+                              {availablePlayers.length === 0 ? "No hay jugadores disponibles" : "Sin resultados"}
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </div>
                   </div>
 
                   <DialogFooter className="gap-2 pt-2">
@@ -524,12 +560,12 @@ export default function MatchLive() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={openSubDialog}
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 gap-2"
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10 h-9 w-9"
+              title="Cambiar jugador"
             >
               <ArrowLeftRight className="h-4 w-4" />
-              Cambiar jugador
             </Button>
             <Button
               variant="outline"
