@@ -588,7 +588,7 @@ export default function MatchLive() {
                 syncStatus === "local" ? "bg-yellow-400 animate-pulse" :
                 "bg-red-400"
               }`} />
-              {syncStatus === "synced" ? "Sincronizado" :
+              {syncStatus === "synced" ? "Sync" :
                syncStatus === "local" ? `Local (${pendingOpsCount})` :
                "Sin conexión"}
             </div>
@@ -607,10 +607,9 @@ export default function MatchLive() {
               variant="outline"
               size="sm"
               onClick={() => { setCancelCode(""); setShowCancelDialog(true); }}
-              className="border-red-500/50 text-red-400 hover:bg-red-500/10 gap-2"
+              className="border-red-500/50 text-red-400 hover:bg-red-500/10 h-9 w-9"
             >
               <Trash2 className="h-4 w-4" />
-              Cancelar partida
             </Button>
           </div>
         </div>
