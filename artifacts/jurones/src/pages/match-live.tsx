@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trophy, ChevronUp, Activity, RotateCcw, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users, ArrowLeftRight } from "lucide-react";
+import { Trophy, ChevronUp, Activity, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users, ArrowLeftRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
@@ -43,8 +43,6 @@ export default function MatchLive() {
 
   const [pointsInput, setPointsInput] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [showResetDialog, setShowResetDialog] = useState(false);
-  const [resetting, setResetting] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelCode, setCancelCode] = useState("");
   const [cancelling, setCancelling] = useState(false);
@@ -215,20 +213,6 @@ export default function MatchLive() {
     await executeScore(playerId, team, actualPoints, isQuickThirty);
   };
 
-  const handleReset = async () => {
-    setResetting(true);
-    try {
-      await fetch(`/api/matches/${matchId}/reset`, { method: "POST" });
-      queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
-      setPointsInput({});
-      setShowResetDialog(false);
-      toast({ title: "Partida reiniciada", description: "Los puntajes han sido borrados." });
-    } catch {
-      toast({ title: "Error", description: "No se pudo reiniciar la partida.", variant: "destructive" });
-    } finally {
-      setResetting(false);
-    }
-  };
 
   const handleCancelMatch = async () => {
     if (!cancelCode) return;
@@ -328,7 +312,7 @@ export default function MatchLive() {
   const isLisa = isFinished && (match.shortosScore === 0 || match.largosScore === 0);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-3">
       <style>{`
         .cortos-input-wrap {
           padding: 2px;
@@ -344,13 +328,13 @@ export default function MatchLive() {
           position: relative;
           z-index: 1;
           width: 100%;
-          height: 44px;
+          height: 36px;
           text-align: center;
           background: #111;
           border: none;
           border-radius: 8px;
           color: #f3f4f6;
-          font-size: 20px;
+          font-size: 17px;
           font-weight: 700;
           outline: none;
         }
@@ -584,28 +568,6 @@ export default function MatchLive() {
         </DialogContent>
       </Dialog>
 
-      {/* Reset confirmation dialog */}
-      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent className="bg-[#141414] border-[#2a2a2a]">
-          <DialogHeader>
-            <DialogTitle className="text-white">¿Reiniciar la partida?</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Se borrarán todos los puntos y el registro de anotaciones. Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowResetDialog(false)} disabled={resetting}
-              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
-              Cancelar
-            </Button>
-            <Button onClick={handleReset} disabled={resetting}
-              className="bg-orange-600 hover:bg-orange-700 text-white">
-              <RotateCcw className="h-4 w-4 mr-2" />
-              {resetting ? "Reiniciando…" : "Sí, reiniciar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Action buttons — only for active matches */}
       {!isFinished && (
@@ -640,15 +602,6 @@ export default function MatchLive() {
               title="Cambiar jugador"
             >
               <ArrowLeftRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowResetDialog(true)}
-              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reiniciar
             </Button>
             <Button
               variant="outline"
@@ -717,133 +670,127 @@ export default function MatchLive() {
         )}
       </AnimatePresence>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-3">
         {/* Cortos Team */}
-        <div className="space-y-6">
-          <div className="glass-card rounded-3xl p-6 border-t-4 border-t-red-600 bg-gradient-to-b from-red-500/10 to-transparent relative overflow-hidden">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-red-500 uppercase tracking-widest">Cortos</h2>
-              <div className="text-7xl font-black tabular-nums tracking-tighter mt-2">{match.shortosScore}</div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              {cortosPlayers.map(({ player }) => (
-                <Card key={player.id} className="bg-background/50 border-red-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="h-12 w-12 border border-red-500/50">
-                        <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
-                        <AvatarFallback className="bg-red-500/20 text-red-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 font-semibold">{player.name}</div>
-                    </div>
-                    {!isFinished && (
-                      <div className="flex flex-col gap-2">
-                        <div className="cortos-input-wrap">
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Pts"
-                            maxLength={3}
-                            className="match-score-input"
-                            value={pointsInput[player.id] || ""}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "").slice(0, 3);
-                              setPointsInput({ ...pointsInput, [player.id]: val });
-                            }}
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white font-bold"
-                            disabled={submitting || !pointsInput[player.id]}
-                            onClick={() => handleAddScore(player.id, "cortos", parseInt(pointsInput[player.id] || "0"))}
-                          >
-                            + Sumar
-                          </Button>
-                          <Button
-                            className="flex-1 h-10 font-bold"
-                            style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
-                            disabled={submitting}
-                            onClick={() => handleAddScore(player.id, "cortos", 30, true)}
-                          >
-                            +30
-                          </Button>
-                        </div>
+        <div className="glass-card rounded-2xl p-4 border-t-4 border-t-red-600 bg-gradient-to-b from-red-500/10 to-transparent relative overflow-hidden">
+          <div className="text-center mb-3">
+            <h2 className="text-lg font-bold text-red-500 uppercase tracking-widest">Cortos</h2>
+            <div className="text-5xl font-black tabular-nums tracking-tighter mt-1">{match.shortosScore}</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {cortosPlayers.map(({ player }) => (
+              <Card key={player.id} className="bg-background/50 border-red-500/20">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Avatar className="h-8 w-8 border border-red-500/50 shrink-0">
+                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                      <AvatarFallback className="bg-red-500/20 text-red-500 text-xs">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 font-semibold text-sm truncate">{player.name}</div>
+                  </div>
+                  {!isFinished && (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="cortos-input-wrap">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder="Pts"
+                          maxLength={3}
+                          className="match-score-input"
+                          value={pointsInput[player.id] || ""}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "").slice(0, 3);
+                            setPointsInput({ ...pointsInput, [player.id]: val });
+                          }}
+                        />
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex gap-1.5">
+                        <Button
+                          className="flex-1 h-8 bg-red-600 hover:bg-red-700 text-white font-bold text-sm"
+                          disabled={submitting || !pointsInput[player.id]}
+                          onClick={() => handleAddScore(player.id, "cortos", parseInt(pointsInput[player.id] || "0"))}
+                        >
+                          + Sumar
+                        </Button>
+                        <Button
+                          className="flex-1 h-8 font-bold text-sm"
+                          style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
+                          disabled={submitting}
+                          onClick={() => handleAddScore(player.id, "cortos", 30, true)}
+                        >
+                          +30
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 
         {/* Largos Team */}
-        <div className="space-y-6">
-          <div className="glass-card rounded-3xl p-6 border-t-4 border-t-blue-600 bg-gradient-to-b from-blue-500/10 to-transparent relative overflow-hidden">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-blue-500 uppercase tracking-widest">Largos</h2>
-              <div className="text-7xl font-black tabular-nums tracking-tighter mt-2">{match.largosScore}</div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              {largosPlayers.map(({ player }) => (
-                <Card key={player.id} className="bg-background/50 border-blue-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="h-12 w-12 border border-blue-500/50">
-                        <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
-                        <AvatarFallback className="bg-blue-500/20 text-blue-500">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 font-semibold">{player.name}</div>
-                    </div>
-                    {!isFinished && (
-                      <div className="flex flex-col gap-2">
-                        <div className="largos-input-wrap">
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Pts"
-                            maxLength={3}
-                            className="match-score-input"
-                            value={pointsInput[player.id] || ""}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "").slice(0, 3);
-                              setPointsInput({ ...pointsInput, [player.id]: val });
-                            }}
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold"
-                            disabled={submitting || !pointsInput[player.id]}
-                            onClick={() => handleAddScore(player.id, "largos", parseInt(pointsInput[player.id] || "0"))}
-                          >
-                            + Sumar
-                          </Button>
-                          <Button
-                            className="flex-1 h-10 font-bold"
-                            style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
-                            disabled={submitting}
-                            onClick={() => handleAddScore(player.id, "largos", 30, true)}
-                          >
-                            +30
-                          </Button>
-                        </div>
+        <div className="glass-card rounded-2xl p-4 border-t-4 border-t-blue-600 bg-gradient-to-b from-blue-500/10 to-transparent relative overflow-hidden">
+          <div className="text-center mb-3">
+            <h2 className="text-lg font-bold text-blue-500 uppercase tracking-widest">Largos</h2>
+            <div className="text-5xl font-black tabular-nums tracking-tighter mt-1">{match.largosScore}</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {largosPlayers.map(({ player }) => (
+              <Card key={player.id} className="bg-background/50 border-blue-500/20">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Avatar className="h-8 w-8 border border-blue-500/50 shrink-0">
+                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                      <AvatarFallback className="bg-blue-500/20 text-blue-500 text-xs">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 font-semibold text-sm truncate">{player.name}</div>
+                  </div>
+                  {!isFinished && (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="largos-input-wrap">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder="Pts"
+                          maxLength={3}
+                          className="match-score-input"
+                          value={pointsInput[player.id] || ""}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "").slice(0, 3);
+                            setPointsInput({ ...pointsInput, [player.id]: val });
+                          }}
+                        />
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex gap-1.5">
+                        <Button
+                          className="flex-1 h-8 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
+                          disabled={submitting || !pointsInput[player.id]}
+                          onClick={() => handleAddScore(player.id, "largos", parseInt(pointsInput[player.id] || "0"))}
+                        >
+                          + Sumar
+                        </Button>
+                        <Button
+                          className="flex-1 h-8 font-bold text-sm"
+                          style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
+                          disabled={submitting}
+                          onClick={() => handleAddScore(player.id, "largos", 30, true)}
+                        >
+                          +30
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl p-6 mt-8">
+      <div className="glass-card rounded-2xl p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold flex items-center gap-2">
             <Activity className="h-5 w-5" /> Registro de puntos
@@ -859,7 +806,7 @@ export default function MatchLive() {
             </Button>
           )}
         </div>
-        <ScrollArea className="h-48 pr-4">
+        <ScrollArea className="h-32 pr-4">
           <div className="space-y-1">
             {match.scoreLog.map((log, idx) => {
               const isLatest = idx === 0;
