@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2, CalendarDays, Terminal, ShieldCheck, ShieldOff } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff } from "lucide-react";
+import { useMatchRecovery } from "@/hooks/useOfflineMatch";
 import { useDevMode } from "@/contexts/dev-mode-context";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
 import { format } from "date-fns";
@@ -24,6 +25,8 @@ function avatarSrc(path: string | null | undefined): string | undefined {
 }
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
+  const { recovery, dismiss } = useMatchRecovery();
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
   const { data: activeMatches } = useListMatches({ status: "active" });
@@ -118,6 +121,31 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+
+      {/* ── Crash recovery dialog ── */}
+      {recovery && (
+        <Dialog open onOpenChange={() => dismiss()}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <WifiOff className="h-5 w-5 text-yellow-400" />
+                Partida en curso encontrada
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Se encontraron <strong className="text-white">{recovery.pendingOps.length} operación{recovery.pendingOps.length !== 1 ? "es" : ""}</strong> sin sincronizar de la partida <strong className="text-white">#{recovery.matchNumber ?? recovery.matchId}</strong>. ¿Desea continuar y sincronizarlas?
+            </p>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" size="sm" onClick={dismiss} className="text-red-400 border-red-500/30 hover:bg-red-500/10">
+                Descartar
+              </Button>
+              <Button size="sm" className="bg-primary font-bold" onClick={() => { setLocation(`/match/${recovery.matchId}`); dismiss(); }}>
+                Continuar partida →
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* ── Header + Nueva Partida ── */}
       <div className="flex flex-col gap-3">

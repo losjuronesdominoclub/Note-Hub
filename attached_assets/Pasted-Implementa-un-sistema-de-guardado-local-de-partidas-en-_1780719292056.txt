@@ -1,0 +1,46 @@
+Implementa un sistema de guardado local de partidas en curso para evitar la pérdida de información cuando falle la conexión a Internet.
+
+Requisitos
+1. Guardado automático
+Mientras se está anotando una partida, todos los cambios deben guardarse automáticamente en el almacenamiento local del dispositivo (LocalStorage, IndexedDB o mecanismo equivalente).
+El guardado debe ocurrir después de cada anotación de puntos, cambio de jugador o modificación relevante de la partida.
+2. Detección de conexión
+Detectar cuando el dispositivo pierde la conexión a Internet.
+Cuando esto ocurra, mostrar un aviso discreto:
+"Sin conexión. La partida seguirá guardándose localmente y se sincronizará cuando vuelva Internet."
+3. Partidas pendientes de sincronización
+Si una partida se creó o modificó sin conexión, marcarla con el estado:
+Pendiente de sincronización.
+Estas partidas deben almacenarse localmente hasta que puedan enviarse al servidor.
+4. Sincronización automática
+Cuando la conexión vuelva, el sistema debe intentar sincronizar automáticamente todas las partidas pendientes.
+Una vez sincronizadas correctamente, eliminar el estado de pendiente y actualizar la base de datos remota.
+5. Protección contra cierres accidentales
+
+Si el usuario cierra la aplicación, recarga la página o apaga el dispositivo mientras una partida está en curso, al volver a abrir la aplicación debe aparecer un mensaje:
+
+"Se encontró una partida en curso sin finalizar. ¿Desea continuarla?"
+
+Botones:
+
+Continuar partida
+Descartar partida
+6. Indicador visual
+En la pantalla de anotación mostrar un indicador de estado:
+🟢 Sincronizado
+🟡 Guardado localmente
+🔴 Sin conexión
+7. Finalización de partida
+Cuando una partida termine, debe guardarse localmente de inmediato.
+Si hay Internet, sincronizarla automáticamente.
+Si no hay Internet, mantenerla en pendientes hasta recuperar la conexión.
+8. Módulo de recuperación
+Crear una sección llamada "Partidas Pendientes" dentro del menú.
+Mostrar todas las partidas guardadas localmente que aún no han sido sincronizadas.
+Permitir:
+Ver detalles.
+Reintentar sincronización manual.
+Eliminar una partida pendiente.
+Objetivo
+
+Garantizar que ninguna partida se pierda por problemas de conexión, cierres inesperados de la aplicación o fallos del dispositivo, permitiendo que toda la información se conserve localmente y se sincronice automáticamente cuando vuelva la conexión a Internet.

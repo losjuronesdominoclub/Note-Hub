@@ -3,6 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useGetMatch, useCreateMatch, useListPlayers, getGetMatchQueryKey } from "@workspace/api-client-react";
+import { useOfflineMatch } from "@/hooks/useOfflineMatch";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,28 @@ export default function MatchLive() {
 
   const { data: allPlayers } = useListPlayers();
 
+  const { isOnline, syncStatus, isSyncing, pendingOpsCount, enqueueOp, saveSnapshot, syncQueue } = useOfflineMatch(
+    matchId,
+    { onSyncComplete: () => queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) }) }
+  );
+
+  // Save snapshot for crash recovery
+  useEffect(() => {
+    if (match) saveSnapshot(match);
+  }, [match]);
+
+  // Toast when going offline
+  const wasOnlineRef = useRef(true);
+  useEffect(() => {
+    if (!isOnline && wasOnlineRef.current) {
+      toast({ title: "Sin conexión", description: "La partida seguirá guardándose localmente y se sincronizará cuando vuelva Internet." });
+    }
+    if (isOnline && !wasOnlineRef.current && pendingOpsCount === 0) {
+      toast({ title: "Conexión restaurada", description: "Todos los datos están sincronizados." });
+    }
+    wasOnlineRef.current = isOnline;
+  }, [isOnline]);
+
   useEffect(() => {
     if (match?.status === "finished") {
       triggerConfetti();
@@ -111,6 +134,37 @@ export default function MatchLive() {
     setSubmitting(true);
     setShowFinishConfirm(false);
     setPendingScore(null);
+
+    const willFinish = ((team === "cortos" ? match!.shortosScore : match!.largosScore) + actualPoints) >= 200;
+
+    if (!isOnline) {
+      enqueueOp({ endpoint: `/api/matches/${matchId}/score`, method: "POST", body: { playerId, team, points: actualPoints, isQuickThirty }, label: `+${actualPoints} pts (${team})` });
+      if (willFinish) enqueueOp({ endpoint: `/api/matches/${matchId}/finish`, method: "POST", body: {}, label: "Finalizar partida" });
+      queryClient.setQueryData(getGetMatchQueryKey(matchId), (old: any) => {
+        if (!old) return old;
+        const newShort = team === "cortos" ? old.shortosScore + actualPoints : old.shortosScore;
+        const newLargo = team === "largos" ? old.largosScore + actualPoints : old.largosScore;
+        const playerName = old.players?.find((p: any) => p.playerId === playerId)?.player?.name ?? "";
+        return {
+          ...old,
+          shortosScore: newShort,
+          largosScore: newLargo,
+          status: willFinish ? "finished" : "active",
+          winnerTeam: willFinish ? team : old.winnerTeam,
+          players: old.players?.map((p: any) =>
+            p.playerId === playerId ? { ...p, playerPoints: (p.playerPoints ?? 0) + actualPoints } : p
+          ) ?? [],
+          scoreLog: [
+            { id: -Date.now(), playerId, team, points: actualPoints, createdAt: new Date().toISOString(), playerName },
+            ...(old.scoreLog ?? []),
+          ],
+        };
+      });
+      setPointsInput(prev => ({ ...prev, [playerId]: "" }));
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await fetch(`/api/matches/${matchId}/score`, {
         method: "POST",
@@ -208,6 +262,10 @@ export default function MatchLive() {
 
   const handleSubstitute = async () => {
     if (!subOutPlayerId || !subInPlayerId) return;
+    if (!isOnline) {
+      toast({ variant: "destructive", title: "Sin conexión", description: "El cambio de jugador requiere conexión a Internet." });
+      return;
+    }
     setSubstituting(true);
     try {
       const res = await fetch(`/api/matches/${matchId}/substitute`, {
@@ -551,11 +609,27 @@ export default function MatchLive() {
 
       {/* Action buttons — only for active matches */}
       {!isFinished && (
-        <div className="flex items-center justify-between gap-2">
-          {/* Elapsed timer */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/40 border border-border/50">
-            <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="font-mono text-base font-bold tabular-nums tracking-widest">{elapsed}</span>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Elapsed timer + sync status */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/40 border border-border/50">
+              <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="font-mono text-base font-bold tabular-nums tracking-widest">{elapsed}</span>
+            </div>
+            <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+              syncStatus === "synced" ? "border-green-500/30 text-green-400 bg-green-500/5" :
+              syncStatus === "local" ? "border-yellow-500/30 text-yellow-400 bg-yellow-500/5" :
+              "border-red-500/30 text-red-400 bg-red-500/5"
+            }`}>
+              <div className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                syncStatus === "synced" ? "bg-green-400" :
+                syncStatus === "local" ? "bg-yellow-400 animate-pulse" :
+                "bg-red-400"
+              }`} />
+              {syncStatus === "synced" ? "Sincronizado" :
+               syncStatus === "local" ? `Local (${pendingOpsCount})` :
+               "Sin conexión"}
+            </div>
           </div>
           <div className="flex gap-2">
             <Button

@@ -1,16 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { 
-  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen
+  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff
 } from "lucide-react";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
+import { getPendingCount } from "@/hooks/useOfflineMatch";
 
 export default function FloatingMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { signOut } = useClerk();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setPendingCount(getPendingCount());
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", refresh);
+    return () => { window.removeEventListener("focus", refresh); window.removeEventListener("storage", refresh); };
+  }, []);
 
   const menuItems = [
     { icon: Home, label: "Inicio", path: "/dashboard" },
@@ -26,6 +36,7 @@ export default function FloatingMenu() {
     { icon: Users, label: "Jugadores", path: "/players" },
     { icon: Scale, label: "Compare", path: "/compare" },
     { icon: BookOpen, label: "Reglas", path: "/rules" },
+    { icon: WifiOff, label: "Partidas Pendientes", path: "/pending-matches", badge: pendingCount },
   ];
 
   const handleNav = (path: string) => {
@@ -61,7 +72,12 @@ export default function FloatingMenu() {
                   }`}
                 >
                   <item.icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                  {item.label}
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {"badge" in item && (item as { badge?: number }).badge ? (
+                    <span className="ml-auto bg-yellow-500 text-black text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                      {(item as { badge: number }).badge}
+                    </span>
+                  ) : null}
                 </motion.button>
               );
             })}
