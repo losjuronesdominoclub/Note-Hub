@@ -679,6 +679,7 @@ export default function MatchLive() {
           <div className="grid grid-cols-2 gap-2">
             {cortosPlayers.map(({ player }) => (
               <Card key={player.id} className="bg-background/50 border-red-500/20">
+
                 <CardContent className="p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Avatar className="h-8 w-8 border border-red-500/50 shrink-0">
@@ -727,6 +728,11 @@ export default function MatchLive() {
               </Card>
             ))}
           </div>
+          {!isFinished && (
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22d3ee", marginTop: 8, textAlign: "center" }}>
+              Faltan {Math.max(0, 200 - match.shortosScore)} pts para 200
+            </p>
+          )}
         </div>
 
         {/* Largos Team */}
@@ -786,6 +792,11 @@ export default function MatchLive() {
               </Card>
             ))}
           </div>
+          {!isFinished && (
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22d3ee", marginTop: 8, textAlign: "center" }}>
+              Faltan {Math.max(0, 200 - match.largosScore)} pts para 200
+            </p>
+          )}
         </div>
       </div>
 
