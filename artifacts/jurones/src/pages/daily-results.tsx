@@ -1,12 +1,15 @@
 import React, { useRef, useState, useMemo } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BarChart2, Search, Share2, Fish, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { BarChart2, Search, Share2, Fish, X, Pencil, Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDevMode } from "@/contexts/dev-mode-context";
 import html2canvas from "html2canvas";
 import logoPath from "@assets/logo_1779907396869.png";
 
@@ -56,10 +59,50 @@ export default function DailyResults() {
   });
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { isDevMode } = useDevMode();
   const shareRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [search, setSearch] = useState("");
   const [filterDate, setFilterDate] = useState("");
+
+  // Edit dialog state
+  const [editPlayer, setEditPlayer] = useState<{ id: number; name: string; wins: number; losses: number } | null>(null);
+  const [editWins, setEditWins] = useState("");
+  const [editLosses, setEditLosses] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  const openEdit = (p: DayPlayer) => {
+    setEditPlayer({ id: p.playerId, name: p.name, wins: p.wins, losses: p.losses });
+    setEditWins(String(p.wins));
+    setEditLosses(String(p.losses));
+  };
+
+  const handleEditSave = async () => {
+    if (!editPlayer) return;
+    const wins = parseInt(editWins);
+    const losses = parseInt(editLosses);
+    if (isNaN(wins) || isNaN(losses) || wins < 0 || losses < 0) {
+      toast({ variant: "destructive", title: "Valores inválidos", description: "Ingresa números mayores o iguales a 0." });
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/players/${editPlayer.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wins, losses }),
+      });
+      if (!res.ok) throw new Error();
+      await queryClient.invalidateQueries({ queryKey: ["daily-results", tz] });
+      toast({ title: "Actualizado", description: `${editPlayer.name}: ${wins}G – ${losses}P` });
+      setEditPlayer(null);
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar el jugador." });
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     let list = days ?? [];
@@ -242,6 +285,16 @@ export default function DailyResults() {
                         {winRate(player.wins, player.losses)}
                       </span>
                     </div>
+
+                    {isDevMode && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openEdit(player); }}
+                        className="shrink-0 h-7 w-7 flex items-center justify-center rounded-lg border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+                        title="Editar victorias y derrotas"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -309,6 +362,59 @@ export default function DailyResults() {
           ))}
         </div>
       )}
+      {/* Edit wins/losses dialog — dev mode only */}
+      <Dialog open={!!editPlayer} onOpenChange={(o) => { if (!o) setEditPlayer(null); }}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-yellow-400">
+              <Pencil className="h-4 w-4" /> Editar estadísticas
+            </DialogTitle>
+          </DialogHeader>
+          {editPlayer && (
+            <div className="space-y-4 py-1">
+              <p className="text-sm text-muted-foreground">
+                Jugador: <strong className="text-white">{editPlayer.name}</strong>
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs font-semibold uppercase tracking-wider">Ganadas</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={editWins}
+                    onChange={(e) => setEditWins(e.target.value)}
+                    className="bg-background border-[#2a2a2a] text-white text-center text-lg font-bold h-12"
+                    onKeyDown={(e) => e.key === "Enter" && handleEditSave()}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs font-semibold uppercase tracking-wider">Perdidas</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={editLosses}
+                    onChange={(e) => setEditLosses(e.target.value)}
+                    className="bg-background border-[#2a2a2a] text-white text-center text-lg font-bold h-12"
+                    onKeyDown={(e) => e.key === "Enter" && handleEditSave()}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditPlayer(null)} disabled={editSaving}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={handleEditSave} disabled={editSaving}
+              className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold gap-1.5">
+              {editSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              {editSaving ? "Guardando…" : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <ScrollToTop />
     </div>
   );
