@@ -279,7 +279,7 @@ export default function Ranking() {
                     </span>
                   )}
                   <span className="text-muted-foreground/70 font-medium">
-                    {item.player.wins + item.player.losses}P
+                    {item.player.wins + item.player.losses} Part
                   </span>
                 </div>
               </div>
