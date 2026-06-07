@@ -730,7 +730,7 @@ export default function MatchLive() {
           </div>
           {!isFinished && (
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22d3ee", marginTop: 8, textAlign: "center" }}>
-              Faltan {Math.max(0, 200 - match.shortosScore)} pts para 200
+              Faltan {Math.max(0, 200 - match.shortosScore)} pts
             </p>
           )}
         </div>
@@ -794,7 +794,7 @@ export default function MatchLive() {
           </div>
           {!isFinished && (
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22d3ee", marginTop: 8, textAlign: "center" }}>
-              Faltan {Math.max(0, 200 - match.largosScore)} pts para 200
+              Faltan {Math.max(0, 200 - match.largosScore)} pts
             </p>
           )}
         </div>
