@@ -278,6 +278,9 @@ export default function Ranking() {
                       <Flame className="w-3 h-3 mr-0.5" /> x{item.player.currentStreak}
                     </span>
                   )}
+                  <span className="text-muted-foreground/70 font-medium">
+                    {item.player.wins + item.player.losses}P
+                  </span>
                 </div>
               </div>
 
