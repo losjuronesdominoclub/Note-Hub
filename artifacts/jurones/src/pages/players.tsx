@@ -132,6 +132,7 @@ interface PlayerCardProps {
     totalPoints: number;
     winRate: number;
     currentStreak: number;
+    topPts: number;
   };
   lisas: number;
   open: boolean;
@@ -193,12 +194,15 @@ function PlayerCardModal({ player, lisas, open, onClose }: PlayerCardProps) {
   };
 
   const stats = [
-    { label: "Ganadas",  value: player.wins,  color: "#4ade80" },
-    { label: "Perdidas", value: player.losses, color: "#f87171" },
-    { label: "Lisas",    value: lisas,         color: "#facc15" },
-    { label: "Promedio", value: avgPoints,          color: "#60a5fa" },
-    { label: "Win Rate", value: `${winRatePct}%`,  color: "#c084fc" },
-    { label: "Puntos",   value: player.totalPoints, color: "#fb923c" },
+    { label: "Ganadas",   value: player.wins,            color: "#4ade80" },
+    { label: "Perdidas",  value: player.losses,           color: "#f87171" },
+    { label: "Lisas",     value: lisas,                   color: "#facc15" },
+    { label: "Promedio",  value: avgPoints,               color: "#60a5fa" },
+    { label: "Win Rate",  value: `${winRatePct}%`,        color: "#c084fc" },
+    { label: "Puntos",    value: player.totalPoints,      color: "#fb923c" },
+    { label: "Top Pts",   value: player.topPts,           color: "#f472b6" },
+    { label: "Racha",     value: player.currentStreak,    color: "#fdba74" },
+    { label: "Partidas",  value: totalGames,              color: "#94a3b8" },
   ];
 
   return (
@@ -257,22 +261,14 @@ function PlayerCardModal({ player, lisas, open, onClose }: PlayerCardProps) {
             </div>
           </div>
 
-          {/* Stats grid 3×2 */}
+          {/* Stats grid 3×3 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", margin: "0 12px", background: "rgba(255,255,255,0.06)", borderRadius: "10px", overflow: "hidden" }}>
             {stats.map(({ label, value, color }) => (
               <div key={label} style={{ background: "#161616", padding: "10px 4px", textAlign: "center" }}>
-                <div style={{ color, fontSize: "20px", fontWeight: 900, lineHeight: 1 }}>{value}</div>
+                <div style={{ color, fontSize: "18px", fontWeight: 900, lineHeight: 1 }}>{value}</div>
                 <div style={{ color: "#6b7280", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "3px" }}>{label}</div>
               </div>
             ))}
-          </div>
-
-          {/* Racha — full width */}
-          <div style={{ margin: "1px 12px 0", background: "#161616", borderRadius: "0 0 10px 10px", padding: "10px 4px", textAlign: "center" }}>
-            <div style={{ color: "#fdba74", fontSize: "20px", fontWeight: 900, lineHeight: 1 }}>
-              {player.currentStreak}
-            </div>
-            <div style={{ color: "#6b7280", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "3px" }}>Racha</div>
           </div>
 
           {/* Footer */}
@@ -570,10 +566,6 @@ export default function Players() {
                           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1"><Trophy className="h-3 w-3 text-yellow-500" /> {player.wins}V - {player.losses}D</span>
                             <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-500" /> Racha: {player.currentStreak}</span>
-                          </div>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground/70">
-                            <span className="flex items-center gap-1"><BarChart2 className="h-3 w-3 text-purple-400" /> Top: {player.topPts} pts</span>
-                            <span className="flex items-center gap-1"><LineChart className="h-3 w-3 text-blue-400" /> {player.wins + player.losses} Part</span>
                           </div>
                         </div>
                       </div>
