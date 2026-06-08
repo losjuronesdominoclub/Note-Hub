@@ -571,6 +571,10 @@ export default function Players() {
                             <span className="flex items-center gap-1"><Trophy className="h-3 w-3 text-yellow-500" /> {player.wins}V - {player.losses}D</span>
                             <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-500" /> Racha: {player.currentStreak}</span>
                           </div>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground/70">
+                            <span className="flex items-center gap-1"><BarChart2 className="h-3 w-3 text-purple-400" /> Top: {player.topPts} pts</span>
+                            <span className="flex items-center gap-1"><LineChart className="h-3 w-3 text-blue-400" /> {player.wins + player.losses} Part</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
