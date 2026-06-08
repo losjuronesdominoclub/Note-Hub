@@ -76,6 +76,7 @@ async function recalculatePlayerStats(playerId: number) {
       team: matchPlayersTable.team,
       winnerTeam: matchesTable.winnerTeam,
       playerPoints: matchPlayersTable.playerPoints,
+      substitutedAt: matchPlayersTable.substitutedAt,
     })
     .from(matchPlayersTable)
     .innerJoin(matchesTable, eq(matchPlayersTable.matchId, matchesTable.id))
@@ -88,11 +89,15 @@ async function recalculatePlayerStats(playerId: number) {
   let lastResult: string | null = null;
 
   for (const m of playerMatches) {
+    // Points always count — the player scored them regardless of substitution
     totalPoints += m.playerPoints;
-    if (m.winnerTeam === m.team) {
-      wins++;
-    } else if (m.winnerTeam != null) {
-      losses++;
+    // Win/loss only counts if the player was NOT substituted out mid-match
+    if (m.substitutedAt === null) {
+      if (m.winnerTeam === m.team) {
+        wins++;
+      } else if (m.winnerTeam != null) {
+        losses++;
+      }
     }
   }
 
