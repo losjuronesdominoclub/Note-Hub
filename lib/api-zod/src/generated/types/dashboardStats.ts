@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Player } from './player';
+import type { TopPair } from './topPair';
 
 export interface DashboardStats {
   totalPlayers: number;
@@ -13,4 +14,5 @@ export interface DashboardStats {
   activeMatches: number;
   totalGamesPlayed: number;
   topPlayer?: Player;
+  topPair?: TopPair | null;
 }

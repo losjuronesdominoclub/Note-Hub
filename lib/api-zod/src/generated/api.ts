@@ -618,7 +618,16 @@ export const GetDashboardStatsResponse = zod.object({
   "extraLisas": zod.number(),
   "topPts": zod.number(),
   "createdAt": zod.string()
-}).optional()
+}).optional(),
+  "topPair": zod.object({
+  "player1Id": zod.number(),
+  "player1Name": zod.string(),
+  "player1AvatarUrl": zod.string().nullish(),
+  "player2Id": zod.number(),
+  "player2Name": zod.string(),
+  "player2AvatarUrl": zod.string().nullish(),
+  "wins": zod.number()
+}).nullish()
 })
 
 

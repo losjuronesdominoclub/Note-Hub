@@ -225,12 +225,23 @@ export interface AttendInput {
   attendeeName: string;
 }
 
+export interface TopPair {
+  player1Id: number;
+  player1Name: string;
+  player1AvatarUrl?: string | null;
+  player2Id: number;
+  player2Name: string;
+  player2AvatarUrl?: string | null;
+  wins: number;
+}
+
 export interface DashboardStats {
   totalPlayers: number;
   totalMatches: number;
   activeMatches: number;
   totalGamesPlayed: number;
   topPlayer?: Player;
+  topPair?: TopPair | null;
 }
 
 export type ActivityEntryTeam = typeof ActivityEntryTeam[keyof typeof ActivityEntryTeam];

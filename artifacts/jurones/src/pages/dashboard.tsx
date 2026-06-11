@@ -115,7 +115,6 @@ export default function Dashboard() {
 
   const statCards = [
     { title: "Partidas Activas",  value: stats?.activeMatches,    icon: Activity, color: "text-green-500",  bg: "bg-green-500/10"  },
-    { title: "Total Jugadores",   value: stats?.totalPlayers,      icon: Users,    color: "text-blue-500",   bg: "bg-blue-500/10"   },
     { title: "Partidas Jugadas",  value: stats?.totalGamesPlayed,  icon: Play,     color: "text-purple-500", bg: "bg-purple-500/10" },
   ];
 
@@ -400,7 +399,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* ── Row 2: Partidas Activas · Total Jugadores · Partidas Jugadas · Próximo Evento ── */}
+      {/* ── Row 2: Partidas Activas · Pareja Top · Partidas Jugadas · Próximo Evento ── */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, i) => (
           <motion.div
@@ -432,6 +431,63 @@ export default function Dashboard() {
             </Card>
           </motion.div>
         ))}
+
+        {/* Pareja Top */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="h-full"
+        >
+          <Card className="glass-card overflow-hidden relative h-full">
+            <div className="absolute top-0 right-0 p-4 text-pink-500 opacity-20">
+              <Users className="w-24 h-24 -mr-8 -mt-8" />
+            </div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                Pareja Top
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-pink-500/10">
+                <Users className="h-4 w-4 text-pink-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-1">
+              {statsLoading ? (
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-4 w-16 ml-1" />
+                </div>
+              ) : stats?.topPair ? (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Avatar className="h-7 w-7 border border-pink-500/40 shrink-0">
+                      <AvatarImage src={avatarSrc(stats.topPair.player1AvatarUrl)} className="object-cover" />
+                      <AvatarFallback className="text-[10px] font-bold bg-pink-500/10 text-pink-400">
+                        {stats.topPair.player1Name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Avatar className="h-7 w-7 border border-pink-500/40 shrink-0">
+                      <AvatarImage src={avatarSrc(stats.topPair.player2AvatarUrl)} className="object-cover" />
+                      <AvatarFallback className="text-[10px] font-bold bg-pink-500/10 text-pink-400">
+                        {stats.topPair.player2Name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-3xl font-black text-pink-400 leading-none ml-1">{stats.topPair.wins}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest self-end mb-0.5">V</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-tight">
+                    <span className="font-semibold text-foreground/80">{stats.topPair.player1Name}</span>
+                    <span className="mx-1 text-pink-500/60">&</span>
+                    <span className="font-semibold text-foreground/80">{stats.topPair.player2Name}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">Sin datos</div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Próximo Evento */}
         <motion.div

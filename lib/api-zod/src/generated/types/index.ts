@@ -36,5 +36,6 @@ export * from './scoreInputTeam';
 export * from './scoreLogEntry';
 export * from './scoreLogEntryTeam';
 export * from './substituteMatchBody';
+export * from './topPair';
 export * from './uploadUrlRequest';
 export * from './uploadUrlResponse';

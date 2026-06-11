@@ -842,6 +842,27 @@ components:
           minLength: 1
 
     # ─── Stats ────────────────────────────────────────────────────────────
+    TopPair:
+      type: object
+      required: [player1Id, player1Name, player2Id, player2Name, wins]
+      properties:
+        player1Id:
+          type: integer
+        player1Name:
+          type: string
+        player1AvatarUrl:
+          type: string
+          nullable: true
+        player2Id:
+          type: integer
+        player2Name:
+          type: string
+        player2AvatarUrl:
+          type: string
+          nullable: true
+        wins:
+          type: integer
+
     DashboardStats:
       type: object
       required: [totalPlayers, totalMatches, activeMatches, totalGamesPlayed]
@@ -856,6 +877,9 @@ components:
           type: integer
         topPlayer:
           $ref: "#/components/schemas/Player"
+        topPair:
+          $ref: "#/components/schemas/TopPair"
+          nullable: true
 
     ActivityEntry:
       type: object

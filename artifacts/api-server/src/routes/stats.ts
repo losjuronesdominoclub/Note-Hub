@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, count, gt } from "drizzle-orm";
+import { eq, desc, count, gt, and, isNull } from "drizzle-orm";
 import { db, playersTable, matchesTable, scoreLogTable, matchPlayersTable } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -24,12 +24,62 @@ router.get("/stats/dashboard", async (_req, res): Promise<void> => {
     .orderBy(desc(playersTable.wins))
     .limit(1);
 
+  // Top pair: fetch all finished match-player rows (non-substituted) in one query
+  const winnerRows = await db
+    .select({
+      matchId: matchPlayersTable.matchId,
+      playerId: matchPlayersTable.playerId,
+      team: matchPlayersTable.team,
+      winnerTeam: matchesTable.winnerTeam,
+    })
+    .from(matchPlayersTable)
+    .innerJoin(matchesTable, eq(matchPlayersTable.matchId, matchesTable.id))
+    .where(and(eq(matchesTable.status, "finished"), isNull(matchPlayersTable.substitutedAt)));
+
+  // Group rows by match, then count wins per sorted pair
+  const matchMap: Record<number, { winnerTeam: string | null; players: Array<{ playerId: number; team: string }> }> = {};
+  for (const row of winnerRows) {
+    if (!matchMap[row.matchId]) matchMap[row.matchId] = { winnerTeam: row.winnerTeam, players: [] };
+    matchMap[row.matchId].players.push({ playerId: row.playerId, team: row.team });
+  }
+
+  const pairWins: Record<string, number> = {};
+  for (const m of Object.values(matchMap)) {
+    if (!m.winnerTeam) continue;
+    const ids = m.players
+      .filter(p => p.team === m.winnerTeam)
+      .map(p => p.playerId)
+      .sort((a, b) => a - b);
+    if (ids.length === 2) {
+      const key = `${ids[0]}-${ids[1]}`;
+      pairWins[key] = (pairWins[key] ?? 0) + 1;
+    }
+  }
+
+  let topPair = null;
+  const topKey = Object.keys(pairWins).sort((a, b) => pairWins[b] - pairWins[a])[0];
+  if (topKey) {
+    const [id1, id2] = topKey.split("-").map(Number);
+    const [[p1], [p2]] = await Promise.all([
+      db.select().from(playersTable).where(eq(playersTable.id, id1)),
+      db.select().from(playersTable).where(eq(playersTable.id, id2)),
+    ]);
+    if (p1 && p2) {
+      topPair = {
+        player1Id: p1.id, player1Name: p1.name, player1AvatarUrl: p1.avatarUrl ?? null,
+        player2Id: p2.id, player2Name: p2.name, player2AvatarUrl: p2.avatarUrl ?? null,
+        wins: pairWins[topKey],
+      };
+    }
+  }
+
   res.json({
     totalPlayers,
     totalMatches,
     activeMatches,
     totalGamesPlayed: totalMatches,
     topPlayer: topPlayer ?? null,
+    topPair,
   });
 });
 
