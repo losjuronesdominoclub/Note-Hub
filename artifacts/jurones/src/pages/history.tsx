@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
 import { motion } from "framer-motion";
 import { useListHistory, useUpdateMatch, getListHistoryQueryKey } from "@workspace/api-client-react";
@@ -8,10 +8,25 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, Download, CheckCircle2, AlertCircle, Loader2, Copy, Check } from "lucide-react";
+import { History as HistoryIcon, Edit2, Trash2, Trophy, Upload, Download, CheckCircle2, AlertCircle, Loader2, Copy, Check, ChevronDown, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const TZ = "America/Santo_Domingo";
+
+function matchDay(match: any): string {
+  const d = new Date(match.finishedAt ?? match.createdAt);
+  return d.toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function dayLabel(dayStr: string): string {
+  const today = new Date().toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+  if (dayStr === today) return "Hoy";
+  if (dayStr === yesterday) return "Ayer";
+  // Parse dd/mm/yyyy → readable
+  const [dd, mm, yyyy] = dayStr.split("/");
+  return new Date(`${yyyy}-${mm}-${dd}T12:00:00`).toLocaleDateString("es-DO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
 
 function buildMatchText(match: any): string {
   const date = new Date(match.finishedAt ?? match.createdAt);
@@ -53,6 +68,24 @@ export default function History() {
   const updateMatch = useUpdateMatch();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Day-based pagination: group all matches by calendar day, show newest first
+  const [visibleDays, setVisibleDays] = useState(1);
+
+  const dayGroups = useMemo(() => {
+    if (!matches) return [];
+    const map: Record<string, any[]> = {};
+    for (const m of matches) {
+      const day = matchDay(m);
+      if (!map[day]) map[day] = [];
+      map[day].push(m);
+    }
+    // Sort days newest → oldest
+    return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [matches]);
+
+  const visibleGroups = dayGroups.slice(0, visibleDays);
+  const hasMore = visibleDays < dayGroups.length;
 
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
@@ -279,81 +312,117 @@ export default function History() {
 
       {isLoading ? (
         <div className="text-center py-20 text-muted-foreground">Cargando historial...</div>
-      ) : matches && matches.length > 0 ? (
-        <div className="grid gap-4">
-          {matches.map((match, index) => (
-            <motion.div
-              key={match.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className="glass-card group hover:bg-white/5 transition-colors">
-                <CardContent className="p-5 flex flex-col gap-4">
-                  {/* Header row: match info + actions */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-semibold text-muted-foreground">Partida #{match.matchNumber}</span>
-                      <span className="text-xs text-muted-foreground ml-3">
-                        {new Date(match.finishedAt || match.createdAt).toLocaleDateString("es-DO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 transition-colors ${copiedId === match.id ? "text-green-400 hover:text-green-400" : "hover:text-primary"}`}
-                        title="Copiar datos de la partida"
-                        onClick={() => handleCopy(match)}
-                      >
-                        {copiedId === match.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => openEdit(match)}>
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" onClick={() => openDelete(match)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
+      ) : dayGroups.length > 0 ? (
+        <div className="space-y-8">
+          {visibleGroups.map(([day, dayMatches]) => (
+            <div key={day} className="space-y-3">
+              {/* Day header */}
+              <div className="flex items-center gap-3">
+                <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground capitalize">
+                  {dayLabel(day)}
+                </span>
+                <span className="text-xs text-muted-foreground/50 font-medium">
+                  · {dayMatches.length} partida{dayMatches.length !== 1 ? "s" : ""}
+                </span>
+                <div className="flex-1 h-px bg-border/50" />
+              </div>
 
-                  {/* Score row with player names */}
-                  <div className="flex items-stretch gap-3">
-                    {/* Cortos */}
-                    <div className={`flex-1 flex flex-col items-center rounded-xl py-3 px-2 ${match.winnerTeam === "cortos" ? "bg-red-500/10 border border-red-500/30" : "bg-muted/30"}`}>
-                      <span className={`uppercase text-xs tracking-widest mb-1 font-semibold ${match.winnerTeam === "cortos" ? "text-red-400" : "text-muted-foreground"}`}>Cortos</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-3xl font-bold tabular-nums ${match.winnerTeam === "cortos" ? "text-red-400" : "text-muted-foreground"}`}>{match.shortosScore}</span>
-                        {match.winnerTeam === "cortos" && <Trophy className="h-4 w-4 text-red-400" />}
-                      </div>
-                      <div className="mt-2 space-y-0.5 text-center">
-                        {(match as any).players?.filter((p: any) => p.team === "cortos").map((p: any) => (
-                          <p key={p.playerId} className="text-xs text-muted-foreground leading-tight">{p.player?.name ?? p.playerName}</p>
-                        ))}
-                      </div>
-                    </div>
+              {/* Matches for this day */}
+              <div className="grid gap-4">
+                {dayMatches.map((match, index) => (
+                  <motion.div
+                    key={match.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.04 }}
+                  >
+                    <Card className="glass-card group hover:bg-white/5 transition-colors">
+                      <CardContent className="p-5 flex flex-col gap-4">
+                        {/* Header row: match info + actions */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-sm font-semibold text-muted-foreground">Partida #{match.matchNumber}</span>
+                            <span className="text-xs text-muted-foreground ml-3">
+                              {new Date(match.finishedAt || match.createdAt).toLocaleTimeString("es-DO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-8 w-8 transition-colors ${copiedId === match.id ? "text-green-400 hover:text-green-400" : "hover:text-primary"}`}
+                              title="Copiar datos de la partida"
+                              onClick={() => handleCopy(match)}
+                            >
+                              {copiedId === match.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => openEdit(match)}>
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" onClick={() => openDelete(match)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
 
-                    {/* VS divider */}
-                    <div className="flex items-center text-muted-foreground/50 font-light text-lg self-center">VS</div>
+                        {/* Score row with player names */}
+                        <div className="flex items-stretch gap-3">
+                          {/* Cortos */}
+                          <div className={`flex-1 flex flex-col items-center rounded-xl py-3 px-2 ${match.winnerTeam === "cortos" ? "bg-red-500/10 border border-red-500/30" : "bg-muted/30"}`}>
+                            <span className={`uppercase text-xs tracking-widest mb-1 font-semibold ${match.winnerTeam === "cortos" ? "text-red-400" : "text-muted-foreground"}`}>Cortos</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-3xl font-bold tabular-nums ${match.winnerTeam === "cortos" ? "text-red-400" : "text-muted-foreground"}`}>{match.shortosScore}</span>
+                              {match.winnerTeam === "cortos" && <Trophy className="h-4 w-4 text-red-400" />}
+                            </div>
+                            <div className="mt-2 space-y-0.5 text-center">
+                              {(match as any).players?.filter((p: any) => p.team === "cortos").map((p: any) => (
+                                <p key={p.playerId} className="text-xs text-muted-foreground leading-tight">{p.player?.name ?? p.playerName}</p>
+                              ))}
+                            </div>
+                          </div>
 
-                    {/* Largos */}
-                    <div className={`flex-1 flex flex-col items-center rounded-xl py-3 px-2 ${match.winnerTeam === "largos" ? "bg-blue-500/10 border border-blue-500/30" : "bg-muted/30"}`}>
-                      <span className={`uppercase text-xs tracking-widest mb-1 font-semibold ${match.winnerTeam === "largos" ? "text-blue-400" : "text-muted-foreground"}`}>Largos</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-3xl font-bold tabular-nums ${match.winnerTeam === "largos" ? "text-blue-400" : "text-muted-foreground"}`}>{match.largosScore}</span>
-                        {match.winnerTeam === "largos" && <Trophy className="h-4 w-4 text-blue-400" />}
-                      </div>
-                      <div className="mt-2 space-y-0.5 text-center">
-                        {(match as any).players?.filter((p: any) => p.team === "largos").map((p: any) => (
-                          <p key={p.playerId} className="text-xs text-muted-foreground leading-tight">{p.player?.name ?? p.playerName}</p>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                          {/* VS divider */}
+                          <div className="flex items-center text-muted-foreground/50 font-light text-lg self-center">VS</div>
+
+                          {/* Largos */}
+                          <div className={`flex-1 flex flex-col items-center rounded-xl py-3 px-2 ${match.winnerTeam === "largos" ? "bg-blue-500/10 border border-blue-500/30" : "bg-muted/30"}`}>
+                            <span className={`uppercase text-xs tracking-widest mb-1 font-semibold ${match.winnerTeam === "largos" ? "text-blue-400" : "text-muted-foreground"}`}>Largos</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-3xl font-bold tabular-nums ${match.winnerTeam === "largos" ? "text-blue-400" : "text-muted-foreground"}`}>{match.largosScore}</span>
+                              {match.winnerTeam === "largos" && <Trophy className="h-4 w-4 text-blue-400" />}
+                            </div>
+                            <div className="mt-2 space-y-0.5 text-center">
+                              {(match as any).players?.filter((p: any) => p.team === "largos").map((p: any) => (
+                                <p key={p.playerId} className="text-xs text-muted-foreground leading-tight">{p.player?.name ?? p.playerName}</p>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           ))}
+
+          {/* Cargar más */}
+          {hasMore && (
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setVisibleDays(d => d + 1)}
+                className="gap-2 rounded-full px-6 border-border hover:border-primary hover:bg-primary/5"
+              >
+                <ChevronDown className="h-4 w-4" />
+                Cargar más
+                <span className="text-xs text-muted-foreground ml-1">
+                  ({dayGroups.length - visibleDays} jornada{dayGroups.length - visibleDays !== 1 ? "s" : ""} restante{dayGroups.length - visibleDays !== 1 ? "s" : ""})
+                </span>
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-20 text-muted-foreground glass-card rounded-2xl">
