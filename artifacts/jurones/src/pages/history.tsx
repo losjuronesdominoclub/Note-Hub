@@ -255,6 +255,13 @@ export default function History() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            onClick={() => window.open("https://bygarcias.com/jurones/hub/index.html", "_blank", "noopener,noreferrer")}
+            variant="outline"
+            className="flex items-center gap-2 border-yellow-500/40 text-yellow-400 hover:border-yellow-500 hover:bg-yellow-500/10"
+          >
+            X Dia
+          </Button>
+          <Button
             onClick={handleExport}
             variant="outline"
             disabled={!matches || matches.length === 0}
