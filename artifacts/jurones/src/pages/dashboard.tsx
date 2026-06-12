@@ -380,7 +380,7 @@ export default function Dashboard() {
                           <span className="font-bold">{entry.playerName}</span> anotó {entry.points} pts
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Partida #{entry.matchNumber} • {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          Partida #{entry.matchNumber} • {new Date(entry.createdAt).toLocaleTimeString("es-DO", { timeZone: "America/Santo_Domingo", hour: '2-digit', minute: '2-digit', hour12: true })}
                         </p>
                       </div>
                     </div>

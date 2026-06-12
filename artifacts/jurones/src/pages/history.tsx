@@ -37,6 +37,7 @@ function buildMatchText(match: any): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: true,
   });
   const num = String(match.matchNumber).padStart(3, "0");
 
@@ -249,8 +250,9 @@ export default function History() {
       const cortos = (match.players ?? []).filter((p: any) => p.team === "cortos");
       const largos = (match.players ?? []).filter((p: any) => p.team === "largos");
       const date = new Date(match.finishedAt || match.createdAt);
-      const fecha = date.toISOString().slice(0, 10);
-      const hora = date.toTimeString().slice(0, 5);
+      // Use RD timezone (UTC-4) for both date and time in the exported JSON
+      const fecha = date.toLocaleDateString("en-CA", { timeZone: TZ }); // → YYYY-MM-DD
+      const hora = date.toLocaleTimeString("es-DO", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }); // → HH:MM 24h
       return {
         fecha,
         hora,
@@ -345,7 +347,7 @@ export default function History() {
                           <div>
                             <span className="text-sm font-semibold text-muted-foreground">Partida #{match.matchNumber}</span>
                             <span className="text-xs text-muted-foreground ml-3">
-                              {new Date(match.finishedAt || match.createdAt).toLocaleTimeString("es-DO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" })}
+                              {new Date(match.finishedAt || match.createdAt).toLocaleTimeString("es-DO", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: true })}
                             </span>
                           </div>
                           <div className="flex gap-1">

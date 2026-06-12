@@ -14,7 +14,8 @@ function opLabel(op: PendingOp): string {
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleString("es-DO", {
-      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+      timeZone: "America/Santo_Domingo",
+      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true,
     });
   } catch {
     return iso;
