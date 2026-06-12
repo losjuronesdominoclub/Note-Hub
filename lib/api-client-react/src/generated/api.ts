@@ -1315,6 +1315,76 @@ export const useSubstituteMatchPlayer = <TError = ErrorType<void>,
       return useMutation(getSubstituteMatchPlayerMutationOptions(options));
     }
 
+export const getSwapMatchTeamsUrl = (id: number,) => {
+
+
+
+
+  return `/api/matches/${id}/swap-teams`
+}
+
+/**
+ * @summary Swap all players between teams (one-time per match)
+ */
+export const swapMatchTeams = async (id: number, options?: RequestInit): Promise<MatchDetail> => {
+
+  return customFetch<MatchDetail>(getSwapMatchTeamsUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSwapMatchTeamsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof swapMatchTeams>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof swapMatchTeams>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['swapMatchTeams'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof swapMatchTeams>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  swapMatchTeams(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SwapMatchTeamsMutationResult = NonNullable<Awaited<ReturnType<typeof swapMatchTeams>>>
+
+    export type SwapMatchTeamsMutationError = ErrorType<void>
+
+    /**
+ * @summary Swap all players between teams (one-time per match)
+ */
+export const useSwapMatchTeams = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof swapMatchTeams>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof swapMatchTeams>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSwapMatchTeamsMutationOptions(options));
+    }
+
 export const getListHistoryUrl = () => {
 
 

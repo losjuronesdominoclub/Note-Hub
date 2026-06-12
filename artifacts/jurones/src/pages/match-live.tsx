@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { useGetMatch, useCreateMatch, useListPlayers, getGetMatchQueryKey } from "@workspace/api-client-react";
+import { useGetMatch, useCreateMatch, useListPlayers, useSwapMatchTeams, getGetMatchQueryKey } from "@workspace/api-client-react";
 import { useOfflineMatch } from "@/hooks/useOfflineMatch";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,11 @@ export default function MatchLive() {
   const [elapsed, setElapsed] = useState("00:00:00");
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean } | null>(null);
+
+  // Swap teams state
+  const [showSwapDialog, setShowSwapDialog] = useState(false);
+  const [swapping, setSwapping] = useState(false);
+  const swapTeams = useSwapMatchTeams();
 
   // Substitute state
   const [showSubDialog, setShowSubDialog] = useState(false);
@@ -244,6 +249,25 @@ export default function MatchLive() {
     setShowSubDialog(true);
   };
 
+  const handleSwapTeams = async () => {
+    if (!isOnline) {
+      toast({ variant: "destructive", title: "Sin conexión", description: "El cambio de equipos requiere conexión a Internet." });
+      return;
+    }
+    setSwapping(true);
+    try {
+      await swapTeams.mutateAsync({ id: matchId });
+      queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
+      setShowSwapDialog(false);
+      toast({ title: "Equipos invertidos", description: "Los jugadores han sido movidos al equipo contrario." });
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? err?.message ?? "No se pudo invertir los equipos.";
+      toast({ variant: "destructive", title: "Error", description: msg });
+    } finally {
+      setSwapping(false);
+    }
+  };
+
   const handleSubstitute = async () => {
     if (!subOutPlayerId || !subInPlayerId) return;
     if (!isOnline) {
@@ -375,6 +399,60 @@ export default function MatchLive() {
             >
               <Trophy className="h-4 w-4" />
               {submitting ? "Registrando…" : "Sí, finalizar partida"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Swap teams confirmation dialog */}
+      <Dialog open={showSwapDialog} onOpenChange={setShowSwapDialog}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+              </svg>
+              Invertir Equipos
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Los jugadores serán intercambiados al equipo contrario. Esta acción solo puede hacerse <span className="text-orange-400 font-semibold">una vez</span> por partida.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Preview of the swap */}
+          {match && (
+            <div className="py-2 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+                  <div className="text-[10px] uppercase font-bold text-red-400 mb-1">Cortos → Largos</div>
+                  {(match.players ?? []).filter((p: any) => p.team === "cortos").map((p: any) => (
+                    <div key={p.playerId} className="text-sm text-white font-medium">{p.player?.name}</div>
+                  ))}
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+                </svg>
+                <div className="flex-1 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3">
+                  <div className="text-[10px] uppercase font-bold text-blue-400 mb-1">Largos → Cortos</div>
+                  {(match.players ?? []).filter((p: any) => p.team === "largos").map((p: any) => (
+                    <div key={p.playerId} className="text-sm text-white font-medium">{p.player?.name}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSwapDialog(false)} disabled={swapping}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+              Cancelar
+            </Button>
+            <Button onClick={handleSwapTeams} disabled={swapping}
+              className="bg-orange-600 hover:bg-orange-700 text-white gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+              </svg>
+              {swapping ? "Invirtiendo…" : "Sí, invertir equipos"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -594,6 +672,19 @@ export default function MatchLive() {
             </div>
           </div>
           <div className="flex gap-2">
+            {/* Swap teams — one-time use */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowSwapDialog(true)}
+              disabled={match.teamsSwapped}
+              className={`h-9 w-9 ${match.teamsSwapped ? "opacity-40 cursor-not-allowed border-border text-muted-foreground" : "border-orange-500/50 text-orange-400 hover:bg-orange-500/10"}`}
+              title={match.teamsSwapped ? "Cambio de equipos ya utilizado" : "Invertir equipos"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+              </svg>
+            </Button>
             <Button
               variant="outline"
               size="icon"

@@ -761,6 +761,36 @@ router.post("/matches/:id/substitute", async (req, res): Promise<void> => {
   res.json(detail);
 });
 
+// POST /matches/:id/swap-teams — swap all players between cortos and largos (once per match)
+const SwapTeamsParams = z.object({ id: z.coerce.number() });
+
+router.post("/matches/:id/swap-teams", async (req, res): Promise<void> => {
+  const params = SwapTeamsParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
+  if (!match) { res.status(404).json({ error: "Partida no encontrada" }); return; }
+  if (match.status !== "active") { res.status(400).json({ error: "Solo se puede cambiar equipos en partidas activas" }); return; }
+  if (match.teamsSwapped) { res.status(400).json({ error: "El cambio de equipos ya fue utilizado en esta partida" }); return; }
+
+  // Swap every active player's team
+  const players = await db
+    .select()
+    .from(matchPlayersTable)
+    .where(and(eq(matchPlayersTable.matchId, params.data.id), isNull(matchPlayersTable.substitutedAt)));
+
+  for (const mp of players) {
+    const newTeam = mp.team === "cortos" ? "largos" : "cortos";
+    await db.update(matchPlayersTable).set({ team: newTeam }).where(eq(matchPlayersTable.id, mp.id));
+  }
+
+  // Mark as swapped
+  await db.update(matchesTable).set({ teamsSwapped: true }).where(eq(matchesTable.id, params.data.id));
+
+  const detail = await buildMatchDetail(params.data.id);
+  res.json(detail);
+});
+
 // GET /history (finished matches)
 router.get("/history", async (_req, res): Promise<void> => {
   const finishedMatches = await db

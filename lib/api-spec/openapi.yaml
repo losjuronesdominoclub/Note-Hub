@@ -379,6 +379,29 @@ paths:
         "404":
           description: Not found
 
+  /matches/{id}/swap-teams:
+    post:
+      operationId: swapMatchTeams
+      tags: [matches]
+      summary: Swap all players between teams (one-time per match)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated match detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchDetail"
+        "400":
+          description: Already swapped or match not active
+        "404":
+          description: Not found
+
   # ─── History ─────────────────────────────────────────────────────────────
   /history:
     get:

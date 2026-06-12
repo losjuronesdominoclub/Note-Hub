@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { playersTable } from "./players";
@@ -12,6 +12,7 @@ export const matchesTable = pgTable("matches", {
   winnerTeam: text("winner_team"), // cortos | largos | null
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
+  teamsSwapped: boolean("teams_swapped").notNull().default(false),
 });
 
 export const matchPlayersTable = pgTable("match_players", {

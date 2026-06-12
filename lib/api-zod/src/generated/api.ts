@@ -436,6 +436,53 @@ export const SubstituteMatchPlayerResponse = zod.object({
 
 
 /**
+ * @summary Swap all players between teams (one-time per match)
+ */
+export const SwapMatchTeamsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SwapMatchTeamsResponse = zod.object({
+  "id": zod.number(),
+  "matchNumber": zod.string(),
+  "status": zod.enum(['active', 'finished']),
+  "shortosScore": zod.number(),
+  "largosScore": zod.number(),
+  "winnerTeam": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "finishedAt": zod.string().nullish(),
+  "players": zod.array(zod.object({
+  "id": zod.number(),
+  "playerId": zod.number(),
+  "team": zod.enum(['cortos', 'largos']),
+  "playerPoints": zod.number(),
+  "substitutedAt": zod.string().nullish(),
+  "player": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "totalPoints": zod.number(),
+  "winRate": zod.number(),
+  "currentStreak": zod.number(),
+  "extraLisas": zod.number(),
+  "topPts": zod.number(),
+  "createdAt": zod.string()
+})
+})),
+  "scoreLog": zod.array(zod.object({
+  "id": zod.number(),
+  "playerId": zod.number(),
+  "team": zod.enum(['cortos', 'largos']),
+  "points": zod.number(),
+  "createdAt": zod.string(),
+  "playerName": zod.string().optional()
+}))
+})
+
+
+/**
  * @summary List finished matches history
  */
 export const ListHistoryResponseItem = zod.object({
