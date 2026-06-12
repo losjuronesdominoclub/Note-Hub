@@ -268,7 +268,8 @@ export default function History() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `jurones_partidas_${new Date().toISOString().slice(0, 10)}.json`;
+    const todayDO = new Date().toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).split("/").reverse().join("-");
+    a.download = `jurones_partidas_${todayDO}.json`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: "Exportado", description: `${partidas.length} partidas descargadas como JSON.` });
