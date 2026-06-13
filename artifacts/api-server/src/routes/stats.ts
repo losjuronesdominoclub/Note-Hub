@@ -83,6 +83,64 @@ router.get("/stats/dashboard", async (_req, res): Promise<void> => {
   });
 });
 
+router.get("/stats/teams", async (_req, res): Promise<void> => {
+  // Fetch all finished match-player rows (non-substituted) with player info
+  const rows = await db
+    .select({
+      matchId: matchPlayersTable.matchId,
+      playerId: matchPlayersTable.playerId,
+      team: matchPlayersTable.team,
+      winnerTeam: matchesTable.winnerTeam,
+      playerName: playersTable.name,
+      playerAvatarUrl: playersTable.avatarUrl,
+    })
+    .from(matchPlayersTable)
+    .innerJoin(matchesTable, eq(matchPlayersTable.matchId, matchesTable.id))
+    .innerJoin(playersTable, eq(matchPlayersTable.playerId, playersTable.id))
+    .where(and(eq(matchesTable.status, "finished"), isNull(matchPlayersTable.substitutedAt)));
+
+  // Group rows by match
+  const matchMap: Record<number, {
+    winnerTeam: string | null;
+    players: Array<{ playerId: number; team: string; name: string; avatarUrl: string | null }>;
+  }> = {};
+  for (const row of rows) {
+    if (!matchMap[row.matchId]) matchMap[row.matchId] = { winnerTeam: row.winnerTeam, players: [] };
+    matchMap[row.matchId].players.push({ playerId: row.playerId, team: row.team, name: row.playerName, avatarUrl: row.playerAvatarUrl ?? null });
+  }
+
+  // Accumulate wins and losses per pair
+  const pairStats: Record<string, { wins: number; losses: number; p1Id: number; p1Name: string; p1Avatar: string | null; p2Id: number; p2Name: string; p2Avatar: string | null }> = {};
+
+  for (const m of Object.values(matchMap)) {
+    if (!m.winnerTeam) continue;
+    const loserTeam = m.winnerTeam === "cortos" ? "largos" : "cortos";
+
+    const winPair = m.players.filter(p => p.team === m.winnerTeam).sort((a, b) => a.playerId - b.playerId);
+    const losePair = m.players.filter(p => p.team === loserTeam).sort((a, b) => a.playerId - b.playerId);
+
+    for (const [pair, isWin] of [[winPair, true], [losePair, false]] as [typeof winPair, boolean][]) {
+      if (pair.length !== 2) continue;
+      const [p1, p2] = pair;
+      const key = `${p1.playerId}-${p2.playerId}`;
+      if (!pairStats[key]) {
+        pairStats[key] = { wins: 0, losses: 0, p1Id: p1.playerId, p1Name: p1.name, p1Avatar: p1.avatarUrl, p2Id: p2.playerId, p2Name: p2.name, p2Avatar: p2.avatarUrl };
+      }
+      if (isWin) pairStats[key].wins++;
+      else pairStats[key].losses++;
+    }
+  }
+
+  const ranked = Object.values(pairStats)
+    .map(s => {
+      const total = s.wins + s.losses;
+      return { ...s, total, winRate: total > 0 ? s.wins / total : 0 };
+    })
+    .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || a.losses - b.losses);
+
+  res.json(ranked);
+});
+
 router.get("/stats/activity", async (_req, res): Promise<void> => {
   const logs = await db
     .select({

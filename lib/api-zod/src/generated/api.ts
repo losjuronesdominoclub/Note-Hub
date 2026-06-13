@@ -527,6 +527,24 @@ export const ListHistoryResponse = zod.array(ListHistoryResponseItem)
 
 
 /**
+ * @summary Get pair/team ranking ordered by wins
+ */
+export const GetTeamsRankingResponseItem = zod.object({
+  "p1Id": zod.number(),
+  "p1Name": zod.string(),
+  "p1Avatar": zod.string().nullish(),
+  "p2Id": zod.number(),
+  "p2Name": zod.string(),
+  "p2Avatar": zod.string().nullish(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "total": zod.number(),
+  "winRate": zod.number()
+})
+export const GetTeamsRankingResponse = zod.array(GetTeamsRankingResponseItem)
+
+
+/**
  * @summary Get player ranking leaderboard
  */
 export const GetRankingResponseItem = zod.object({

@@ -235,6 +235,19 @@ export interface TopPair {
   wins: number;
 }
 
+export interface PairRank {
+  p1Id: number;
+  p1Name: string;
+  p1Avatar?: string | null;
+  p2Id: number;
+  p2Name: string;
+  p2Avatar?: string | null;
+  wins: number;
+  losses: number;
+  total: number;
+  winRate: number;
+}
+
 export interface DashboardStats {
   totalPlayers: number;
   totalMatches: number;

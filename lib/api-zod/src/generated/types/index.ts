@@ -27,6 +27,7 @@ export * from './matchPlayerTeam';
 export * from './matchStatus';
 export * from './matchUpdate';
 export * from './matchUpdateStatus';
+export * from './pairRank';
 export * from './player';
 export * from './playerInput';
 export * from './playerUpdate';

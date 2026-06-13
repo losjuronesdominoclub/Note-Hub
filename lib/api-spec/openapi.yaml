@@ -418,6 +418,21 @@ paths:
                 items:
                   $ref: "#/components/schemas/MatchDetail"
 
+  /stats/teams:
+    get:
+      operationId: getTeamsRanking
+      tags: [stats]
+      summary: Get pair/team ranking ordered by wins
+      responses:
+        "200":
+          description: Ranked pair list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PairRank"
+
   # ─── Ranking ─────────────────────────────────────────────────────────────
   /ranking:
     get:
@@ -885,6 +900,33 @@ components:
           nullable: true
         wins:
           type: integer
+
+    PairRank:
+      type: object
+      required: [p1Id, p1Name, p2Id, p2Name, wins, losses, total, winRate]
+      properties:
+        p1Id:
+          type: integer
+        p1Name:
+          type: string
+        p1Avatar:
+          type: string
+          nullable: true
+        p2Id:
+          type: integer
+        p2Name:
+          type: string
+        p2Avatar:
+          type: string
+          nullable: true
+        wins:
+          type: integer
+        losses:
+          type: integer
+        total:
+          type: integer
+        winRate:
+          type: number
 
     DashboardStats:
       type: object

@@ -28,6 +28,7 @@ export default function FloatingMenu() {
     { icon: CalendarDays, label: "Timeline", path: "/timeline" },
     { icon: History, label: "Records", path: "/history" },
     { icon: Percent, label: "Promedios", path: "/promedios" },
+    { icon: Users, label: "Teams", path: "/teams" },
     { icon: Trophy, label: "Ranking", path: "/ranking" },
     { icon: Star, label: "Puntos", path: "/ranking-points" },
     { icon: Fish, label: "Lisas", path: "/lisas" },

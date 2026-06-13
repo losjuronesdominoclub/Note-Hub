@@ -34,6 +34,7 @@ import type {
   MatchDetail,
   MatchInput,
   MatchUpdate,
+  PairRank,
   Player,
   PlayerInput,
   PlayerUpdate,
@@ -1450,6 +1451,83 @@ export function useListHistory<TData = Awaited<ReturnType<typeof listHistory>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListHistoryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTeamsRankingUrl = () => {
+
+
+
+
+  return `/api/stats/teams`
+}
+
+/**
+ * @summary Get pair/team ranking ordered by wins
+ */
+export const getTeamsRanking = async ( options?: RequestInit): Promise<PairRank[]> => {
+
+  return customFetch<PairRank[]>(getGetTeamsRankingUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTeamsRankingQueryKey = () => {
+    return [
+    `/api/stats/teams`
+    ] as const;
+    }
+
+
+export const getGetTeamsRankingQueryOptions = <TData = Awaited<ReturnType<typeof getTeamsRanking>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTeamsRanking>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTeamsRankingQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeamsRanking>>> = ({ signal }) => getTeamsRanking({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTeamsRanking>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTeamsRankingQueryResult = NonNullable<Awaited<ReturnType<typeof getTeamsRanking>>>
+export type GetTeamsRankingQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get pair/team ranking ordered by wins
+ */
+
+export function useGetTeamsRanking<TData = Awaited<ReturnType<typeof getTeamsRanking>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTeamsRanking>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTeamsRankingQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
