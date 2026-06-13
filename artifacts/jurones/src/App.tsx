@@ -29,6 +29,7 @@ import Compare from "@/pages/compare";
 import Rules from "@/pages/rules";
 import PendingMatches from "@/pages/pending-matches";
 import Promedios from "@/pages/promedios";
+import Timeline from "@/pages/timeline";
 import NotFound from "@/pages/not-found";
 import logoPath from "@assets/logo_1779907396869.png";
 
@@ -205,6 +206,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/rules" component={() => <ProtectedRoute component={Rules} />} />
           <Route path="/pending-matches" component={() => <ProtectedRoute component={PendingMatches} />} />
           <Route path="/promedios" component={() => <ProtectedRoute component={Promedios} />} />
+          <Route path="/timeline" component={() => <ProtectedRoute component={Timeline} />} />
           
           <Route path="/live" component={() => <PublicOrProtectedRoute component={LiveMatches} />} />
           
