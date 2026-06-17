@@ -137,20 +137,55 @@ router.get("/matches/busy-players", async (_req, res): Promise<void> => {
 // GET /matches
 router.get("/matches", async (req, res): Promise<void> => {
   const queryParams = ListMatchesQueryParams.safeParse(req.query);
-  const query = db.select().from(matchesTable).orderBy(desc(matchesTable.createdAt));
 
-  let matches;
-  if (queryParams.success && queryParams.data.status) {
-    matches = await db
-      .select()
-      .from(matchesTable)
-      .where(eq(matchesTable.status, queryParams.data.status))
-      .orderBy(desc(matchesTable.createdAt));
-  } else {
-    matches = await db.select().from(matchesTable).orderBy(desc(matchesTable.createdAt));
+  const baseWhere = queryParams.success && queryParams.data.status
+    ? eq(matchesTable.status, queryParams.data.status)
+    : undefined;
+
+  const matches = baseWhere
+    ? await db.select().from(matchesTable).where(baseWhere).orderBy(desc(matchesTable.createdAt))
+    : await db.select().from(matchesTable).orderBy(desc(matchesTable.createdAt));
+
+  if (matches.length === 0) {
+    res.json([]);
+    return;
   }
 
-  res.json(matches);
+  // Fetch active players for all returned matches in a single query
+  const matchIds = matches.map((m) => m.id);
+  const allPlayers = await db
+    .select({
+      id: matchPlayersTable.id,
+      matchId: matchPlayersTable.matchId,
+      playerId: matchPlayersTable.playerId,
+      team: matchPlayersTable.team,
+      playerPoints: matchPlayersTable.playerPoints,
+      substitutedAt: matchPlayersTable.substitutedAt,
+      player: playersTable,
+    })
+    .from(matchPlayersTable)
+    .innerJoin(playersTable, eq(matchPlayersTable.playerId, playersTable.id))
+    .where(
+      and(
+        sql`${matchPlayersTable.matchId} = ANY(ARRAY[${sql.join(matchIds.map((id) => sql`${id}`), sql`, `)}]::int[])`,
+        isNull(matchPlayersTable.substitutedAt)
+      )
+    );
+
+  // Group players by matchId
+  const playersByMatch = new Map<number, typeof allPlayers>();
+  for (const mp of allPlayers) {
+    const existing = playersByMatch.get(mp.matchId) ?? [];
+    existing.push(mp);
+    playersByMatch.set(mp.matchId, existing);
+  }
+
+  const result = matches.map((m) => ({
+    ...m,
+    players: playersByMatch.get(m.id) ?? [],
+  }));
+
+  res.json(result);
 });
 
 // POST /matches

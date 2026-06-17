@@ -31,7 +31,6 @@ export default function Dashboard() {
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity();
   const { data: activeMatches } = useListMatches({ status: "active" });
   const { data: events } = useListEvents();
-  const activeMatch = activeMatches?.[0] ?? null;
 
   const nextEvent = React.useMemo(() => {
     if (!events?.length) return null;
@@ -228,28 +227,112 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Partida activa banner ── */}
-      {activeMatch && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl border border-green-500/40 bg-green-500/10 p-4 flex items-center gap-4"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/20">
-            <Zap className="h-5 w-5 text-green-400 animate-pulse" />
+      {/* ── Partidas en Curso ── */}
+      {activeMatches && activeMatches.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-green-400 animate-pulse" />
+            <h2 className="text-sm font-bold uppercase tracking-widest text-green-400">
+              Partidas en Curso
+            </h2>
+            <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500/20 px-1.5 text-[10px] font-black text-green-400 border border-green-500/30">
+              {activeMatches.length}
+            </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-green-400 text-sm uppercase tracking-wider">Partida en curso</p>
-            <p className="text-white font-semibold truncate">
-              Partida #{activeMatch.matchNumber} — Cortos {activeMatch.shortosScore} vs {activeMatch.largosScore} Largos
-            </p>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {activeMatches.map((match, i) => {
+              const startedAt = match.createdAt
+                ? new Date(match.createdAt).toLocaleTimeString("es-DO", {
+                    timeZone: "America/Santo_Domingo",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : null;
+              const startedDate = match.createdAt
+                ? new Date(match.createdAt).toLocaleDateString("es-DO", {
+                    timeZone: "America/Santo_Domingo",
+                    day: "2-digit",
+                    month: "short",
+                  })
+                : null;
+
+              return (
+                <motion.div
+                  key={match.id}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  className="relative overflow-hidden rounded-2xl border border-green-500/35 bg-green-500/8 backdrop-blur-sm shadow-lg shadow-green-900/10"
+                >
+                  {/* Glow accent */}
+                  <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-green-500/10 blur-2xl" />
+
+                  <div className="p-4 space-y-3">
+                    {/* Top row: badge + número */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 border border-green-500/40">
+                          <Zap className="h-3 w-3 text-green-400" />
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-green-400">En Curso</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Partida <span className="text-white font-black">#{match.matchNumber}</span>
+                      </span>
+                    </div>
+
+                    {/* Scores */}
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex-1 text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-red-400/80 font-bold mb-0.5">Cortos</p>
+                        <p className="text-4xl font-black text-red-400 leading-none">{match.shortosScore ?? 0}</p>
+                      </div>
+                      <div className="text-muted-foreground/40 text-lg font-black">vs</div>
+                      <div className="flex-1 text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-blue-400/80 font-bold mb-0.5">Largos</p>
+                        <p className="text-4xl font-black text-blue-400 leading-none">{match.largosScore ?? 0}</p>
+                      </div>
+                    </div>
+
+                    {/* Players */}
+                    {match.players && match.players.length > 0 && (
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs">
+                        {match.players.filter((p: any) => p.team === "cortos").map((p: any, j: number) => (
+                          <div key={j} className="flex items-center gap-1 truncate">
+                            <span className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0" />
+                            <span className="truncate text-foreground/80 font-medium">{p.player?.name ?? "—"}</span>
+                          </div>
+                        ))}
+                        {match.players.filter((p: any) => p.team === "largos").map((p: any, j: number) => (
+                          <div key={j} className="flex items-center gap-1 truncate">
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
+                            <span className="truncate text-foreground/80 font-medium">{p.player?.name ?? "—"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Meta: fecha + hora */}
+                    {(startedDate || startedAt) && (
+                      <p className="text-[10px] text-muted-foreground/60 font-medium">
+                        Inicio: {startedDate} · {startedAt}
+                      </p>
+                    )}
+
+                    {/* Continuar button */}
+                    <Link href={`/match/${match.id}`}>
+                      <Button className="w-full gap-2 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold shadow-md shadow-green-900/30 transition-all">
+                        <ArrowRight className="h-4 w-4" /> Continuar Partida
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-          <Link href={`/match/${activeMatch.id}`}>
-            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white rounded-full shrink-0 gap-2">
-              <ArrowRight className="h-4 w-4" /> Continuar
-            </Button>
-          </Link>
-        </motion.div>
+        </div>
       )}
 
       {/* ── Row 1: Jugador Top (left) + Actividad Reciente (right) ── */}

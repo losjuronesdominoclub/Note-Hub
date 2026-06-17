@@ -664,6 +664,10 @@ components:
           type: string
         finishedAt:
           type: ["string", "null"]
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchPlayer"
 
     MatchDetail:
       type: object

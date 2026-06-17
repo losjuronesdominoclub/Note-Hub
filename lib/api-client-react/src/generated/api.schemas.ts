@@ -49,27 +49,6 @@ export const MatchStatus = {
   finished: 'finished',
 } as const;
 
-export interface Match {
-  id: number;
-  matchNumber: string;
-  status: MatchStatus;
-  shortosScore: number;
-  largosScore: number;
-  /** @nullable */
-  winnerTeam?: string | null;
-  createdAt: string;
-  /** @nullable */
-  finishedAt?: string | null;
-}
-
-export type MatchDetailStatus = typeof MatchDetailStatus[keyof typeof MatchDetailStatus];
-
-
-export const MatchDetailStatus = {
-  active: 'active',
-  finished: 'finished',
-} as const;
-
 export type MatchPlayerTeam = typeof MatchPlayerTeam[keyof typeof MatchPlayerTeam];
 
 
@@ -87,6 +66,28 @@ export interface MatchPlayer {
   substitutedAt?: string | null;
   player: Player;
 }
+
+export interface Match {
+  id: number;
+  matchNumber: string;
+  status: MatchStatus;
+  shortosScore: number;
+  largosScore: number;
+  /** @nullable */
+  winnerTeam?: string | null;
+  createdAt: string;
+  /** @nullable */
+  finishedAt?: string | null;
+  players?: MatchPlayer[];
+}
+
+export type MatchDetailStatus = typeof MatchDetailStatus[keyof typeof MatchDetailStatus];
+
+
+export const MatchDetailStatus = {
+  active: 'active',
+  finished: 'finished',
+} as const;
 
 export type ScoreLogEntryTeam = typeof ScoreLogEntryTeam[keyof typeof ScoreLogEntryTeam];
 

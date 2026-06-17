@@ -5,6 +5,7 @@
  * Los Jurones Domino Club API
  * OpenAPI spec version: 0.1.0
  */
+import type { MatchPlayer } from './matchPlayer';
 import type { MatchStatus } from './matchStatus';
 
 export interface Match {
@@ -18,4 +19,5 @@ export interface Match {
   createdAt: string;
   /** @nullable */
   finishedAt?: string | null;
+  players?: MatchPlayer[];
 }
