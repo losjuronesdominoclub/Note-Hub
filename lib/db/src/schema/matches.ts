@@ -30,6 +30,7 @@ export const scoreLogTable = pgTable("score_log", {
   playerId: integer("player_id").notNull().references(() => playersTable.id, { onDelete: "cascade" }),
   team: text("team").notNull(), // cortos | largos
   points: integer("points").notNull(),
+  note: text("note"), // optional display label override (e.g. "Juan 🐐 (Chivo)")
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

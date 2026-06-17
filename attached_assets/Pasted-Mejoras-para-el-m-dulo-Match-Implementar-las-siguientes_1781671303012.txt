@@ -1,0 +1,72 @@
+Mejoras para el módulo Match
+
+Implementar las siguientes funcionalidades en la pantalla de anotación de partidas:
+
+Diseño de la interfaz
+Área de cada jugador
+Reducir ligeramente el ancho del campo de entrada (input) de puntos de cada jugador.
+Agregar a la derecha de cada input un botón con el emoji 🐐.
+El emoji debe estar alineado verticalmente con el input y mantener un diseño responsive para móviles y escritorio.
+Área de puntuación rápida
+Reducir ligeramente el tamaño de los botones de suma rápida.
+Mantener el botón de +30.
+Agregar inmediatamente a la derecha del botón +30 un botón con el emoji ⚠️.
+El emoji debe tener el mismo estilo visual que los demás controles de la interfaz.
+Lógica de puntuación especial
+Evento: Emoji 🐐 (Chivo)
+
+Cuando el usuario haga clic en el emoji 🐐 correspondiente a un jugador:
+
+Identificar el equipo al que pertenece ese jugador.
+Sumar automáticamente 60 puntos al equipo contrario.
+Registrar la acción en el historial de puntos.
+
+El registro debe mostrar:
+
+[Nombre del jugador] 🐐 (Chivo)
+
+Ejemplo:
+
+Juan 🐐 (Chivo)
+
+Evento: Emoji ⚠️ (Pasó con ficha)
+
+Cuando el usuario haga clic en el emoji ⚠️ correspondiente a un jugador:
+
+Identificar el equipo al que pertenece ese jugador.
+Sumar automáticamente 60 puntos al equipo contrario.
+Registrar la acción en el historial de puntos.
+
+El registro debe mostrar:
+
+[Nombre del jugador] - Pasó con ficha
+
+Ejemplo:
+
+Pedro - Pasó con ficha
+
+Reglas del historial
+
+Cada evento especial debe quedar almacenado junto con:
+
+Fecha y hora.
+Nombre del jugador.
+Tipo de evento.
+Puntos otorgados (+60 al equipo contrario).
+
+El historial debe actualizarse en tiempo real sin necesidad de recargar la página.
+
+Regla de finalización de partida
+
+Después de cualquier suma de puntos (manual, rápida, 🐐 o ⚠️):
+
+Verificar el total acumulado de ambos equipos.
+Si cualquier equipo alcanza o supera los 200 puntos, la partida debe finalizar automáticamente.
+Mostrar una notificación indicando el equipo ganador.
+Bloquear nuevas anotaciones.
+Cambiar el estado de la partida a Finalizada.
+Guardar automáticamente el resultado final en el historial de partidas.
+Compatibilidad móvil
+Todos los controles deben ser táctiles y fáciles de presionar.
+Los emojis 🐐 y ⚠️ deben verse correctamente en Android, iPhone y navegadores de escritorio.
+La distribución debe mantenerse responsive sin provocar desbordamientos horizontales.

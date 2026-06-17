@@ -48,7 +48,7 @@ export default function MatchLive() {
   const [cancelling, setCancelling] = useState(false);
   const [elapsed, setElapsed] = useState("00:00:00");
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
-  const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean } | null>(null);
+  const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean; note?: string } | null>(null);
 
   // Swap teams state
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -133,7 +133,7 @@ export default function MatchLive() {
     }, 250);
   };
 
-  const executeScore = async (playerId: number, team: "cortos" | "largos", actualPoints: number, isQuickThirty: boolean) => {
+  const executeScore = async (playerId: number, team: "cortos" | "largos", actualPoints: number, isQuickThirty: boolean, note?: string) => {
     setSubmitting(true);
     setShowFinishConfirm(false);
     setPendingScore(null);
@@ -141,7 +141,7 @@ export default function MatchLive() {
     const willFinish = ((team === "cortos" ? match!.shortosScore : match!.largosScore) + actualPoints) >= 200;
 
     if (!isOnline) {
-      enqueueOp({ endpoint: `/api/matches/${matchId}/score`, method: "POST", body: { playerId, team, points: actualPoints, isQuickThirty }, label: `+${actualPoints} pts (${team})` });
+      enqueueOp({ endpoint: `/api/matches/${matchId}/score`, method: "POST", body: { playerId, team, points: actualPoints, isQuickThirty, ...(note ? { note } : {}) }, label: `+${actualPoints} pts (${team})` });
       if (willFinish) enqueueOp({ endpoint: `/api/matches/${matchId}/finish`, method: "POST", body: {}, label: "Finalizar partida" });
       queryClient.setQueryData(getGetMatchQueryKey(matchId), (old: any) => {
         if (!old) return old;
@@ -158,7 +158,7 @@ export default function MatchLive() {
             p.playerId === playerId ? { ...p, playerPoints: (p.playerPoints ?? 0) + actualPoints } : p
           ) ?? [],
           scoreLog: [
-            { id: -Date.now(), playerId, team, points: actualPoints, createdAt: new Date().toISOString(), playerName },
+            { id: -Date.now(), playerId, team, points: actualPoints, createdAt: new Date().toISOString(), playerName: note ?? playerName, note: note ?? null },
             ...(old.scoreLog ?? []),
           ],
         };
@@ -172,7 +172,7 @@ export default function MatchLive() {
       await fetch(`/api/matches/${matchId}/score`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId, team, points: actualPoints, isQuickThirty })
+        body: JSON.stringify({ playerId, team, points: actualPoints, isQuickThirty, ...(note ? { note } : {}) })
       });
       setPointsInput(prev => ({ ...prev, [playerId]: "" }));
       queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
@@ -189,7 +189,7 @@ export default function MatchLive() {
     }
   };
 
-  const handleAddScore = async (playerId: number, team: "cortos" | "largos", points: number, isQuickThirty = false) => {
+  const handleAddScore = async (playerId: number, team: "cortos" | "largos", points: number, isQuickThirty = false, note?: string) => {
     if (match?.status === "finished") return;
 
     let actualPoints = points;
@@ -210,12 +210,29 @@ export default function MatchLive() {
     const newScore = currentScore + actualPoints;
 
     if (newScore >= 200) {
-      setPendingScore({ playerId, team, points: actualPoints, isQuickThirty });
+      setPendingScore({ playerId, team, points: actualPoints, isQuickThirty, note });
       setShowFinishConfirm(true);
       return;
     }
 
-    await executeScore(playerId, team, actualPoints, isQuickThirty);
+    await executeScore(playerId, team, actualPoints, isQuickThirty, note);
+  };
+
+  // Special events: 🐐 Chivo and ⚠️ Pasó con ficha — add 60 pts to the opponent team
+  const handleSpecialEvent = async (
+    triggeringPlayer: { id: number; name: string },
+    triggeringTeam: "cortos" | "largos",
+    eventType: "chivo" | "paso"
+  ) => {
+    if (match?.status === "finished" || submitting) return;
+    const opponentTeam = triggeringTeam === "cortos" ? "largos" : "cortos";
+    const opponentPlayers = opponentTeam === "cortos" ? cortosPlayers : largosPlayers;
+    const opponentFirstPlayer = opponentPlayers[0];
+    if (!opponentFirstPlayer) return;
+    const note = eventType === "chivo"
+      ? `${triggeringPlayer.name} 🐐 (Chivo)`
+      : `${triggeringPlayer.name} - Pasó con ficha`;
+    await handleAddScore(opponentFirstPlayer.player.id, opponentTeam, 60, false, note);
   };
 
 
@@ -393,7 +410,7 @@ export default function MatchLive() {
               Cancelar
             </Button>
             <Button
-              onClick={() => pendingScore && executeScore(pendingScore.playerId, pendingScore.team, pendingScore.points, pendingScore.isQuickThirty)}
+              onClick={() => pendingScore && executeScore(pendingScore.playerId, pendingScore.team, pendingScore.points, pendingScore.isQuickThirty, pendingScore.note)}
               disabled={submitting}
               className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold gap-2"
             >
@@ -781,37 +798,57 @@ export default function MatchLive() {
                   </div>
                   {!isFinished && (
                     <div className="flex flex-col gap-1.5">
-                      <div className="cortos-input-wrap">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          placeholder="Pts"
-                          maxLength={3}
-                          className="match-score-input"
-                          value={pointsInput[player.id] || ""}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "").slice(0, 3);
-                            setPointsInput({ ...pointsInput, [player.id]: val });
-                          }}
-                        />
+                      <div className="flex items-center gap-1">
+                        <div className="cortos-input-wrap flex-1">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Pts"
+                            maxLength={3}
+                            className="match-score-input"
+                            value={pointsInput[player.id] || ""}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              setPointsInput({ ...pointsInput, [player.id]: val });
+                            }}
+                          />
+                        </div>
+                        <button
+                          className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg text-lg leading-none transition-all active:scale-90 disabled:opacity-40"
+                          style={{ background: "#1a1a1a", border: "1px solid #333" }}
+                          disabled={submitting}
+                          title="Chivo (+60 al equipo contrario)"
+                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "cortos", "chivo")}
+                        >
+                          🐐
+                        </button>
                       </div>
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1">
                         <Button
-                          className="flex-1 h-8 bg-red-600 hover:bg-red-700 text-white font-bold text-sm"
+                          className="flex-1 h-7 bg-red-600 hover:bg-red-700 text-white font-bold text-xs"
                           disabled={submitting || !pointsInput[player.id]}
                           onClick={() => handleAddScore(player.id, "cortos", parseInt(pointsInput[player.id] || "0"))}
                         >
                           + Sumar
                         </Button>
                         <Button
-                          className="flex-1 h-8 font-bold text-sm"
+                          className="h-7 px-2 font-bold text-xs"
                           style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
                           disabled={submitting}
                           onClick={() => handleAddScore(player.id, "cortos", 30, true)}
                         >
                           +30
                         </Button>
+                        <button
+                          className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-sm leading-none transition-all active:scale-90 disabled:opacity-40"
+                          style={{ background: "#2a1a0a", border: "1px solid #7c5a1e" }}
+                          disabled={submitting}
+                          title="Pasó con ficha (+60 al equipo contrario)"
+                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "cortos", "paso")}
+                        >
+                          ⚠️
+                        </button>
                       </div>
                     </div>
                   )}
@@ -845,37 +882,57 @@ export default function MatchLive() {
                   </div>
                   {!isFinished && (
                     <div className="flex flex-col gap-1.5">
-                      <div className="largos-input-wrap">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          placeholder="Pts"
-                          maxLength={3}
-                          className="match-score-input"
-                          value={pointsInput[player.id] || ""}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "").slice(0, 3);
-                            setPointsInput({ ...pointsInput, [player.id]: val });
-                          }}
-                        />
+                      <div className="flex items-center gap-1">
+                        <div className="largos-input-wrap flex-1">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Pts"
+                            maxLength={3}
+                            className="match-score-input"
+                            value={pointsInput[player.id] || ""}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 3);
+                              setPointsInput({ ...pointsInput, [player.id]: val });
+                            }}
+                          />
+                        </div>
+                        <button
+                          className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg text-lg leading-none transition-all active:scale-90 disabled:opacity-40"
+                          style={{ background: "#1a1a1a", border: "1px solid #333" }}
+                          disabled={submitting}
+                          title="Chivo (+60 al equipo contrario)"
+                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "largos", "chivo")}
+                        >
+                          🐐
+                        </button>
                       </div>
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1">
                         <Button
-                          className="flex-1 h-8 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm"
+                          className="flex-1 h-7 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
                           disabled={submitting || !pointsInput[player.id]}
                           onClick={() => handleAddScore(player.id, "largos", parseInt(pointsInput[player.id] || "0"))}
                         >
                           + Sumar
                         </Button>
                         <Button
-                          className="flex-1 h-8 font-bold text-sm"
+                          className="h-7 px-2 font-bold text-xs"
                           style={{ background: "#3B3321", border: "1px solid #66552B", color: "#DDBC5B" }}
                           disabled={submitting}
                           onClick={() => handleAddScore(player.id, "largos", 30, true)}
                         >
                           +30
                         </Button>
+                        <button
+                          className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-sm leading-none transition-all active:scale-90 disabled:opacity-40"
+                          style={{ background: "#2a1a0a", border: "1px solid #7c5a1e" }}
+                          disabled={submitting}
+                          title="Pasó con ficha (+60 al equipo contrario)"
+                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "largos", "paso")}
+                        >
+                          ⚠️
+                        </button>
                       </div>
                     </div>
                   )}
@@ -918,7 +975,7 @@ export default function MatchLive() {
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${log.team === 'cortos' ? 'bg-red-500' : 'bg-blue-500'}`} />
-                    <span className="font-medium">{log.playerName}</span>
+                    <span className="font-medium">{(log as any).note ?? log.playerName}</span>
                     {isLatest && !isFinished && (
                       <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide">último</span>
                     )}

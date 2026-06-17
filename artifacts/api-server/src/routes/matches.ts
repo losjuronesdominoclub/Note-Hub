@@ -47,6 +47,7 @@ async function buildMatchDetail(matchId: number, activeOnly = true) {
       team: scoreLogTable.team,
       points: scoreLogTable.points,
       createdAt: scoreLogTable.createdAt,
+      note: scoreLogTable.note,
       playerName: playersTable.name,
     })
     .from(scoreLogTable)
@@ -542,7 +543,7 @@ router.post("/matches/:id/score", async (req, res): Promise<void> => {
     return;
   }
 
-  const { playerId, team, points, isQuickThirty } = parsed.data;
+  const { playerId, team, points, isQuickThirty, note } = parsed.data;
 
   // Calculate new team score
   const currentTeamScore = team === "cortos" ? match.shortosScore : match.largosScore;
@@ -559,8 +560,8 @@ router.post("/matches/:id/score", async (req, res): Promise<void> => {
 
   const newTeamScore = currentTeamScore + actualPoints;
 
-  // Insert score log
-  await db.insert(scoreLogTable).values({ matchId: params.data.id, playerId, team, points: actualPoints });
+  // Insert score log (with optional note override)
+  await db.insert(scoreLogTable).values({ matchId: params.data.id, playerId, team, points: actualPoints, ...(note ? { note } : {}) });
 
   // Update player points in match
   const [mp] = await db

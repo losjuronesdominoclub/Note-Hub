@@ -256,7 +256,8 @@ export const GetMatchResponse = zod.object({
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
   "createdAt": zod.string(),
-  "playerName": zod.string().optional()
+  "playerName": zod.string().optional(),
+  "note": zod.string().nullish()
 }))
 })
 
@@ -333,7 +334,8 @@ export const AddScoreBody = zod.object({
   "playerId": zod.number(),
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
-  "isQuickThirty": zod.boolean().optional()
+  "isQuickThirty": zod.boolean().optional(),
+  "note": zod.string().nullish()
 })
 
 export const AddScoreResponse = zod.object({
@@ -371,7 +373,8 @@ export const AddScoreResponse = zod.object({
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
   "createdAt": zod.string(),
-  "playerName": zod.string().optional()
+  "playerName": zod.string().optional(),
+  "note": zod.string().nullish()
 }))
 })
 
@@ -418,7 +421,8 @@ export const FinishMatchResponse = zod.object({
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
   "createdAt": zod.string(),
-  "playerName": zod.string().optional()
+  "playerName": zod.string().optional(),
+  "note": zod.string().nullish()
 }))
 })
 
@@ -470,7 +474,8 @@ export const SubstituteMatchPlayerResponse = zod.object({
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
   "createdAt": zod.string(),
-  "playerName": zod.string().optional()
+  "playerName": zod.string().optional(),
+  "note": zod.string().nullish()
 }))
 })
 
@@ -517,7 +522,8 @@ export const SwapMatchTeamsResponse = zod.object({
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
   "createdAt": zod.string(),
-  "playerName": zod.string().optional()
+  "playerName": zod.string().optional(),
+  "note": zod.string().nullish()
 }))
 })
 
@@ -560,7 +566,8 @@ export const ListHistoryResponseItem = zod.object({
   "team": zod.enum(['cortos', 'largos']),
   "points": zod.number(),
   "createdAt": zod.string(),
-  "playerName": zod.string().optional()
+  "playerName": zod.string().optional(),
+  "note": zod.string().nullish()
 }))
 })
 export const ListHistoryResponse = zod.array(ListHistoryResponseItem)

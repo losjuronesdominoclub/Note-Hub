@@ -104,6 +104,7 @@ export interface ScoreLogEntry {
   points: number;
   createdAt: string;
   playerName?: string;
+  note?: string | null;
 }
 
 export interface MatchDetail {
@@ -175,6 +176,7 @@ export interface ScoreInput {
   team: ScoreInputTeam;
   points: number;
   isQuickThirty?: boolean;
+  note?: string | null;
 }
 
 export interface RankedPlayer {

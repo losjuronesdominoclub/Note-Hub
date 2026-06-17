@@ -12,4 +12,5 @@ export interface ScoreInput {
   team: ScoreInputTeam;
   points: number;
   isQuickThirty?: boolean;
+  note?: string | null;
 }

@@ -786,6 +786,9 @@ components:
           type: integer
         isQuickThirty:
           type: boolean
+        note:
+          type: string
+          nullable: true
 
     ScoreLogEntry:
       type: object
@@ -804,6 +807,9 @@ components:
           type: string
         playerName:
           type: string
+        note:
+          type: string
+          nullable: true
 
     # ─── Ranking ──────────────────────────────────────────────────────────
     RankedPlayer:
