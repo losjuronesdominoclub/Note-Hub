@@ -1,9 +1,19 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useListMatches, useGetMatch } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Radio, RefreshCw, Trophy } from "lucide-react";
+import { Radio, RefreshCw, Trophy, Volume2, VolumeX } from "lucide-react";
+
+function speak(text: string) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "es";
+  u.rate = 1.05;
+  u.pitch = 1.0;
+  window.speechSynthesis.speak(u);
+}
 
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
@@ -28,10 +38,51 @@ function PlayerPill({ player, team }: { player: { name: string; avatarUrl?: stri
   );
 }
 
-function LiveMatchCard({ matchId }: { matchId: number }) {
+function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean }) {
   const { data: match } = useGetMatch(matchId, {
     query: { refetchInterval: 3000 },
   });
+
+  // Narrator: speak new score log entries as they arrive
+  const lastLogIdRef = useRef<number | null>(null);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    const latest = match?.scoreLog?.[0];
+    if (!latest) return;
+
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      lastLogIdRef.current = latest.id;
+      return;
+    }
+
+    if (latest.id === lastLogIdRef.current) return;
+    lastLogIdRef.current = latest.id;
+
+    if (!narrate) return;
+
+    const note: string | null = (latest as any).note ?? null;
+    const teamName = latest.team === "cortos" ? "los cortos" : "los largos";
+    let text: string;
+
+    if (note) {
+      if (note.includes("🐐")) {
+        const playerName = note.split("🐐")[0].trim().replace(/\s*-\s*$/, "");
+        text = `¡${playerName} hizo chivo! Sesenta puntos para ${teamName}.`;
+      } else if (note.toLowerCase().includes("pasó con ficha")) {
+        const playerName = note.split(" - ")[0].trim();
+        text = `${playerName} pasó con ficha. Sesenta puntos para ${teamName}.`;
+      } else {
+        text = note.replace(/[🐐⚠️]/g, "").trim();
+      }
+    } else {
+      const pts = latest.points === 30 ? "treinta" : latest.points === 60 ? "sesenta" : `${latest.points}`;
+      text = `${latest.playerName} anota ${pts} puntos para ${teamName}.`;
+    }
+
+    speak(text);
+  }, [match?.scoreLog?.[0]?.id, narrate]);
 
   if (!match) return null;
 
@@ -184,6 +235,7 @@ function LiveMatchCard({ matchId }: { matchId: number }) {
 export default function LiveMatches() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [spinning, setSpinning] = useState(false);
+  const [narrate, setNarrate] = useState(true);
 
   const { data: matches, isLoading, refetch } = useListMatches(
     { status: "active" },
@@ -199,7 +251,7 @@ export default function LiveMatches() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
-      {/* Header — solo el botón de actualizar como acción */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-red-500/10 rounded-full text-red-500 animate-pulse">
@@ -211,16 +263,32 @@ export default function LiveMatches() {
           </div>
         </div>
 
-        {/* ÚNICO botón permitido */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          className="gap-2 border-primary/30 text-primary hover:bg-primary/10 rounded-full px-4"
-        >
-          <RefreshCw className={`h-4 w-4 transition-transform duration-500 ${spinning ? "rotate-180" : ""}`} />
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Narrator toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (narrate) window.speechSynthesis?.cancel();
+              setNarrate(n => !n);
+            }}
+            className={`gap-2 rounded-full px-4 transition-colors ${narrate ? "border-yellow-500/50 text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20" : "border-border text-muted-foreground hover:bg-white/5"}`}
+            title={narrate ? "Silenciar narrador" : "Activar narrador"}
+          >
+            {narrate ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span className="hidden sm:inline">{narrate ? "Narrador" : "Silenciado"}</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            className="gap-2 border-primary/30 text-primary hover:bg-primary/10 rounded-full px-4"
+          >
+            <RefreshCw className={`h-4 w-4 transition-transform duration-500 ${spinning ? "rotate-180" : ""}`} />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* Matches */}
