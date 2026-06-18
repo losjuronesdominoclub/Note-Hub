@@ -131,6 +131,52 @@ function LiveMatchCard({ matchId }: { matchId: number }) {
           />
         </div>
       </div>
+
+      {/* Score log */}
+      {match.scoreLog && match.scoreLog.length > 0 && (
+        <div className="border-t border-border/50 px-6 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Registro de puntos</span>
+            <span className="text-[10px] bg-white/5 border border-white/10 rounded-full px-2 py-0.5 text-muted-foreground font-semibold">
+              {match.scoreLog.length}
+            </span>
+          </div>
+          <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
+            <AnimatePresence initial={false}>
+              {match.scoreLog.map((log, idx) => {
+                const isLatest = idx === 0 && !isFinished;
+                return (
+                  <motion.div
+                    key={log.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={`flex items-center justify-between text-sm py-2 px-3 rounded-lg transition-colors ${isLatest ? "bg-yellow-500/8 border border-yellow-500/20" : "hover:bg-white/3"}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${log.team === "cortos" ? "bg-red-500" : "bg-blue-500"}`} />
+                      <span className={`font-medium truncate ${isLatest ? "text-yellow-400" : "text-foreground/80"}`}>
+                        {(log as any).note ?? log.playerName}
+                      </span>
+                      {isLatest && (
+                        <span className="text-[9px] text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shrink-0">último</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span className={`font-black text-base tabular-nums ${log.team === "cortos" ? "text-red-400" : "text-blue-400"}`}>
+                        +{log.points}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/50">
+                        {new Date(log.createdAt).toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
