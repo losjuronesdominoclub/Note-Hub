@@ -7,12 +7,15 @@ import { Radio, RefreshCw, Trophy, Volume2, VolumeX } from "lucide-react";
 
 function speak(text: string) {
   if (!("speechSynthesis" in window)) return;
+  // Cancel any ongoing speech, then wait a tick so the cancel clears before queuing
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "es";
-  u.rate = 1.05;
-  u.pitch = 1.0;
-  window.speechSynthesis.speak(u);
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "es";
+    u.rate = 1.05;
+    u.pitch = 1.0;
+    window.speechSynthesis.speak(u);
+  }, 50);
 }
 
 function avatarSrc(path: string | null | undefined): string | undefined {
@@ -269,8 +272,14 @@ export default function LiveMatches() {
             variant="outline"
             size="sm"
             onClick={() => {
-              if (narrate) window.speechSynthesis?.cancel();
-              setNarrate(n => !n);
+              if (narrate) {
+                window.speechSynthesis?.cancel();
+                setNarrate(false);
+              } else {
+                setNarrate(true);
+                // Unlock browser audio context with a user-gesture speak call
+                speak("Narrador activado.");
+              }
             }}
             className={`gap-2 rounded-full px-4 transition-colors ${narrate ? "border-yellow-500/50 text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20" : "border-border text-muted-foreground hover:bg-white/5"}`}
             title={narrate ? "Silenciar narrador" : "Activar narrador"}
