@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Tv2, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff } from "lucide-react";
 import { useMatchRecovery } from "@/hooks/useOfflineMatch";
 import { useDevMode } from "@/contexts/dev-mode-context";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
@@ -167,15 +167,14 @@ export default function Dashboard() {
               Resultados
             </button>
           </Link>
-          <Link href="/stream">
-            <button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
-              style={{ background: "#dc2626", color: "#fff" }}
-            >
-              <Tv2 className="h-3.5 w-3.5" />
-              Stream
-            </button>
-          </Link>
+          <button
+            onClick={() => window.open("https://domino-flow-magic.lovable.app/", "_blank")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
+            style={{ background: "#7c3aed", color: "#fff" }}
+          >
+            <Ticket className="h-3.5 w-3.5" />
+            Turnos
+          </button>
           <button
             onClick={() => window.location.reload()}
             className="flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95 active:rotate-180"
