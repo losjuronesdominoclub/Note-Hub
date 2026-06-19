@@ -29,14 +29,14 @@ function PlayerPill({ player, team }: { player: { name: string; avatarUrl?: stri
   const color = team === "cortos" ? "border-red-500/40 bg-red-500/10" : "border-blue-500/40 bg-blue-500/10";
   const fallbackColor = team === "cortos" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400";
   return (
-    <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border ${color}`}>
-      <Avatar className="h-9 w-9 shrink-0">
+    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${color}`}>
+      <Avatar className="h-6 w-6 shrink-0">
         <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
-        <AvatarFallback className={`text-xs font-bold ${fallbackColor}`}>
+        <AvatarFallback className={`text-[9px] font-bold ${fallbackColor}`}>
           {player.name.substring(0, 2).toUpperCase()}
         </AvatarFallback>
       </Avatar>
-      <span className="font-semibold text-sm leading-tight">{player.name}</span>
+      <span className="font-semibold text-xs leading-tight truncate">{player.name}</span>
     </div>
   );
 }
@@ -109,7 +109,7 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
       className="glass-card rounded-3xl overflow-hidden"
     >
       {/* Match number badge */}
-      <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border/50">
+      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-border/50">
         <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
           Partida #{match.matchNumber}
         </span>
@@ -139,12 +139,12 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
       {/* Scoreboard */}
       <div className="grid grid-cols-3 items-stretch divide-x divide-border/50">
         {/* Cortos */}
-        <div className={`flex flex-col items-center justify-between gap-4 p-6 bg-gradient-to-b from-red-500/10 to-transparent ${cortosWin ? "ring-2 ring-red-500/40 ring-inset" : ""}`}>
+        <div className={`flex flex-col items-center justify-between gap-2 p-3 bg-gradient-to-b from-red-500/10 to-transparent ${cortosWin ? "ring-2 ring-red-500/40 ring-inset" : ""}`}>
           <span className="text-xs font-black uppercase tracking-[0.2em] text-red-500">Cortos</span>
-          <div className={`text-[5.5rem] font-black tabular-nums leading-none tracking-tighter ${cortosWin ? "text-red-400" : "text-foreground"}`}>
+          <div className={`text-[3.5rem] font-black tabular-nums leading-none tracking-tighter ${cortosWin ? "text-red-400" : "text-foreground"}`}>
             {match.shortosScore}
           </div>
-          <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1 w-full">
             {cortosPlayers.map(({ player }) => (
               <PlayerPill key={player.id} player={player} team="cortos" />
             ))}
@@ -152,19 +152,19 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
         </div>
 
         {/* Center VS */}
-        <div className="flex flex-col items-center justify-center gap-2 p-4">
-          <div className="text-2xl font-black text-muted-foreground/40">VS</div>
-          <div className="w-px flex-1 bg-border/30 my-1" />
-          <div className="text-[10px] text-muted-foreground uppercase tracking-widest">200 pts</div>
+        <div className="flex flex-col items-center justify-center gap-1 p-2">
+          <div className="text-lg font-black text-muted-foreground/40">VS</div>
+          <div className="w-px flex-1 bg-border/30 my-0.5" />
+          <div className="text-[9px] text-muted-foreground uppercase tracking-widest">200 pts</div>
         </div>
 
         {/* Largos */}
-        <div className={`flex flex-col items-center justify-between gap-4 p-6 bg-gradient-to-b from-blue-500/10 to-transparent ${largosWin ? "ring-2 ring-blue-500/40 ring-inset" : ""}`}>
+        <div className={`flex flex-col items-center justify-between gap-2 p-3 bg-gradient-to-b from-blue-500/10 to-transparent ${largosWin ? "ring-2 ring-blue-500/40 ring-inset" : ""}`}>
           <span className="text-xs font-black uppercase tracking-[0.2em] text-blue-500">Largos</span>
-          <div className={`text-[5.5rem] font-black tabular-nums leading-none tracking-tighter ${largosWin ? "text-blue-400" : "text-foreground"}`}>
+          <div className={`text-[3.5rem] font-black tabular-nums leading-none tracking-tighter ${largosWin ? "text-blue-400" : "text-foreground"}`}>
             {match.largosScore}
           </div>
-          <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1 w-full">
             {largosPlayers.map(({ player }) => (
               <PlayerPill key={player.id} player={player} team="largos" />
             ))}
@@ -194,14 +194,14 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
 
       {/* Score log */}
       {match.scoreLog && match.scoreLog.length > 0 && (
-        <div className="border-t border-border/50 px-6 py-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Registro de puntos</span>
-            <span className="text-[10px] bg-white/5 border border-white/10 rounded-full px-2 py-0.5 text-muted-foreground font-semibold">
+        <div className="border-t border-border/50 px-4 py-2">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Registro</span>
+            <span className="text-[9px] bg-white/5 border border-white/10 rounded-full px-1.5 py-0.5 text-muted-foreground font-semibold">
               {match.scoreLog.length}
             </span>
           </div>
-          <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
+          <div className="flex flex-col gap-0 max-h-28 overflow-y-auto pr-1 scrollbar-thin">
             <AnimatePresence initial={false}>
               {match.scoreLog.map((log, idx) => {
                 const isLatest = idx === 0 && !isFinished;
@@ -211,22 +211,22 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.25 }}
-                    className={`flex items-center justify-between text-sm py-2 px-3 rounded-lg transition-colors ${isLatest ? "bg-yellow-500/8 border border-yellow-500/20" : "hover:bg-white/3"}`}
+                    className={`flex items-center justify-between py-1 px-2 rounded-md transition-colors ${isLatest ? "bg-yellow-500/8 border border-yellow-500/20" : "hover:bg-white/3"}`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${log.team === "cortos" ? "bg-red-500" : "bg-blue-500"}`} />
-                      <span className={`font-medium truncate ${isLatest ? "text-yellow-400" : "text-foreground/80"}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${log.team === "cortos" ? "bg-red-500" : "bg-blue-500"}`} />
+                      <span className={`text-xs font-medium truncate ${isLatest ? "text-yellow-400" : "text-foreground/80"}`}>
                         {(log as any).note ?? log.playerName}
                       </span>
                       {isLatest && (
-                        <span className="text-[9px] text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shrink-0">último</span>
+                        <span className="text-[8px] text-yellow-500 bg-yellow-500/10 px-1 py-0.5 rounded font-bold uppercase tracking-wide shrink-0">nuevo</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className={`font-black text-base tabular-nums ${log.team === "cortos" ? "text-red-400" : "text-blue-400"}`}>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      <span className={`font-black text-sm tabular-nums ${log.team === "cortos" ? "text-red-400" : "text-blue-400"}`}>
                         +{log.points}
                       </span>
-                      <span className="text-[10px] text-muted-foreground/50">
+                      <span className="text-[9px] text-muted-foreground/50">
                         {new Date(log.createdAt).toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
@@ -259,21 +259,20 @@ export default function LiveMatches() {
   }, [refetch]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
+    <div className="flex flex-col gap-3 animate-in fade-in duration-500 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-red-500/10 rounded-full text-red-500 animate-pulse">
-            <Radio className="h-6 w-6" />
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-red-500/10 rounded-full text-red-500 animate-pulse">
+            <Radio className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">En Vivo</h1>
-            <p className="text-muted-foreground text-sm">Actualización automática cada 5 s.</p>
+            <h1 className="text-xl font-bold tracking-tight leading-none">En Vivo</h1>
+            <p className="text-muted-foreground text-xs">Auto-actualiza cada 5 s.</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Narrator toggle */}
           <Button
             variant="outline"
             size="sm"
@@ -283,14 +282,13 @@ export default function LiveMatches() {
                 setNarrate(false);
               } else {
                 setNarrate(true);
-                // Unlock browser audio context — must be synchronous in the click handler
                 speakNow("Narrador activado.");
               }
             }}
-            className={`gap-2 rounded-full px-4 transition-colors ${narrate ? "border-yellow-500/50 text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20" : "border-border text-muted-foreground hover:bg-white/5"}`}
+            className={`gap-1.5 rounded-full px-3 h-8 text-xs transition-colors ${narrate ? "border-yellow-500/50 text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20" : "border-border text-muted-foreground hover:bg-white/5"}`}
             title={narrate ? "Silenciar narrador" : "Activar narrador"}
           >
-            {narrate ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            {narrate ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             <span className="hidden sm:inline">{narrate ? "Narrador" : "Silenciado"}</span>
           </Button>
 
@@ -298,9 +296,9 @@ export default function LiveMatches() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="gap-2 border-primary/30 text-primary hover:bg-primary/10 rounded-full px-4"
+            className="gap-1.5 border-primary/30 text-primary hover:bg-primary/10 rounded-full px-3 h-8 text-xs"
           >
-            <RefreshCw className={`h-4 w-4 transition-transform duration-500 ${spinning ? "rotate-180" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 transition-transform duration-500 ${spinning ? "rotate-180" : ""}`} />
             Actualizar
           </Button>
         </div>
@@ -308,18 +306,18 @@ export default function LiveMatches() {
 
       {/* Matches */}
       {isLoading ? (
-        <div className="text-center py-20 text-muted-foreground">Cargando partidas...</div>
+        <div className="text-center py-16 text-muted-foreground">Cargando partidas...</div>
       ) : matches && matches.length > 0 ? (
-        <div key={refreshKey} className="flex flex-col gap-6">
+        <div key={refreshKey} className="flex flex-col gap-3">
           {matches.map(m => (
-            <LiveMatchCard key={m.id} matchId={m.id} />
+            <LiveMatchCard key={m.id} matchId={m.id} narrate={narrate} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 glass-card rounded-2xl">
-          <Radio className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-          <h3 className="text-xl font-bold mb-2">No hay partidas activas</h3>
-          <p className="text-muted-foreground">Cuando inicie un nuevo juego, aparecerá aquí automáticamente.</p>
+        <div className="text-center py-16 glass-card rounded-2xl">
+          <Radio className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-20" />
+          <h3 className="text-lg font-bold mb-1">No hay partidas activas</h3>
+          <p className="text-muted-foreground text-sm">Cuando inicie un nuevo juego, aparecerá aquí automáticamente.</p>
         </div>
       )}
     </div>
