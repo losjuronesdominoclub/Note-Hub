@@ -68,6 +68,7 @@ export const ListPlayersResponseItem = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const ListPlayersResponse = zod.array(ListPlayersResponseItem)
@@ -103,6 +104,7 @@ export const GetPlayerResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 
@@ -137,6 +139,7 @@ export const UpdatePlayerResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 
@@ -182,6 +185,7 @@ export const ListMatchesResponseItem = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })).optional()
@@ -247,6 +251,7 @@ export const GetMatchResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })),
@@ -305,6 +310,7 @@ export const UpdateMatchResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })).optional()
@@ -364,6 +370,7 @@ export const AddScoreResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })),
@@ -412,6 +419,7 @@ export const FinishMatchResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })),
@@ -465,6 +473,7 @@ export const SubstituteMatchPlayerResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })),
@@ -513,6 +522,7 @@ export const SwapMatchTeamsResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })),
@@ -557,6 +567,7 @@ export const ListHistoryResponseItem = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })),
@@ -607,6 +618,7 @@ export const GetRankingResponseItem = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 })
 })
@@ -729,6 +741,7 @@ export const GetDashboardStatsResponse = zod.object({
   "currentStreak": zod.number(),
   "extraLisas": zod.number(),
   "topPts": zod.number(),
+  "topSince": zod.string().nullish(),
   "createdAt": zod.string()
 }).optional(),
   "topPair": zod.object({

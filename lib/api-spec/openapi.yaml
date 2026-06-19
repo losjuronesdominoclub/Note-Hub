@@ -612,6 +612,8 @@ components:
           type: integer
         topPts:
           type: integer
+        topSince:
+          type: ["string", "null"]
         createdAt:
           type: string
 

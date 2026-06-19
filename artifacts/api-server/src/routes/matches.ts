@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, asc, and, sql, isNull } from "drizzle-orm";
+import { eq, desc, asc, and, sql, isNull, isNotNull, gt } from "drizzle-orm";
 import { db, matchesTable, matchPlayersTable, scoreLogTable, playersTable } from "@workspace/db";
 import { z } from "zod";
 import {
@@ -122,6 +122,38 @@ async function recalculatePlayerStats(playerId: number) {
     .update(playersTable)
     .set({ wins, losses, totalPoints, winRate, currentStreak: streak, topPts })
     .where(eq(playersTable.id, playerId));
+}
+
+async function updateTopPlayerSince() {
+  // Find player with most wins (must have at least 1 win)
+  const [newTop] = await db
+    .select({ id: playersTable.id, topSince: playersTable.topSince })
+    .from(playersTable)
+    .where(gt(playersTable.wins, 0))
+    .orderBy(desc(playersTable.wins))
+    .limit(1);
+
+  if (!newTop) return;
+
+  // Find who currently holds topSince (previous top)
+  const prevTops = await db
+    .select({ id: playersTable.id })
+    .from(playersTable)
+    .where(isNotNull(playersTable.topSince));
+
+  const prevTopId = prevTops[0]?.id ?? null;
+
+  if (prevTopId === newTop.id) {
+    // Same player is still on top — ensure topSince is set (in case it was never initialized)
+    if (!newTop.topSince) {
+      await db.update(playersTable).set({ topSince: new Date() }).where(eq(playersTable.id, newTop.id));
+    }
+    return;
+  }
+
+  // Top player changed — clear all previous topSince values, set new one
+  await db.update(playersTable).set({ topSince: null }).where(isNotNull(playersTable.topSince));
+  await db.update(playersTable).set({ topSince: new Date() }).where(eq(playersTable.id, newTop.id));
 }
 
 // GET /matches/busy-players — must be before /:id
@@ -640,6 +672,8 @@ router.post("/matches/:id/finish", async (req, res): Promise<void> => {
   for (const p of allPlayers) {
     await recalculatePlayerStats(p.playerId);
   }
+
+  await updateTopPlayerSince();
 
   const detail = await buildMatchDetail(params.data.id);
   res.json(detail);

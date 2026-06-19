@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff, Clock } from "lucide-react";
 import { useMatchRecovery } from "@/hooks/useOfflineMatch";
 import { useDevMode } from "@/contexts/dev-mode-context";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
@@ -22,6 +22,36 @@ function avatarSrc(path: string | null | undefined): string | undefined {
   if (path.startsWith("http")) return path;
   const slug = path.startsWith("/objects/") ? path.slice("/objects/".length) : path;
   return `/api/storage/objects/${slug}`;
+}
+
+function formatTopSince(topSince: string | null | undefined): string | null {
+  if (!topSince) return null;
+  const diffMs = Date.now() - new Date(topSince).getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Hoy";
+  if (diffDays === 1) return "1 día";
+
+  const months = Math.floor(diffDays / 30);
+  if (months >= 1) {
+    const remDays = diffDays - months * 30;
+    const remWeeks = Math.floor(remDays / 7);
+    const remExtra = remDays % 7;
+    let s = `${months} ${months === 1 ? "mes" : "meses"}`;
+    if (remWeeks > 0) s += ` + ${remWeeks} ${remWeeks === 1 ? "semana" : "semanas"}`;
+    else if (remExtra > 0) s += ` + ${remExtra} ${remExtra === 1 ? "día" : "días"}`;
+    return s;
+  }
+
+  const weeks = Math.floor(diffDays / 7);
+  const remDays = diffDays % 7;
+  if (weeks >= 1) {
+    let s = `${weeks} ${weeks === 1 ? "semana" : "semanas"}`;
+    if (remDays > 0) s += ` + ${remDays} ${remDays === 1 ? "día" : "días"}`;
+    return s;
+  }
+
+  return `${diffDays} días`;
 }
 
 export default function Dashboard() {
@@ -379,6 +409,12 @@ export default function Dashboard() {
                         {(Number(stats.topPlayer.winRate) * 100).toFixed(0)}% WR
                       </span>
                     </div>
+                    {formatTopSince(stats.topPlayer.topSince) && (
+                      <div className="flex items-center justify-center gap-1.5 text-xs text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full px-3 py-1.5 mx-auto w-fit">
+                        <Clock className="h-3 w-3" />
+                        <span className="font-medium">{formatTopSince(stats.topPlayer.topSince)} en el trono</span>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-3 mt-1">
                       <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl py-3 px-2">
                         <div className="flex items-center justify-center gap-1.5 text-orange-400">

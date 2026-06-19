@@ -18,5 +18,7 @@ export interface Player {
   currentStreak: number;
   extraLisas: number;
   topPts: number;
+  /** @nullable */
+  topSince?: string | null;
   createdAt: string;
 }
