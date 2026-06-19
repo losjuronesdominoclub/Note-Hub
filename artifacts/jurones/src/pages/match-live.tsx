@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trophy, ChevronUp, Activity, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users, ArrowLeftRight } from "lucide-react";
+import { Trophy, ChevronUp, Activity, Undo2, Trash2, KeyRound, Clock, RefreshCw, Users, ArrowLeftRight, Gavel } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
@@ -49,6 +49,12 @@ export default function MatchLive() {
   const [elapsed, setElapsed] = useState("00:00:00");
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean; note?: string } | null>(null);
+
+  // Multas state
+  const [showMultasDialog, setShowMultasDialog] = useState(false);
+  const [multasTeam, setMultasTeam] = useState<"cortos" | "largos" | null>(null);
+  const [multasPlayerId, setMultasPlayerId] = useState<string>("");
+  const [multasTipo, setMultasTipo] = useState<"levantar" | "hablar" | "adelantado" | "">("");
 
   // Swap teams state
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -235,6 +241,28 @@ export default function MatchLive() {
     await handleAddScore(opponentFirstPlayer.player.id, opponentTeam, 60, false, note);
   };
 
+
+  const handleMulta = async () => {
+    if (!multasTeam || !multasPlayerId || !multasTipo || !match) return;
+    const opponentTeam = multasTeam === "cortos" ? "largos" : "cortos";
+    const opponentPlayers = opponentTeam === "cortos" ? cortosPlayers : largosPlayers;
+    const opponentFirst = opponentPlayers[0];
+    if (!opponentFirst) return;
+    const teamPlayers = multasTeam === "cortos" ? cortosPlayers : largosPlayers;
+    const faultPlayer = teamPlayers.find(p => p.player.id === parseInt(multasPlayerId));
+    if (!faultPlayer) return;
+    const descs: Record<string, string> = {
+      levantar: "Levantó ficha equivocada",
+      hablar: "Habló durante la jugada",
+      adelantado: "Jugó adelantado",
+    };
+    const pts = multasTipo === "adelantado" ? 60 : 30;
+    const note = `🚨 ${faultPlayer.player.name} - ${descs[multasTipo]}`;
+    setShowMultasDialog(false);
+    setMultasPlayerId("");
+    setMultasTipo("");
+    await handleAddScore(opponentFirst.player.id, opponentTeam, pts, false, note);
+  };
 
   const handleCancelMatch = async () => {
     if (!cancelCode) return;
@@ -625,6 +653,91 @@ export default function MatchLive() {
         );
       })()}
 
+      {/* Multas dialog */}
+      <Dialog open={showMultasDialog} onOpenChange={(o) => { if (!o) { setShowMultasDialog(false); setMultasPlayerId(""); setMultasTipo(""); } }}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a]">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Gavel className={`h-5 w-5 ${multasTeam === "cortos" ? "text-red-400" : "text-blue-400"}`} />
+              Multa — Equipo {multasTeam === "cortos" ? "Cortos" : "Largos"}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Los puntos de la multa se suman al equipo contrario.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Player selector */}
+            <div className="space-y-1.5">
+              <Label className="text-gray-300 text-sm">Jugador que cometió la falta</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(multasTeam === "cortos" ? cortosPlayers : largosPlayers).map(({ player }) => (
+                  <button
+                    key={player.id}
+                    onClick={() => setMultasPlayerId(String(player.id))}
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all text-left ${
+                      multasPlayerId === String(player.id)
+                        ? multasTeam === "cortos"
+                          ? "border-red-500 bg-red-500/15 text-white"
+                          : "border-blue-500 bg-blue-500/15 text-white"
+                        : "border-[#2a2a2a] bg-[#1a1a1a] text-gray-400 hover:border-gray-600"
+                    }`}
+                  >
+                    <Avatar className="h-7 w-7 shrink-0">
+                      <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                      <AvatarFallback className={`text-xs ${multasTeam === "cortos" ? "bg-red-500/20 text-red-400" : "bg-blue-500/20 text-blue-400"}`}>
+                        {player.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-semibold truncate">{player.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Fine type selector */}
+            <div className="space-y-1.5">
+              <Label className="text-gray-300 text-sm">Tipo de multa</Label>
+              <div className="flex flex-col gap-2">
+                {([
+                  { key: "levantar", label: "Levantó ficha equivocada", pts: 30 },
+                  { key: "hablar",   label: "Habló durante la jugada",   pts: 30 },
+                  { key: "adelantado", label: "Jugó adelantado",         pts: 60 },
+                ] as const).map(({ key, label, pts }) => (
+                  <button
+                    key={key}
+                    onClick={() => setMultasTipo(key)}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
+                      multasTipo === key
+                        ? "border-amber-500 bg-amber-500/10 text-white"
+                        : "border-[#2a2a2a] bg-[#1a1a1a] text-gray-400 hover:border-gray-600"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{label}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pts === 60 ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400"}`}>
+                      +{pts} pts
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setShowMultasDialog(false); setMultasPlayerId(""); setMultasTipo(""); }}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleMulta}
+              disabled={!multasPlayerId || !multasTipo || submitting}
+              className="bg-amber-600 hover:bg-amber-500 text-white font-bold gap-2"
+            >
+              <Gavel className="h-4 w-4" />
+              Aplicar Multa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Cancel match dialog */}
       <Dialog open={showCancelDialog} onOpenChange={(o) => { if (!o) { setShowCancelDialog(false); setCancelCode(""); } }}>
         <DialogContent className="bg-[#141414] border-[#2a2a2a]">
@@ -780,6 +893,15 @@ export default function MatchLive() {
       <div className="grid md:grid-cols-2 gap-3">
         {/* Cortos Team */}
         <div className="glass-card rounded-2xl p-4 border-t-4 border-t-red-600 bg-gradient-to-b from-red-500/10 to-transparent relative overflow-hidden">
+          {!isFinished && (
+            <button
+              className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/30"
+              title="Multas"
+              onClick={() => { setMultasTeam("cortos"); setMultasPlayerId(""); setMultasTipo(""); setShowMultasDialog(true); }}
+            >
+              <Gavel className="h-3.5 w-3.5" />
+            </button>
+          )}
           <div className="text-center mb-3">
             <h2 className="text-lg font-bold text-red-500 uppercase tracking-widest">Cortos</h2>
             <div className="text-5xl font-black tabular-nums tracking-tighter mt-1">{match.shortosScore}</div>
@@ -865,6 +987,15 @@ export default function MatchLive() {
 
         {/* Largos Team */}
         <div className="glass-card rounded-2xl p-4 border-t-4 border-t-blue-600 bg-gradient-to-b from-blue-500/10 to-transparent relative overflow-hidden">
+          {!isFinished && (
+            <button
+              className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-lg text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/30"
+              title="Multas"
+              onClick={() => { setMultasTeam("largos"); setMultasPlayerId(""); setMultasTipo(""); setShowMultasDialog(true); }}
+            >
+              <Gavel className="h-3.5 w-3.5" />
+            </button>
+          )}
           <div className="text-center mb-3">
             <h2 className="text-lg font-bold text-blue-500 uppercase tracking-widest">Largos</h2>
             <div className="text-5xl font-black tabular-nums tracking-tighter mt-1">{match.largosScore}</div>
