@@ -5,17 +5,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Radio, RefreshCw, Trophy, Volume2, VolumeX } from "lucide-react";
 
-function speak(text: string) {
+// Speak synchronously — must be called directly from a user gesture on first use.
+// After first user-gesture unlock, can be called from any context (useEffect, timers).
+function speakNow(text: string) {
   if (!("speechSynthesis" in window)) return;
-  // Cancel any ongoing speech, then wait a tick so the cancel clears before queuing
+  window.speechSynthesis.resume(); // Chrome bug: keeps synthesis from getting stuck
   window.speechSynthesis.cancel();
-  setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "es";
-    u.rate = 1.05;
-    u.pitch = 1.0;
-    window.speechSynthesis.speak(u);
-  }, 50);
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "es";
+  u.rate = 1.05;
+  u.pitch = 1.0;
+  window.speechSynthesis.speak(u);
 }
 
 function avatarSrc(path: string | null | undefined): string | undefined {
@@ -46,7 +46,10 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
     query: { refetchInterval: 3000 },
   });
 
-  // Narrator: speak new score log entries as they arrive
+  // Keep a ref so the score-watcher effect doesn't re-run when narrate toggles
+  const narrateRef = useRef(narrate);
+  useEffect(() => { narrateRef.current = narrate; }, [narrate]);
+
   const lastLogIdRef = useRef<number | null>(null);
   const initializedRef = useRef(false);
 
@@ -54,6 +57,7 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
     const latest = match?.scoreLog?.[0];
     if (!latest) return;
 
+    // On first load: just snapshot the current latest ID, don't speak
     if (!initializedRef.current) {
       initializedRef.current = true;
       lastLogIdRef.current = latest.id;
@@ -63,7 +67,7 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
     if (latest.id === lastLogIdRef.current) return;
     lastLogIdRef.current = latest.id;
 
-    if (!narrate) return;
+    if (!narrateRef.current) return;
 
     const note: string | null = (latest as any).note ?? null;
     const teamName = latest.team === "cortos" ? "los cortos" : "los largos";
@@ -84,8 +88,10 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
       text = `${latest.playerName} anota ${pts} puntos para ${teamName}.`;
     }
 
-    speak(text);
-  }, [match?.scoreLog?.[0]?.id, narrate]);
+    speakNow(text);
+  // Only re-run when a genuinely new log entry arrives
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [match?.scoreLog?.[0]?.id]);
 
   if (!match) return null;
 
@@ -277,8 +283,8 @@ export default function LiveMatches() {
                 setNarrate(false);
               } else {
                 setNarrate(true);
-                // Unlock browser audio context with a user-gesture speak call
-                speak("Narrador activado.");
+                // Unlock browser audio context — must be synchronous in the click handler
+                speakNow("Narrador activado.");
               }
             }}
             className={`gap-2 rounded-full px-4 transition-colors ${narrate ? "border-yellow-500/50 text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20" : "border-border text-muted-foreground hover:bg-white/5"}`}
