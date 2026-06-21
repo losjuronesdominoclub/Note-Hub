@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -39,6 +40,7 @@ export default function MatchNew() {
   const { data: players, isLoading } = useListPlayers();
   const { data: busyData } = useGetBusyPlayers({ query: { refetchInterval: 5000 } });
   const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
+  const { user } = useUser();
   const createMatch = useCreateMatch();
   const { toast } = useToast();
 
@@ -138,8 +140,9 @@ export default function MatchNew() {
 
   const handleStartMatch = () => {
     if (cortos.length === 2 && largos.length === 2) {
+      const anotador = user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? user?.username ?? undefined;
       createMatch.mutate(
-        { data: { cortos, largos } },
+        { data: { cortos, largos, createdBy: anotador } },
         {
           onSuccess: (match) => setLocation(`/match/${match.id}`),
           onError: () =>

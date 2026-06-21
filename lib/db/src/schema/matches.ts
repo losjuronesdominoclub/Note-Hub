@@ -13,6 +13,7 @@ export const matchesTable = pgTable("matches", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
   teamsSwapped: boolean("teams_swapped").notNull().default(false),
+  createdBy: text("created_by"),
 });
 
 export const matchPlayersTable = pgTable("match_players", {

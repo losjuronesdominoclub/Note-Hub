@@ -168,6 +168,7 @@ export const ListMatchesResponseItem = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -206,7 +207,8 @@ export const createMatchBodyLargosMax = 2;
 
 export const CreateMatchBody = zod.object({
   "cortos": zod.array(zod.number()).min(createMatchBodyCortosMin).max(createMatchBodyCortosMax),
-  "largos": zod.array(zod.number()).min(createMatchBodyLargosMin).max(createMatchBodyLargosMax)
+  "largos": zod.array(zod.number()).min(createMatchBodyLargosMin).max(createMatchBodyLargosMax),
+  "createdBy": zod.string().optional()
 })
 
 
@@ -234,6 +236,7 @@ export const GetMatchResponse = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -293,6 +296,7 @@ export const UpdateMatchResponse = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -353,6 +357,7 @@ export const AddScoreResponse = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -402,6 +407,7 @@ export const FinishMatchResponse = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -456,6 +462,7 @@ export const SubstituteMatchPlayerResponse = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -505,6 +512,7 @@ export const SwapMatchTeamsResponse = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),
@@ -550,6 +558,7 @@ export const ListHistoryResponseItem = zod.object({
   "winnerTeam": zod.string().nullish(),
   "createdAt": zod.string(),
   "finishedAt": zod.string().nullish(),
+  "createdBy": zod.string().nullish(),
   "players": zod.array(zod.object({
   "id": zod.number(),
   "playerId": zod.number(),

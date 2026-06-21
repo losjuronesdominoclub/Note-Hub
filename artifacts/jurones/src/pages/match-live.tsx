@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useUser } from "@clerk/react";
 import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -39,6 +40,7 @@ export default function MatchLive() {
   const { data: match, isLoading } = useGetMatch(matchId, {
     query: { refetchInterval: 3000 }
   });
+  const { user } = useUser();
   const createMatch = useCreateMatch();
 
   const [pointsInput, setPointsInput] = useState<Record<number, string>>({});
@@ -370,8 +372,9 @@ export default function MatchLive() {
   const handleRepeat = () => {
     const cortosIds = cortosPlayers.map(({ player }) => player.id);
     const largosIds = largosPlayers.map(({ player }) => player.id);
+    const anotador = user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? user?.username ?? undefined;
     createMatch.mutate(
-      { data: { cortos: cortosIds, largos: largosIds } },
+      { data: { cortos: cortosIds, largos: largosIds, createdBy: anotador } },
       {
         onSuccess: (newMatch) => setLocation(`/match/${newMatch.id}`),
         onError: () => toast({ variant: "destructive", title: "Error", description: "No se pudo crear la partida." }),
@@ -780,8 +783,8 @@ export default function MatchLive() {
       {/* Action buttons — only for active matches */}
       {!isFinished && (
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          {/* Elapsed timer + sync status */}
-          <div className="flex items-center gap-2">
+          {/* Elapsed timer + sync status + anotador */}
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/40 border border-border/50">
               <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="font-mono text-base font-bold tabular-nums tracking-widest">{elapsed}</span>
@@ -800,6 +803,14 @@ export default function MatchLive() {
                syncStatus === "local" ? `Local (${pendingOpsCount})` :
                "Sin conexión"}
             </div>
+            {user && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted-foreground">
+                <span className="text-white/40">Anotador:</span>
+                <span className="font-semibold text-white/70 truncate max-w-[120px]">
+                  {user.fullName ?? user.primaryEmailAddress?.emailAddress ?? user.username ?? "—"}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             {/* Swap teams — one-time use */}

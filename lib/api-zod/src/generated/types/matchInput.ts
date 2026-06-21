@@ -17,4 +17,5 @@ export interface MatchInput {
      * @maxItems 2
      */
   largos: number[];
+  createdBy?: string;
 }

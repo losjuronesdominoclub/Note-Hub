@@ -80,6 +80,8 @@ export interface Match {
   createdAt: string;
   /** @nullable */
   finishedAt?: string | null;
+  /** @nullable */
+  createdBy?: string | null;
   players?: MatchPlayer[];
 }
 
@@ -120,6 +122,8 @@ export interface MatchDetail {
   createdAt: string;
   /** @nullable */
   finishedAt?: string | null;
+  /** @nullable */
+  createdBy?: string | null;
   players: MatchPlayer[];
   scoreLog: ScoreLogEntry[];
 }
@@ -140,6 +144,7 @@ export interface MatchInput {
      * @maxItems 2
      */
   largos: number[];
+  createdBy?: string;
 }
 
 export type MatchUpdateStatus = typeof MatchUpdateStatus[keyof typeof MatchUpdateStatus];

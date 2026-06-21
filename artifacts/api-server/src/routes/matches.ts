@@ -233,7 +233,7 @@ router.post("/matches", async (req, res): Promise<void> => {
 
   const [match] = await db
     .insert(matchesTable)
-    .values({ matchNumber, status: "active", shortosScore: 0, largosScore: 0 })
+    .values({ matchNumber, status: "active", shortosScore: 0, largosScore: 0, createdBy: parsed.data.createdBy ?? null })
     .returning();
 
   // Insert match players

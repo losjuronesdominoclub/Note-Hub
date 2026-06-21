@@ -19,5 +19,7 @@ export interface Match {
   createdAt: string;
   /** @nullable */
   finishedAt?: string | null;
+  /** @nullable */
+  createdBy?: string | null;
   players?: MatchPlayer[];
 }

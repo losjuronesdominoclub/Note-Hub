@@ -344,11 +344,19 @@ export default function History() {
                       <CardContent className="p-5 flex flex-col gap-4">
                         {/* Header row: match info + actions */}
                         <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-semibold text-muted-foreground">Partida #{match.matchNumber}</span>
-                            <span className="text-xs text-muted-foreground ml-3">
-                              {new Date(match.finishedAt || match.createdAt).toLocaleTimeString("es-DO", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: true })}
-                            </span>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-muted-foreground">Partida #{match.matchNumber}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(match.finishedAt || match.createdAt).toLocaleTimeString("es-DO", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: true })}
+                              </span>
+                            </div>
+                            {match.createdBy && (
+                              <span className="text-xs text-muted-foreground/60">
+                                <span className="text-muted-foreground/40">Anotador:</span>{" "}
+                                <span className="font-medium text-muted-foreground/70">{match.createdBy}</span>
+                              </span>
+                            )}
                           </div>
                           <div className="flex gap-1">
                             <Button
