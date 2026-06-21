@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff, Clock } from "lucide-react";
+import { useUser } from "@clerk/react";
 import { useMatchRecovery } from "@/hooks/useOfflineMatch";
 import { useDevMode } from "@/contexts/dev-mode-context";
 import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
@@ -74,6 +75,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { isDevMode, enableDevMode, disableDevMode } = useDevMode();
+  const { user } = useUser();
 
   // Dev mode dialog
   const [isDevDialogOpen, setIsDevDialogOpen] = useState(false);
@@ -219,6 +221,20 @@ export default function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Resumen del club y actividad reciente.</p>
           <div className="flex flex-wrap items-center gap-2">
+            {/* Logged-in user chip */}
+            {user && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted-foreground max-w-[200px]">
+                <Avatar className="h-5 w-5 shrink-0">
+                  <AvatarImage src={user.imageUrl} className="object-cover" />
+                  <AvatarFallback className="text-[8px] bg-primary/20 text-primary font-bold">
+                    {(user.fullName ?? user.primaryEmailAddress?.emailAddress ?? "U").substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium truncate">
+                  {user.fullName ?? user.primaryEmailAddress?.emailAddress ?? user.username ?? "Miembro"}
+                </span>
+              </div>
+            )}
             {/* Dev Mode toggle */}
             <Button
               size="icon"
