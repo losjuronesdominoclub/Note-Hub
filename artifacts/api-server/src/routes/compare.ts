@@ -27,9 +27,9 @@ router.get("/compare/:id1/:id2", async (req, res): Promise<void> => {
     return;
   }
 
-  // Finished matches for each player — grab matchId + team
+  // Finished matches for each player — grab matchId + team + winnerTeam
   const p1Rows = await db
-    .select({ matchId: matchPlayersTable.matchId, team: matchPlayersTable.team })
+    .select({ matchId: matchPlayersTable.matchId, team: matchPlayersTable.team, winnerTeam: matchesTable.winnerTeam })
     .from(matchPlayersTable)
     .innerJoin(
       matchesTable,
@@ -41,7 +41,7 @@ router.get("/compare/:id1/:id2", async (req, res): Promise<void> => {
     .where(eq(matchPlayersTable.playerId, id1));
 
   const p2Rows = await db
-    .select({ matchId: matchPlayersTable.matchId, team: matchPlayersTable.team })
+    .select({ matchId: matchPlayersTable.matchId, team: matchPlayersTable.team, winnerTeam: matchesTable.winnerTeam })
     .from(matchPlayersTable)
     .innerJoin(
       matchesTable,
@@ -52,17 +52,29 @@ router.get("/compare/:id1/:id2", async (req, res): Promise<void> => {
     )
     .where(eq(matchPlayersTable.playerId, id2));
 
-  const p1Map = new Map<number, string>(p1Rows.map((r) => [r.matchId, r.team]));
-  const p2Map = new Map<number, string>(p2Rows.map((r) => [r.matchId, r.team]));
+  const p1Map = new Map<number, { team: string; winnerTeam: string | null }>(
+    p1Rows.map((r) => [r.matchId, { team: r.team, winnerTeam: r.winnerTeam }])
+  );
+  const p2Map = new Map<number, { team: string; winnerTeam: string | null }>(
+    p2Rows.map((r) => [r.matchId, { team: r.team, winnerTeam: r.winnerTeam }])
+  );
 
   let facedEachOther = 0;
   let playedTogether = 0;
+  let h2hWins1 = 0;
+  let h2hWins2 = 0;
 
-  for (const [matchId, p1Team] of p1Map) {
-    const p2Team = p2Map.get(matchId);
-    if (p2Team === undefined) continue;
-    if (p1Team === p2Team) playedTogether++;
-    else facedEachOther++;
+  for (const [matchId, p1Data] of p1Map) {
+    const p2Data = p2Map.get(matchId);
+    if (p2Data === undefined) continue;
+    if (p1Data.team === p2Data.team) {
+      playedTogether++;
+    } else {
+      facedEachOther++;
+      const winner = p1Data.winnerTeam;
+      if (winner === p1Data.team) h2hWins1++;
+      else if (winner === p2Data.team) h2hWins2++;
+    }
   }
 
   // Lisa matches — winning team scored ≥200 while loser scored 0
@@ -87,8 +99,8 @@ router.get("/compare/:id1/:id2", async (req, res): Promise<void> => {
 
   for (const lm of lisaMatchRows) {
     if (!lm.winnerTeam) continue;
-    if (p1Map.get(lm.id) === lm.winnerTeam) p1Lisas++;
-    if (p2Map.get(lm.id) === lm.winnerTeam) p2Lisas++;
+    if (p1Map.get(lm.id)?.team === lm.winnerTeam) p1Lisas++;
+    if (p2Map.get(lm.id)?.team === lm.winnerTeam) p2Lisas++;
   }
 
   res.json({
@@ -96,6 +108,8 @@ router.get("/compare/:id1/:id2", async (req, res): Promise<void> => {
     player2: { ...p2, lisas: p2Lisas },
     facedEachOther,
     playedTogether,
+    h2hWins1,
+    h2hWins2,
   });
 });
 

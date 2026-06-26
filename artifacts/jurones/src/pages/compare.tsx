@@ -25,6 +25,8 @@ interface CompareData {
   player2: PlayerWithLisas;
   facedEachOther: number;
   playedTogether: number;
+  h2hWins1: number;
+  h2hWins2: number;
 }
 
 interface PlayerWithLisas {
@@ -657,6 +659,37 @@ export default function Compare() {
                 format={(x) => `${(x * 100).toFixed(0)}%`}
               />
               <StatRow icon={Flame} label="Racha" v1={compareData.player1.currentStreak} v2={compareData.player2.currentStreak} />
+
+              {/* VS — Head-to-head wins */}
+              <div className="mt-5 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Swords className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">VS · Historial directo</span>
+                </div>
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className={`text-4xl font-black tabular-nums ${compareData.h2hWins1 > compareData.h2hWins2 ? "text-primary" : compareData.h2hWins1 === compareData.h2hWins2 ? "text-foreground" : "text-muted-foreground"}`}>
+                      {compareData.h2hWins1}
+                      {compareData.h2hWins1 > compareData.h2hWins2 && <span className="ml-1 text-sm">★</span>}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-medium truncate max-w-[100px] text-center">{compareData.player1.name.split(" ")[0]}</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 shrink-0">
+                    <span className="text-lg font-black text-muted-foreground/40">VS</span>
+                    <span className="text-[10px] text-muted-foreground/40 uppercase tracking-widest">{compareData.facedEachOther} enfrent.</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className={`text-4xl font-black tabular-nums ${compareData.h2hWins2 > compareData.h2hWins1 ? "text-amber-400" : compareData.h2hWins1 === compareData.h2hWins2 ? "text-foreground" : "text-muted-foreground"}`}>
+                      {compareData.h2hWins2 > compareData.h2hWins1 && <span className="mr-1 text-sm">★</span>}
+                      {compareData.h2hWins2}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-medium truncate max-w-[100px] text-center">{compareData.player2.name.split(" ")[0]}</span>
+                  </div>
+                </div>
+                {compareData.facedEachOther === 0 && (
+                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Nunca se han enfrentado directamente</p>
+                )}
+              </div>
             </div>
 
             {/* Head to head */}
