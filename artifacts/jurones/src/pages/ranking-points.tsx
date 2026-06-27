@@ -35,6 +35,7 @@ export default function RankingPoints() {
   const { toast } = useToast();
   const shareRef = useRef<HTMLDivElement>(null);
 
+  const totalPuntos = (players ?? []).reduce((sum, p) => sum + (p.totalPoints ?? 0), 0);
   const sorted = [...(players ?? [])].sort((a, b) => (b.totalPoints ?? 0) - (a.totalPoints ?? 0));
   const top10 = sorted.slice(0, 10);
 
@@ -75,6 +76,13 @@ export default function RankingPoints() {
             Ranking de Puntos
           </h1>
           <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Clasificación por puntuación total acumulada.</p>
+          {!isLoading && (
+            <p className="mt-2 text-sm text-white/80">
+              <span className="text-white/40 uppercase tracking-widest text-xs font-semibold">Total de Puntos</span>
+              {" "}
+              <span className="font-black text-white text-base tabular-nums">{totalPuntos.toLocaleString()}</span>
+            </p>
+          )}
         </div>
         <Button
           size="icon"
