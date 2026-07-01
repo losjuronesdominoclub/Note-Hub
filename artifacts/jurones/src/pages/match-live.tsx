@@ -52,6 +52,13 @@ export default function MatchLive() {
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [pendingScore, setPendingScore] = useState<{ playerId: number; team: "cortos" | "largos"; points: number; isQuickThirty: boolean; note?: string } | null>(null);
 
+  // Special event confirmation state
+  const [pendingSpecialEvent, setPendingSpecialEvent] = useState<{
+    player: { id: number; name: string };
+    team: "cortos" | "largos";
+    eventType: "chivo" | "paso";
+  } | null>(null);
+
   // Multas state
   const [showMultasDialog, setShowMultasDialog] = useState(false);
   const [multasTeam, setMultasTeam] = useState<"cortos" | "largos" | null>(null);
@@ -656,6 +663,51 @@ export default function MatchLive() {
         );
       })()}
 
+      {/* Special event confirmation dialog (Chivo / Pasó con ficha) */}
+      <Dialog open={!!pendingSpecialEvent} onOpenChange={(o) => { if (!o) setPendingSpecialEvent(null); }}>
+        <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2 text-lg">
+              {pendingSpecialEvent?.eventType === "chivo" ? "🐐 Confirmar Chivo" : "⚠️ Confirmar Pasó con ficha"}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground pt-1">
+              {pendingSpecialEvent?.eventType === "chivo" ? (
+                <>
+                  <span className="font-semibold text-white">{pendingSpecialEvent?.player.name}</span> hizo chivo.{" "}
+                  Se sumarán <span className="font-black text-yellow-400">+60 pts</span> al equipo contrario.
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold text-white">{pendingSpecialEvent?.player.name}</span> pasó con ficha.{" "}
+                  Se sumarán <span className="font-black text-yellow-400">+60 pts</span> al equipo contrario.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 border-border text-muted-foreground hover:text-foreground"
+              onClick={() => setPendingSpecialEvent(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-bold"
+              disabled={submitting}
+              onClick={async () => {
+                if (!pendingSpecialEvent) return;
+                const { player, team, eventType } = pendingSpecialEvent;
+                setPendingSpecialEvent(null);
+                await handleSpecialEvent(player, team, eventType);
+              }}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Multas dialog */}
       <Dialog open={showMultasDialog} onOpenChange={(o) => { if (!o) { setShowMultasDialog(false); setMultasPlayerId(""); setMultasTipo(""); } }}>
         <DialogContent className="bg-[#141414] border-[#2a2a2a]">
@@ -952,7 +1004,7 @@ export default function MatchLive() {
                           style={{ background: "#1a1a1a", border: "1px solid #333" }}
                           disabled={submitting}
                           title="Chivo (+60 al equipo contrario)"
-                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "cortos", "chivo")}
+                          onClick={() => setPendingSpecialEvent({ player: { id: player.id, name: player.name }, team: "cortos", eventType: "chivo" })}
                         >
                           🐐
                         </button>
@@ -978,7 +1030,7 @@ export default function MatchLive() {
                           style={{ background: "#2a1a0a", border: "1px solid #7c5a1e" }}
                           disabled={submitting}
                           title="Pasó con ficha (+60 al equipo contrario)"
-                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "cortos", "paso")}
+                          onClick={() => setPendingSpecialEvent({ player: { id: player.id, name: player.name }, team: "cortos", eventType: "paso" })}
                         >
                           ⚠️
                         </button>
@@ -1045,7 +1097,7 @@ export default function MatchLive() {
                           style={{ background: "#1a1a1a", border: "1px solid #333" }}
                           disabled={submitting}
                           title="Chivo (+60 al equipo contrario)"
-                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "largos", "chivo")}
+                          onClick={() => setPendingSpecialEvent({ player: { id: player.id, name: player.name }, team: "largos", eventType: "chivo" })}
                         >
                           🐐
                         </button>
@@ -1071,7 +1123,7 @@ export default function MatchLive() {
                           style={{ background: "#2a1a0a", border: "1px solid #7c5a1e" }}
                           disabled={submitting}
                           title="Pasó con ficha (+60 al equipo contrario)"
-                          onClick={() => handleSpecialEvent({ id: player.id, name: player.name }, "largos", "paso")}
+                          onClick={() => setPendingSpecialEvent({ player: { id: player.id, name: player.name }, team: "largos", eventType: "paso" })}
                         >
                           ⚠️
                         </button>
