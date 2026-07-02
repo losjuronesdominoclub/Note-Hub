@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download } from "lucide-react";
+import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download, Search } from "lucide-react";
 import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
 import { useUpload } from "@workspace/object-storage-web";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -324,6 +324,12 @@ export default function Players() {
     (lisasRanking ?? []).map((e) => [e.player.id, e.lisas])
   );
 
+  const [search, setSearch] = useState("");
+
+  const filteredPlayers = search.trim()
+    ? (players ?? []).filter(p => p.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : (players ?? []);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -536,14 +542,44 @@ export default function Players() {
         </Dialog>
       </div>
 
+      {/* Search bar */}
+      {!isLoading && (players?.length ?? 0) > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar jugador…"
+            className="pl-9 pr-9 bg-card/60 border-border/60 focus:border-primary/50 rounded-xl h-11 text-sm"
+          />
+          {search && (
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setSearch("")}
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <AnimatePresence>
           {isLoading ? (
             <div className="col-span-full text-center py-12 text-muted-foreground">Cargando jugadores...</div>
           ) : players?.length === 0 ? (
             <div className="col-span-full text-center py-12 text-muted-foreground">No hay jugadores registrados.</div>
+          ) : filteredPlayers.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              <Search className="h-8 w-8 mx-auto mb-3 opacity-30" />
+              <p>No hay jugadores con <span className="text-foreground font-semibold">"{search.trim()}"</span></p>
+              <button className="text-xs text-primary hover:text-primary/80 mt-2 underline underline-offset-2" onClick={() => setSearch("")}>
+                Limpiar búsqueda
+              </button>
+            </div>
           ) : (
-            players?.map((player, index) => (
+            filteredPlayers.map((player, index) => (
               <motion.div
                 key={player.id}
                 initial={{ opacity: 0, scale: 0.95 }}
