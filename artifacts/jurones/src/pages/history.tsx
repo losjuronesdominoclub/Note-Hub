@@ -15,17 +15,19 @@ const TZ = "America/Santo_Domingo";
 
 function matchDay(match: any): string {
   const d = new Date(match.finishedAt ?? match.createdAt);
-  return d.toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+  // Use en-CA locale → "YYYY-MM-DD" which sorts lexicographically correct across months
+  return d.toLocaleDateString("en-CA", { timeZone: TZ });
 }
 
 function dayLabel(dayStr: string): string {
-  const today = new Date().toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
-  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString("es-DO", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+  // dayStr is "YYYY-MM-DD"
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString("en-CA", { timeZone: TZ });
   if (dayStr === today) return "Hoy";
   if (dayStr === yesterday) return "Ayer";
-  // Parse dd/mm/yyyy → readable
-  const [dd, mm, yyyy] = dayStr.split("/");
-  return new Date(`${yyyy}-${mm}-${dd}T12:00:00`).toLocaleDateString("es-DO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  // Parse YYYY-MM-DD → human readable
+  const [yyyy, mm, dd] = dayStr.split("-").map(Number);
+  return new Date(yyyy, mm - 1, dd).toLocaleDateString("es-DO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
 function buildMatchText(match: any): string {
@@ -71,7 +73,7 @@ export default function History() {
   const { toast } = useToast();
 
   // Day-based pagination: group all matches by calendar day, show newest first
-  const [visibleDays, setVisibleDays] = useState(1);
+  const [visibleDays, setVisibleDays] = useState(5);
 
   const dayGroups = useMemo(() => {
     if (!matches) return [];
