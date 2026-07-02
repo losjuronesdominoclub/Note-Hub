@@ -46,13 +46,13 @@ function winRate(wins: number, losses: number): string {
   return `${((wins / total) * 100).toFixed(0)}%`;
 }
 
-export default function DailyResults() {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const TZ = "America/Santo_Domingo";
 
+export default function DailyResults() {
   const { data: days, isLoading } = useQuery<DayResult[]>({
-    queryKey: ["daily-results", tz],
+    queryKey: ["daily-results"],
     queryFn: async () => {
-      const res = await fetch(`/api/daily-results?tz=${encodeURIComponent(tz)}`);
+      const res = await fetch(`/api/daily-results?tz=${encodeURIComponent(TZ)}`);
       if (!res.ok) throw new Error("Error cargando resultados");
       return res.json();
     },
