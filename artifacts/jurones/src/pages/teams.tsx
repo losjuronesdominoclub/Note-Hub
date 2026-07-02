@@ -1,8 +1,9 @@
 import React, { useRef } from "react";
 import { motion } from "framer-motion";
-import { Users, Medal, Trophy, Share2 } from "lucide-react";
+import { Users, Medal, Trophy, Share2, Search, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import ScrollToTop from "@/components/scroll-to-top";
 import html2canvas from "html2canvas";
@@ -48,6 +49,7 @@ export default function Teams() {
   const shareRef = useRef<HTMLDivElement>(null);
   const [pairs, setPairs] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [search, setSearch] = React.useState("");
 
   React.useEffect(() => {
     fetch("/api/stats/teams")
@@ -58,6 +60,14 @@ export default function Teams() {
 
   const top10 = pairs.slice(0, 10);
   const leader = pairs[0] ?? null;
+
+  const query = search.trim().toLowerCase();
+  const filteredPairs = query
+    ? pairs.filter(p =>
+        p.p1Name.toLowerCase().includes(query) ||
+        p.p2Name.toLowerCase().includes(query)
+      )
+    : pairs;
 
   const handleShare = async () => {
     if (!shareRef.current || top10.length === 0) return;
@@ -140,6 +150,28 @@ export default function Teams() {
         </motion.div>
       )}
 
+      {/* Search bar */}
+      {!isLoading && pairs.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar jugador en parejas…"
+            className="pl-9 pr-9 bg-card/60 border-border/60 focus:border-emerald-500/50 rounded-xl h-11 text-sm"
+          />
+          {search && (
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setSearch("")}
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Ranking list */}
       {isLoading ? (
         <div className="space-y-3">
@@ -148,46 +180,61 @@ export default function Teams() {
           ))}
         </div>
       ) : pairs.length > 0 ? (
-        <div className="space-y-3">
-          {pairs.map((pair, index) => {
-            const pos = index + 1;
-            const style = positionStyle(pos);
-            const wrPct = (pair.winRate * 100).toFixed(1);
-            return (
-              <motion.div
-                key={`${pair.p1Id}-${pair.p2Id}`}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.04 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${style.row} ${style.glow} backdrop-blur-sm shadow-lg`}
-              >
-                {/* Position */}
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${style.badge}`}>
-                  {positionIcon(pos)}
-                </div>
-
-                {/* Avatars */}
-                <PairAvatars p1Avatar={pair.p1Avatar} p1Name={pair.p1Name} p2Avatar={pair.p2Avatar} p2Name={pair.p2Name} size="md" />
-
-                {/* Names + stats */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm leading-tight truncate">{pair.p1Name}</p>
-                  <p className="font-bold text-sm leading-tight truncate text-emerald-400">{pair.p2Name}</p>
-                  <div className="flex items-center gap-x-2 text-xs text-muted-foreground mt-0.5">
-                    <span>{pair.wins}V · {pair.losses}D</span>
-                    <span className="text-muted-foreground/60">{pair.total} Part</span>
+        filteredPairs.length > 0 ? (
+          <div className="space-y-3">
+            {query && (
+              <p className="text-xs text-muted-foreground px-1">
+                {filteredPairs.length} pareja{filteredPairs.length !== 1 ? "s" : ""} con <span className="text-emerald-400 font-semibold">"{search.trim()}"</span>
+              </p>
+            )}
+            {filteredPairs.map((pair) => {
+              const pos = pairs.indexOf(pair) + 1;
+              const style = positionStyle(pos);
+              const wrPct = (pair.winRate * 100).toFixed(1);
+              return (
+                <motion.div
+                  key={`${pair.p1Id}-${pair.p2Id}`}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${style.row} ${style.glow} backdrop-blur-sm shadow-lg`}
+                >
+                  {/* Position */}
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-sm font-bold ${style.badge}`}>
+                    {positionIcon(pos)}
                   </div>
-                </div>
 
-                {/* Wins stat */}
-                <div className="text-right shrink-0 pl-2 border-l border-border">
-                  <p className="text-2xl font-black text-emerald-400">{pair.wins}<span className="text-base font-bold text-emerald-400/60"> V</span></p>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{wrPct}% WR</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  {/* Avatars */}
+                  <PairAvatars p1Avatar={pair.p1Avatar} p1Name={pair.p1Name} p2Avatar={pair.p2Avatar} p2Name={pair.p2Name} size="md" />
+
+                  {/* Names + stats */}
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-bold text-sm leading-tight truncate ${query && pair.p1Name.toLowerCase().includes(query) ? "text-emerald-300" : ""}`}>{pair.p1Name}</p>
+                    <p className={`font-bold text-sm leading-tight truncate ${query && pair.p2Name.toLowerCase().includes(query) ? "text-emerald-300" : "text-emerald-400"}`}>{pair.p2Name}</p>
+                    <div className="flex items-center gap-x-2 text-xs text-muted-foreground mt-0.5">
+                      <span>{pair.wins}V · {pair.losses}D</span>
+                      <span className="text-muted-foreground/60">{pair.total} Part</span>
+                    </div>
+                  </div>
+
+                  {/* Wins stat */}
+                  <div className="text-right shrink-0 pl-2 border-l border-border">
+                    <p className="text-2xl font-black text-emerald-400">{pair.wins}<span className="text-base font-bold text-emerald-400/60"> V</span></p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{wrPct}% WR</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground glass-card rounded-2xl">
+            <Search className="h-8 w-8 mx-auto mb-3 opacity-30" />
+            <p>No hay parejas con <span className="text-foreground font-semibold">"{search.trim()}"</span></p>
+            <button className="text-xs text-emerald-400 hover:text-emerald-300 mt-2 underline underline-offset-2" onClick={() => setSearch("")}>
+              Limpiar búsqueda
+            </button>
+          </div>
+        )
       ) : (
         <div className="text-center py-16 text-muted-foreground glass-card rounded-2xl">
           Aún no hay suficientes partidas para generar el ranking de parejas.
