@@ -26,6 +26,7 @@ import LisasRecibidas from "@/pages/lisas-recibidas";
 import DailyResults from "@/pages/daily-results";
 import Stream from "@/pages/stream";
 import Compare from "@/pages/compare";
+import TeamsVs from "@/pages/teams-vs";
 import Rules from "@/pages/rules";
 import PendingMatches from "@/pages/pending-matches";
 import Promedios from "@/pages/promedios";
@@ -204,6 +205,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/daily-results" component={() => <ProtectedRoute component={DailyResults} />} />
           <Route path="/stream" component={() => <ProtectedRoute component={Stream} />} />
           <Route path="/compare" component={() => <ProtectedRoute component={Compare} />} />
+          <Route path="/teams-vs" component={() => <ProtectedRoute component={TeamsVs} />} />
           <Route path="/rules" component={() => <ProtectedRoute component={Rules} />} />
           <Route path="/pending-matches" component={() => <ProtectedRoute component={PendingMatches} />} />
           <Route path="/promedios" component={() => <ProtectedRoute component={Promedios} />} />
