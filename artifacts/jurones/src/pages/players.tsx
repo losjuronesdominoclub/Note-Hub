@@ -345,9 +345,11 @@ export default function Players() {
 
   const [search, setSearch] = useState("");
 
+  const visiblePlayers = (players ?? []).filter(p => isDevMode || !p.hidden);
+
   const filteredPlayers = search.trim()
-    ? (players ?? []).filter(p => p.name.toLowerCase().includes(search.trim().toLowerCase()))
-    : (players ?? []);
+    ? visiblePlayers.filter(p => p.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : visiblePlayers;
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
