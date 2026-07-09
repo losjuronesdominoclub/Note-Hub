@@ -20,5 +20,6 @@ export interface Player {
   topPts: number;
   /** @nullable */
   topSince?: string | null;
+  hidden?: boolean;
   createdAt: string;
 }

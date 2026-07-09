@@ -23,6 +23,7 @@ export interface Player {
   topPts: number;
   /** @nullable */
   topSince?: string | null;
+  hidden?: boolean;
   createdAt: string;
 }
 
@@ -41,6 +42,7 @@ export interface PlayerUpdate {
   losses?: number;
   totalPoints?: number;
   currentStreak?: number;
+  hidden?: boolean;
 }
 
 export type MatchStatus = typeof MatchStatus[keyof typeof MatchStatus];

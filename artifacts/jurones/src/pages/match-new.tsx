@@ -152,22 +152,25 @@ export default function MatchNew() {
     }
   };
 
+  // Visible (non-hidden) players only — hidden players cannot be selected in matches
+  const visiblePlayers = (players ?? []).filter((p) => !p.hidden);
+
   // Derived lists for normal mode
-  const availableForLargos = players?.filter((p) => !cortos.includes(p.id)) ?? [];
+  const availableForLargos = visiblePlayers.filter((p) => !cortos.includes(p.id));
   const q = search.toLowerCase().trim();
-  const filteredCortos = q ? (players ?? []).filter((p) => p.name.toLowerCase().includes(q)) : (players ?? []);
+  const filteredCortos = q ? visiblePlayers.filter((p) => p.name.toLowerCase().includes(q)) : visiblePlayers;
   const filteredLargos = q ? availableForLargos.filter((p) => p.name.toLowerCase().includes(q)) : availableForLargos;
 
-  const selectedCortos = (players ?? []).filter((p) => cortos.includes(p.id));
-  const selectedLargos = (players ?? []).filter((p) => largos.includes(p.id));
+  const selectedCortos = visiblePlayers.filter((p) => cortos.includes(p.id));
+  const selectedLargos = visiblePlayers.filter((p) => largos.includes(p.id));
 
   // Survivor: locked players info
-  const lockedPlayers = (players ?? []).filter((p) => survivorLockedIds.includes(p.id));
+  const lockedPlayers = visiblePlayers.filter((p) => survivorLockedIds.includes(p.id));
   const challengerColor = survivorLockedTeam === "cortos" ? "blue" : "red";
   const challengerTeamLabel = survivorLockedTeam === "cortos" ? "Largos" : "Cortos";
 
   // Survivor available (exclude locked + busy)
-  const survivorAvailable = (players ?? []).filter(
+  const survivorAvailable = visiblePlayers.filter(
     (p) => !survivorLockedIds.includes(p.id)
   );
   const filteredSurvivor = q

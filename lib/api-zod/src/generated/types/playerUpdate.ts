@@ -15,4 +15,5 @@ export interface PlayerUpdate {
   losses?: number;
   totalPoints?: number;
   currentStreak?: number;
+  hidden?: boolean;
 }

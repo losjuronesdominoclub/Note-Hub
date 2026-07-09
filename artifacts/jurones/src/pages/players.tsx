@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
+import { useDevMode } from "@/contexts/dev-mode-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download, Search, EyeOff, Eye } from "lucide-react";
 import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
 import { useUpload } from "@workspace/object-storage-web";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -310,6 +311,24 @@ export default function Players() {
   const deletePlayer = useDeletePlayer();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { isDevMode } = useDevMode();
+
+  const handleToggleHidden = (player: any) => {
+    updatePlayer.mutate(
+      { id: player.id, data: { hidden: !player.hidden } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
+          toast({
+            title: player.hidden ? "Jugador activado" : "Jugador ocultado",
+            description: player.hidden
+              ? `${player.name} vuelve a estar disponible en partidas.`
+              : `${player.name} no podrá ser elegido en nuevas partidas.`,
+          });
+        },
+      }
+    );
+  };
 
   const { data: lisasRanking } = useQuery<{ player: { id: number }; lisas: number }[]>({
     queryKey: ["lisas"],
@@ -587,18 +606,32 @@ export default function Players() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="glass-card overflow-hidden group">
+                <Card className={`glass-card overflow-hidden group transition-opacity ${player.hidden ? "opacity-50" : ""}`}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16 border-2 border-primary/20">
-                          <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                            {player.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="h-16 w-16 border-2 border-primary/20">
+                            <AvatarImage src={avatarSrc(player.avatarUrl)} className="object-cover" />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
+                              {player.name.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {player.hidden && (
+                            <div className="absolute -bottom-1 -right-1 bg-muted border border-border rounded-full p-0.5">
+                              <EyeOff className="h-3 w-3 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
                         <div>
-                          <h3 className="font-bold text-lg">{player.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg">{player.name}</h3>
+                            {player.hidden && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                                Oculto
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1"><Trophy className="h-3 w-3 text-yellow-500" /> {player.wins}V - {player.losses}D</span>
                             <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-500" /> Racha: {player.currentStreak}</span>
@@ -606,6 +639,17 @@ export default function Players() {
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
+                        {isDevMode && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-8 w-8 ${player.hidden ? "text-green-500 hover:text-green-400 hover:bg-green-500/10" : "text-muted-foreground hover:text-orange-400 hover:bg-orange-500/10"}`}
+                            title={player.hidden ? "Activar jugador" : "Ocultar jugador"}
+                            onClick={() => handleToggleHidden(player)}
+                          >
+                            {player.hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => openEdit(player)}>
                           <Edit2 className="h-4 w-4" />
                         </Button>

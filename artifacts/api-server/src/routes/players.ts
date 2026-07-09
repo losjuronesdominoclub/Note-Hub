@@ -134,6 +134,7 @@ router.patch("/players/:id", async (req, res): Promise<void> => {
   if (parsed.data.losses !== undefined) updateData.losses = parsed.data.losses;
   if (parsed.data.totalPoints !== undefined) updateData.totalPoints = parsed.data.totalPoints;
   if (parsed.data.currentStreak !== undefined) updateData.currentStreak = parsed.data.currentStreak;
+  if (parsed.data.hidden !== undefined) updateData.hidden = parsed.data.hidden;
 
   // Recalculate winRate if wins/losses changed
   const wins = parsed.data.wins;

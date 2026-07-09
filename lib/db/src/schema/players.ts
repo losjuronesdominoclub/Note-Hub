@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, real, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -15,6 +15,7 @@ export const playersTable = pgTable("players", {
   extraLisasRecibidas: integer("extra_lisas_recibidas").notNull().default(0),
   topPts: integer("top_pts").notNull().default(0),
   topSince: timestamp("top_since", { withTimezone: true }),
+  hidden: boolean("hidden").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
