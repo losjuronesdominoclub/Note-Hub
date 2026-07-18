@@ -230,14 +230,15 @@ export default function Dashboard() {
               Resultados
             </button>
           </Link>
-          <button
-            onClick={() => window.open("https://domino-flow-magic.lovable.app/", "_blank")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
-            style={{ background: "#7c3aed", color: "#fff" }}
-          >
-            <Ticket className="h-3.5 w-3.5" />
-            Turnos
-          </button>
+          <Link href="/turnos">
+            <button
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95"
+              style={{ background: "#7c3aed", color: "#fff" }}
+            >
+              <ListOrdered className="h-3.5 w-3.5" />
+              Turnos
+            </button>
+          </Link>
           <button
             onClick={() => window.location.reload()}
             className="flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-all hover:brightness-110 active:scale-95 active:rotate-180"
@@ -295,7 +296,11 @@ export default function Dashboard() {
             )}
 
             <Link href="/match/new">
-              <Button className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5">
+              <Button
+                className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+                disabled={turnos.length < 4}
+                title={turnos.length < 4 ? `Faltan jugadores en turnos (${turnos.length}/4)` : undefined}
+              >
                 <Play className="h-4 w-4 fill-current" /> + Crear Partida
               </Button>
             </Link>
