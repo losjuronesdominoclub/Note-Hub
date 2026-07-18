@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff, Clock, ListOrdered, Plus, ChevronRight } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff, Clock, ListOrdered, Plus, ChevronRight, Search } from "lucide-react";
 import { useUser } from "@clerk/react";
 import { useMatchRecovery } from "@/hooks/useOfflineMatch";
 import { useDevMode } from "@/contexts/dev-mode-context";
@@ -86,8 +86,11 @@ export default function Dashboard() {
     },
     refetchInterval: 10000,
   });
+  const [turnoSearch, setTurnoSearch] = useState("");
   const turnoPlayerIds = new Set(turnos.map((t) => t.player.id));
-  const availablePlayers = (allPlayers ?? []).filter((p) => !p.hidden && !turnoPlayerIds.has(p.id));
+  const availablePlayers = (allPlayers ?? [])
+    .filter((p) => !p.hidden && !turnoPlayerIds.has(p.id))
+    .filter((p) => !turnoSearch.trim() || p.name.toLowerCase().includes(turnoSearch.trim().toLowerCase()));
 
   const addTurnoMutation = useMutation({
     mutationFn: async (playerId: number) => {
@@ -540,12 +543,35 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {(allPlayers ?? []).filter((p) => !p.hidden && !turnoPlayerIds.has(p.id)).length > 0 && (
+                <div className="relative mb-2">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Buscar jugador..."
+                    value={turnoSearch}
+                    onChange={(e) => setTurnoSearch(e.target.value)}
+                    className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg bg-white/5 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                  />
+                  {turnoSearch && (
+                    <button
+                      onClick={() => setTurnoSearch("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
+
               {availablePlayers.length === 0 ? (
                 <div className="text-center py-4 text-muted-foreground text-xs">
-                  {allPlayers?.length === 0 ? "No hay jugadores registrados." : "Todos los jugadores están en lista."}
+                  {(allPlayers ?? []).filter((p) => !p.hidden && !turnoPlayerIds.has(p.id)).length === 0
+                    ? (allPlayers?.length === 0 ? "No hay jugadores registrados." : "Todos los jugadores están en lista.")
+                    : `Sin resultados para "${turnoSearch}"`}
                 </div>
               ) : (
-                <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                   {availablePlayers.map((player) => (
                     <div key={player.id} className="flex items-center gap-2.5">
                       <Avatar className="h-8 w-8 border border-primary/20 shrink-0">
