@@ -108,7 +108,7 @@ export default function MatchLive() {
     }
   }, [match?.status]);
 
-  // Auto-add losing pair to the end of turnos when match finishes
+  // Auto-move losing pair to the END of turnos when match finishes
   const autoAddedToTurnosRef = useRef(false);
   useEffect(() => {
     if (match?.status !== "finished" || !match?.winnerTeam || autoAddedToTurnosRef.current) return;
@@ -117,13 +117,20 @@ export default function MatchLive() {
     const losingPlayerIds = match.players
       .filter((p) => p.team === losingTeam)
       .map((p) => p.playerId);
+    // Delete first (removes their current position), then re-insert (appends to end)
     Promise.all(
       losingPlayerIds.map((playerId) =>
-        fetch("/api/turnos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ playerId }),
-        })
+        fetch(`/api/turnos/${playerId}`, { method: "DELETE" })
+      )
+    ).then(() =>
+      Promise.all(
+        losingPlayerIds.map((playerId) =>
+          fetch("/api/turnos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ playerId }),
+          })
+        )
       )
     ).then(() => {
       queryClient.invalidateQueries({ queryKey: ["turnos"] });
