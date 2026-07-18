@@ -9,6 +9,7 @@ import {
   useListMatches,
   useGetMatch,
 } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,6 +41,17 @@ export default function MatchNew() {
   const { data: players, isLoading } = useListPlayers();
   const { data: busyData } = useGetBusyPlayers({ query: { refetchInterval: 5000 } });
   const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
+
+  const { data: turnos } = useQuery<Array<{ player: { id: number; name: string } }>>({
+    queryKey: ["turnos"],
+    queryFn: async () => {
+      const res = await fetch("/api/turnos");
+      if (!res.ok) throw new Error("Failed to fetch turnos");
+      return res.json();
+    },
+    refetchInterval: 10000,
+  });
+  const turnoPlayerIds = turnos && turnos.length > 0 ? new Set(turnos.map((t) => t.player.id)) : null;
   const { user } = useUser();
   const createMatch = useCreateMatch();
   const { toast } = useToast();
@@ -153,7 +165,12 @@ export default function MatchNew() {
   };
 
   // Visible (non-hidden) players only — hidden players cannot be selected in matches
-  const visiblePlayers = (players ?? []).filter((p) => !p.hidden);
+  // When turnos list is active (non-empty), restrict to players in turnos
+  const allVisiblePlayers = (players ?? []).filter((p) => !p.hidden);
+  const visiblePlayers = turnoPlayerIds
+    ? allVisiblePlayers.filter((p) => turnoPlayerIds.has(p.id))
+    : allVisiblePlayers;
+  const turnosActive = turnoPlayerIds !== null;
 
   // Derived lists for normal mode
   const availableForLargos = visiblePlayers.filter((p) => !cortos.includes(p.id));
@@ -164,12 +181,12 @@ export default function MatchNew() {
   const selectedCortos = visiblePlayers.filter((p) => cortos.includes(p.id));
   const selectedLargos = visiblePlayers.filter((p) => largos.includes(p.id));
 
-  // Survivor: locked players info
-  const lockedPlayers = visiblePlayers.filter((p) => survivorLockedIds.includes(p.id));
+  // Survivor: locked players info (use allVisiblePlayers so locked winner is always visible)
+  const lockedPlayers = allVisiblePlayers.filter((p) => survivorLockedIds.includes(p.id));
   const challengerColor = survivorLockedTeam === "cortos" ? "blue" : "red";
   const challengerTeamLabel = survivorLockedTeam === "cortos" ? "Largos" : "Cortos";
 
-  // Survivor available (exclude locked + busy)
+  // Survivor available (exclude locked + busy, filtered by turnos when active)
   const survivorAvailable = visiblePlayers.filter(
     (p) => !survivorLockedIds.includes(p.id)
   );
@@ -206,6 +223,12 @@ export default function MatchNew() {
                 ? "Selecciona el equipo Cortos (2 jugadores)"
                 : "Selecciona el equipo Largos (2 jugadores)"}
             </p>
+            {turnosActive && (
+              <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-[10px] font-semibold text-primary uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                Turnos activos
+              </span>
+            )}
           </div>
         </div>
 

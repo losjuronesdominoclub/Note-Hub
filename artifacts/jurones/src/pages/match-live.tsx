@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useUser } from "@clerk/react";
 import { useRoute, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -107,6 +107,28 @@ export default function MatchLive() {
       triggerConfetti();
     }
   }, [match?.status]);
+
+  // Auto-add losing pair to the end of turnos when match finishes
+  const autoAddedToTurnosRef = useRef(false);
+  useEffect(() => {
+    if (match?.status !== "finished" || !match?.winnerTeam || autoAddedToTurnosRef.current) return;
+    autoAddedToTurnosRef.current = true;
+    const losingTeam = match.winnerTeam === "cortos" ? "largos" : "cortos";
+    const losingPlayerIds = match.players
+      .filter((p) => p.team === losingTeam)
+      .map((p) => p.playerId);
+    Promise.all(
+      losingPlayerIds.map((playerId) =>
+        fetch("/api/turnos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId }),
+        })
+      )
+    ).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["turnos"] });
+    });
+  }, [match?.status, match?.winnerTeam, match?.players]);
 
   // Elapsed time clock
   useEffect(() => {
