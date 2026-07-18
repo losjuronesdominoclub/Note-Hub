@@ -585,8 +585,7 @@ export default function Dashboard() {
                       <span className="text-sm font-medium flex-1 truncate">{player.name}</span>
                       <Button
                         size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 shrink-0"
+                        className="h-7 w-7 bg-green-600 hover:bg-green-500 text-white shrink-0"
                         onClick={() => addTurnoMutation.mutate(player.id)}
                         disabled={addTurnoMutation.isPending}
                       >
