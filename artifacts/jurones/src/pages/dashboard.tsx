@@ -295,15 +295,14 @@ export default function Dashboard() {
               </Button>
             )}
 
-            <Link href="/match/new">
-              <Button
-                className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
-                disabled={turnos.length < 4}
-                title={turnos.length < 4 ? `Faltan jugadores en turnos (${turnos.length}/4)` : undefined}
-              >
-                <Play className="h-4 w-4 fill-current" /> + Crear Partida
-              </Button>
-            </Link>
+            <Button
+              className="gap-2 rounded-full shadow-lg bg-green-600 hover:bg-green-500 text-white shadow-green-900/40 font-bold px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={turnos.length < 4}
+              title={turnos.length < 4 ? `Se necesitan 4 jugadores en turnos (${turnos.length}/4)` : undefined}
+              onClick={() => { if (turnos.length >= 4) setLocation("/match/new"); }}
+            >
+              <Play className="h-4 w-4 fill-current" /> + Crear Partida
+            </Button>
           </div>
         </div>
       </div>
