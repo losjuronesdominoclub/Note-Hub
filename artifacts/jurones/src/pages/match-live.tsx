@@ -117,22 +117,19 @@ export default function MatchLive() {
     const losingPlayerIds = match.players
       .filter((p) => p.team === losingTeam)
       .map((p) => p.playerId);
-    // Delete first (removes their current position), then re-insert (appends to end)
+    // Delete both simultaneously, then re-insert sequentially so each gets a unique trailing position
     Promise.all(
       losingPlayerIds.map((playerId) =>
         fetch(`/api/turnos/${playerId}`, { method: "DELETE" })
       )
-    ).then(() =>
-      Promise.all(
-        losingPlayerIds.map((playerId) =>
-          fetch("/api/turnos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ playerId }),
-          })
-        )
-      )
-    ).then(() => {
+    ).then(async () => {
+      for (const playerId of losingPlayerIds) {
+        await fetch("/api/turnos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId }),
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["turnos"] });
     });
   }, [match?.status, match?.winnerTeam, match?.players]);
