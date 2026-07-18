@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { 
-  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff, Percent, CalendarDays, Swords
+  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff, Percent, CalendarDays, Swords, ListOrdered
 } from "lucide-react";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export default function FloatingMenu() {
 
   const menuItems = [
     { icon: Home, label: "Inicio", path: "/dashboard" },
+    { icon: ListOrdered, label: "Turnos", path: "/turnos" },
     { icon: Radio, label: "Live", path: "/live" },
     { icon: CalendarDays, label: "Timeline", path: "/timeline" },
     { icon: History, label: "Records", path: "/history" },

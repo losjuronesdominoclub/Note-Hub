@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff, Clock } from "lucide-react";
+import { Play, Users, Trophy, Activity, ArrowRight, Medal, Zap, Flame, Star, Instagram, RotateCcw, XCircle, AlertTriangle, BarChart2, Ticket, CalendarDays, Terminal, ShieldCheck, ShieldOff, WifiOff, Clock, ListOrdered, Plus, ChevronRight } from "lucide-react";
 import { useUser } from "@clerk/react";
 import { useMatchRecovery } from "@/hooks/useOfflineMatch";
 import { useDevMode } from "@/contexts/dev-mode-context";
-import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents } from "@workspace/api-client-react";
+import { useGetDashboardStats, useGetRecentActivity, useListMatches, useListEvents, useListPlayers } from "@workspace/api-client-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { TURNOS_QUERY_KEY, type TurnoEntry } from "@/pages/turnos";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,6 +75,33 @@ export default function Dashboard() {
   }, [events]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const { data: allPlayers } = useListPlayers();
+  const { data: turnos = [] } = useQuery<TurnoEntry[]>({
+    queryKey: TURNOS_QUERY_KEY,
+    queryFn: async () => {
+      const res = await fetch("/api/turnos");
+      if (!res.ok) throw new Error("Error cargando turnos");
+      return res.json();
+    },
+    refetchInterval: 10000,
+  });
+  const turnoPlayerIds = new Set(turnos.map((t) => t.player.id));
+  const availablePlayers = (allPlayers ?? []).filter((p) => !p.hidden && !turnoPlayerIds.has(p.id));
+
+  const addTurnoMutation = useMutation({
+    mutationFn: async (playerId: number) => {
+      const res = await fetch("/api/turnos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId }),
+      });
+      if (!res.ok) throw new Error("Error agregando turno");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: TURNOS_QUERY_KEY }),
+    onError: () => toast({ title: "Error", description: "No se pudo agregar al jugador", variant: "destructive" }),
+  });
   const { isDevMode, enableDevMode, disableDevMode } = useDevMode();
   const { user } = useUser();
 
@@ -480,52 +508,62 @@ export default function Dashboard() {
           </Card>
         </motion.div>
 
-        {/* Actividad Reciente */}
+        {/* Turnos */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-card h-full">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Actividad Reciente</CardTitle>
-              <Activity className="h-5 w-5 text-muted-foreground" />
+          <Card className="glass-card h-full flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-xl">Turnos</CardTitle>
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-primary text-xs" asChild>
+                <Link href="/turnos">Ver lista <ChevronRight className="h-3.5 w-3.5" /></Link>
+              </Button>
             </CardHeader>
-            <CardContent>
-              {activityLoading ? (
-                <div className="space-y-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-[200px]" />
-                        <Skeleton className="h-3 w-[100px]" />
-                      </div>
+            <CardContent className="flex-1 overflow-hidden">
+              {turnos.length > 0 && (
+                <div className="mb-4 space-y-1.5">
+                  {turnos.slice(0, 4).map((t, i) => (
+                    <div key={t.player.id} className="flex items-center gap-2.5 text-sm">
+                      <span className="text-primary/60 font-black w-5 text-center text-xs">{i + 1}</span>
+                      <Avatar className="h-6 w-6 border border-primary/20 shrink-0">
+                        <AvatarImage src={t.player.avatarUrl ? (t.player.avatarUrl.startsWith("http") ? t.player.avatarUrl : `/api/storage/objects/${t.player.avatarUrl.replace(/^\/objects\//, "")}`) : undefined} className="object-cover" />
+                        <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">{t.player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium truncate flex-1">{t.player.name}</span>
                     </div>
                   ))}
+                  {turnos.length > 4 && (
+                    <p className="text-xs text-muted-foreground pl-7">+{turnos.length - 4} más en lista</p>
+                  )}
                 </div>
-              ) : activity && activity.length > 0 ? (
-                <div className="space-y-6">
-                  {activity.slice(0, 5).map((entry, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${entry.team === 'cortos' ? 'bg-red-500' : 'bg-blue-500'}`} />
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          <span className="font-bold">{entry.playerName}</span> anotó {entry.points} pts
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Partida #{entry.matchNumber} • {new Date(entry.createdAt).toLocaleTimeString("es-DO", { timeZone: "America/Santo_Domingo", hour: '2-digit', minute: '2-digit', hour12: true })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="link" className="w-full text-muted-foreground" asChild>
-                    <Link href="/history">Ver historial completo <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                  </Button>
+              )}
+
+              {availablePlayers.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground text-xs">
+                  {allPlayers?.length === 0 ? "No hay jugadores registrados." : "Todos los jugadores están en lista."}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No hay actividad reciente.
+                <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+                  {availablePlayers.map((player) => (
+                    <div key={player.id} className="flex items-center gap-2.5">
+                      <Avatar className="h-8 w-8 border border-primary/20 shrink-0">
+                        <AvatarImage src={player.avatarUrl ? (player.avatarUrl.startsWith("http") ? player.avatarUrl : `/api/storage/objects/${player.avatarUrl.replace(/^\/objects\//, "")}`) : undefined} className="object-cover" />
+                        <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">{player.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium flex-1 truncate">{player.name}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 shrink-0"
+                        onClick={() => addTurnoMutation.mutate(player.id)}
+                        disabled={addTurnoMutation.isPending}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>

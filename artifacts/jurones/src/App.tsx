@@ -32,6 +32,7 @@ import PendingMatches from "@/pages/pending-matches";
 import Promedios from "@/pages/promedios";
 import Timeline from "@/pages/timeline";
 import Teams from "@/pages/teams";
+import Turnos from "@/pages/turnos";
 import NotFound from "@/pages/not-found";
 import logoPath from "@assets/logo_1779907396869.png";
 
@@ -211,6 +212,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/promedios" component={() => <ProtectedRoute component={Promedios} />} />
           <Route path="/timeline" component={() => <ProtectedRoute component={Timeline} />} />
           <Route path="/teams" component={() => <ProtectedRoute component={Teams} />} />
+          <Route path="/turnos" component={() => <ProtectedRoute component={Turnos} />} />
           
           <Route path="/live" component={() => <PublicOrProtectedRoute component={LiveMatches} />} />
           

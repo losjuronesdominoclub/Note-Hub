@@ -13,6 +13,7 @@ import streamRouter from "./stream";
 import compareRouter from "./compare";
 import teamsVsRouter from "./teams-vs";
 import rulesRouter from "./rules";
+import turnosRouter from "./turnos";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(streamRouter);
 router.use(compareRouter);
 router.use(teamsVsRouter);
 router.use(rulesRouter);
+router.use(turnosRouter);
 
 export default router;
