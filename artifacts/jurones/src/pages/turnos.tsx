@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
-import { X, ListOrdered, Trash2, GripVertical, Check } from "lucide-react";
+import { X, ListOrdered, Trash2, GripVertical, Check, Swords } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useGetBusyPlayers } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,17 @@ export default function Turnos() {
   const [editMode, setEditMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<TurnoEntry[]>([]);
 
-  const { data: turnos = [], isLoading } = useQuery<TurnoEntry[]>({
+  const { data: rawTurnos = [], isLoading } = useQuery<TurnoEntry[]>({
     queryKey: TURNOS_QUERY_KEY,
     queryFn: fetchTurnos,
     refetchInterval: 10000,
   });
+
+  const { data: busyData } = useGetBusyPlayers({ query: { refetchInterval: 5000 } });
+  const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
+
+  const turnos = rawTurnos.filter((t) => !busyPlayerIds.has(t.player.id));
+  const playingCount = rawTurnos.length - turnos.length;
 
   const remove = useMutation({
     mutationFn: removeTurno,
@@ -116,6 +123,12 @@ export default function Turnos() {
           <p className="text-muted-foreground mt-1 uppercase tracking-[0.2em] text-xs">
             Lista de jugadores por orden de llegada
           </p>
+          {playingCount > 0 && (
+            <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
+              <Swords className="h-3 w-3" />
+              {playingCount} jugando — oculto{playingCount !== 1 ? "s" : ""} de la lista
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {editMode ? (
