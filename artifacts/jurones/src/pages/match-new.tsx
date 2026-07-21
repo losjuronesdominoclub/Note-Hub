@@ -6,8 +6,11 @@ import {
   useListPlayers,
   useCreateMatch,
   useGetBusyPlayers,
+  getGetBusyPlayersQueryKey,
   useListMatches,
+  getListMatchesQueryKey,
   useGetMatch,
+  getGetMatchQueryKey,
 } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -39,7 +42,7 @@ function avatarSrc(path: string | null | undefined): string | undefined {
 export default function MatchNew() {
   const [, setLocation] = useLocation();
   const { data: players, isLoading } = useListPlayers();
-  const { data: busyData } = useGetBusyPlayers({ query: { refetchInterval: 5000 } });
+  const { data: busyData } = useGetBusyPlayers({ query: { queryKey: getGetBusyPlayersQueryKey(), refetchInterval: 5000 } });
   const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
 
   const { data: turnos } = useQuery<Array<{ player: { id: number; name: string } }>>({
@@ -71,11 +74,11 @@ export default function MatchNew() {
   // Fetch last finished match for survivor
   const { data: finishedMatches } = useListMatches(
     { status: "finished" },
-    { query: { enabled: survivorMode } }
+    { query: { queryKey: getListMatchesQueryKey({ status: "finished" }), enabled: survivorMode } }
   );
   const lastMatchId = finishedMatches?.[0]?.id;
   const { data: lastMatch } = useGetMatch(lastMatchId ?? 0, {
-    query: { enabled: survivorMode && !!lastMatchId },
+    query: { queryKey: getGetMatchQueryKey(lastMatchId ?? 0), enabled: survivorMode && !!lastMatchId },
   });
 
   // When last match loads, auto-lock the winning team

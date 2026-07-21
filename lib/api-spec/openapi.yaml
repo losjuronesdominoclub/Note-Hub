@@ -700,6 +700,8 @@ components:
           type: ["string", "null"]
         createdBy:
           type: ["string", "null"]
+        teamsSwapped:
+          type: boolean
         players:
           type: array
           items:

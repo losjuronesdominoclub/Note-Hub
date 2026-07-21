@@ -379,7 +379,7 @@ export default function Players() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
         setIsCreateOpen(false);
-        setFormData({ name: "", avatarUrl: "" });
+        setFormData({ name: "", avatarUrl: "", currentStreak: 0 });
         toast({ title: "Jugador creado", description: "El jugador ha sido creado exitosamente." });
       },
     });

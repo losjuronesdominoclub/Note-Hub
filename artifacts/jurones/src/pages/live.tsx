@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useListMatches, useGetMatch } from "@workspace/api-client-react";
+import { useListMatches, getListMatchesQueryKey, useGetMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Radio, RefreshCw, Trophy, Volume2, VolumeX } from "lucide-react";
@@ -43,7 +43,7 @@ function PlayerPill({ player, team }: { player: { name: string; avatarUrl?: stri
 
 function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean }) {
   const { data: match } = useGetMatch(matchId, {
-    query: { refetchInterval: 3000 },
+    query: { queryKey: getGetMatchQueryKey(matchId), refetchInterval: 3000 },
   });
 
   // Keep a ref so the score-watcher effect doesn't re-run when narrate toggles
@@ -248,7 +248,7 @@ export default function LiveMatches() {
 
   const { data: matches, isLoading, refetch } = useListMatches(
     { status: "active" },
-    { query: { refetchInterval: 5000 } }
+    { query: { queryKey: getListMatchesQueryKey({ status: "active" }), refetchInterval: 5000 } }
   );
 
   const handleRefresh = useCallback(async () => {

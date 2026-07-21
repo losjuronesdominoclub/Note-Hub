@@ -94,7 +94,7 @@ export default function DailyResults() {
         body: JSON.stringify({ wins, losses }),
       });
       if (!res.ok) throw new Error();
-      await queryClient.invalidateQueries({ queryKey: ["daily-results", tz] });
+      await queryClient.invalidateQueries({ queryKey: ["daily-results", TZ] });
       toast({ title: "Actualizado", description: `${editPlayer.name}: ${wins}G – ${losses}P` });
       setEditPlayer(null);
     } catch {

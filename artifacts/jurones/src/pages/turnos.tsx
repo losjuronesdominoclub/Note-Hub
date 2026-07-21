@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { X, ListOrdered, Trash2, GripVertical, Check, Swords } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useGetBusyPlayers } from "@workspace/api-client-react";
+import { useGetBusyPlayers, getGetBusyPlayersQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export default function Turnos() {
     refetchInterval: 10000,
   });
 
-  const { data: busyData } = useGetBusyPlayers({ query: { refetchInterval: 5000 } });
+  const { data: busyData } = useGetBusyPlayers({ query: { queryKey: getGetBusyPlayersQueryKey(), refetchInterval: 5000 } });
   const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
 
   const turnos = rawTurnos.filter((t) => !busyPlayerIds.has(t.player.id));

@@ -38,7 +38,7 @@ export default function MatchLive() {
   const { toast } = useToast();
   
   const { data: match, isLoading } = useGetMatch(matchId, {
-    query: { refetchInterval: 3000 }
+    query: { queryKey: getGetMatchQueryKey(matchId), refetchInterval: 3000 }
   });
   const { user } = useUser();
   const createMatch = useCreateMatch();

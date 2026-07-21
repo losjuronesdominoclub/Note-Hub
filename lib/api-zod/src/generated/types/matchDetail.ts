@@ -22,6 +22,7 @@ export interface MatchDetail {
   finishedAt?: string | null;
   /** @nullable */
   createdBy?: string | null;
+  teamsSwapped?: boolean;
   players: MatchPlayer[];
   scoreLog: ScoreLogEntry[];
 }

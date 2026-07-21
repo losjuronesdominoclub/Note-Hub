@@ -39,7 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useListMatches, useGetMatch } from "@workspace/api-client-react";
+import { useListMatches, getListMatchesQueryKey, useGetMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
 import { useUser } from "@clerk/react";
 
 const ADMIN_CODE = "110880";
@@ -69,7 +69,7 @@ function avatarSrc(path: string | null | undefined): string | undefined {
 // ─── Minimal score bar inside the video ───────────────────────────────────────
 function ScoreOverlay({ matchId }: { matchId: number | null }) {
   const { data: match } = useGetMatch(matchId ?? 0, {
-    query: { enabled: matchId !== null, refetchInterval: 3000 },
+    query: { queryKey: getGetMatchQueryKey(matchId ?? 0), enabled: matchId !== null, refetchInterval: 3000 },
   });
   if (!match) return null;
   return (
@@ -90,7 +90,7 @@ function ScoreOverlay({ matchId }: { matchId: number | null }) {
 // ─── Full match score card (same design as Live module) ───────────────────────
 function StreamScoreCard({ matchId }: { matchId: number }) {
   const { data: match } = useGetMatch(matchId, {
-    query: { refetchInterval: 3000 },
+    query: { queryKey: getGetMatchQueryKey(matchId), refetchInterval: 3000 },
   });
   if (!match) return null;
 
@@ -366,7 +366,7 @@ export default function StreamPage() {
   // Active matches for score panel
   const { data: activeMatches } = useListMatches(
     { status: "active" },
-    { query: { refetchInterval: 5000 } }
+    { query: { queryKey: getListMatchesQueryKey({ status: "active" }), refetchInterval: 5000 } }
   );
 
   // Auto-select first match when matches load
