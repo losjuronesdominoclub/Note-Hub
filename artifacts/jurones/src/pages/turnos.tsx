@@ -246,6 +246,14 @@ export default function Turnos() {
           )}
         </CardContent>
       </Card>
+
+      <div className="rounded-2xl border border-white/8 bg-white/3 px-5 py-4 space-y-2.5 text-xs text-muted-foreground">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-white/30 mb-1">Cómo funciona</p>
+        <p className="flex gap-2"><span className="text-primary/60 shrink-0">•</span>Cuando un jugador llega, se anota o pide que lo anoten.</p>
+        <p className="flex gap-2"><span className="text-primary/60 shrink-0">•</span>Al anotarse cae automáticamente al final de la lista — él es el último en turno.</p>
+        <p className="flex gap-2"><span className="text-primary/60 shrink-0">•</span>Si una pareja pierde justo antes de que él llegue, jugará primero que ellos aunque llegó después.</p>
+        <p className="flex gap-2"><span className="text-primary/60 shrink-0">•</span>Si la lista queda con número impar, el último jugador irá con uno de los perdedores de la partida en curso.</p>
+      </div>
     </div>
   );
 }
