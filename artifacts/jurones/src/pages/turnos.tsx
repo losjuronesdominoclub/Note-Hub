@@ -111,9 +111,17 @@ export default function Turnos() {
 
   const todayStats = useMemo<Map<number, { wins: number; losses: number }>>(() => {
     const map = new Map<number, { wins: number; losses: number }>();
-    if (!dailyDays || dailyDays.length === 0) return map;
-    const today = dailyDays[0];
-    for (const p of today.players) {
+    // Compute today's date string in Santo Domingo timezone (GMT-4)
+    const todayStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+    if (!dailyDays) return map;
+    const todayEntry = dailyDays.find((d) => d.date === todayStr);
+    if (!todayEntry) return map;
+    for (const p of todayEntry.players) {
       map.set(p.playerId, { wins: p.wins, losses: p.losses });
     }
     return map;
@@ -268,8 +276,7 @@ export default function Turnos() {
                   </Avatar>
                   <span className="font-semibold flex-1">{entry.player.name}</span>
                   {(() => {
-                    const s = todayStats.get(entry.player.id);
-                    if (!s) return null;
+                    const s = todayStats.get(entry.player.id) ?? { wins: 0, losses: 0 };
                     return (
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-bold text-xs">{s.wins}G</span>
@@ -306,8 +313,7 @@ export default function Turnos() {
                     <p className="text-xs text-muted-foreground">Llegó a las {formatTime(entry.arrivedAt)}</p>
                   </div>
                   {(() => {
-                    const s = todayStats.get(entry.player.id);
-                    if (!s) return null;
+                    const s = todayStats.get(entry.player.id) ?? { wins: 0, losses: 0 };
                     return (
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-bold text-xs">{s.wins}G</span>
