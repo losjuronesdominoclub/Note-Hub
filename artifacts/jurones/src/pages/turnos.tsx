@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { X, ListOrdered, Trash2, GripVertical, Check, Swords } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +46,19 @@ function formatTime(iso: string): string {
 
 export const TURNOS_QUERY_KEY = ["turnos"];
 
+const TZ = "America/Santo_Domingo";
+
+interface DayPlayer {
+  playerId: number;
+  wins: number;
+  losses: number;
+}
+
+interface DayResult {
+  date: string;
+  players: DayPlayer[];
+}
+
 async function fetchTurnos(): Promise<TurnoEntry[]> {
   const res = await fetch("/api/turnos");
   if (!res.ok) throw new Error("Error cargando turnos");
@@ -85,6 +98,26 @@ export default function Turnos() {
 
   const { data: busyData } = useGetBusyPlayers({ query: { queryKey: getGetBusyPlayersQueryKey(), refetchInterval: 5000 } });
   const busyPlayerIds = new Set(busyData?.busyPlayerIds ?? []);
+
+  const { data: dailyDays } = useQuery<DayResult[]>({
+    queryKey: ["daily-results"],
+    queryFn: async () => {
+      const res = await fetch(`/api/daily-results?tz=${encodeURIComponent(TZ)}`);
+      if (!res.ok) throw new Error("Error cargando resultados diarios");
+      return res.json();
+    },
+    refetchInterval: 15000,
+  });
+
+  const todayStats = useMemo<Map<number, { wins: number; losses: number }>>(() => {
+    const map = new Map<number, { wins: number; losses: number }>();
+    if (!dailyDays || dailyDays.length === 0) return map;
+    const today = dailyDays[0];
+    for (const p of today.players) {
+      map.set(p.playerId, { wins: p.wins, losses: p.losses });
+    }
+    return map;
+  }, [dailyDays]);
 
   const turnos = rawTurnos.filter((t) => !busyPlayerIds.has(t.player.id));
   const playingCount = rawTurnos.length - turnos.length;
@@ -234,6 +267,16 @@ export default function Turnos() {
                     </AvatarFallback>
                   </Avatar>
                   <span className="font-semibold flex-1">{entry.player.name}</span>
+                  {(() => {
+                    const s = todayStats.get(entry.player.id);
+                    if (!s) return null;
+                    return (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-bold text-xs">{s.wins}G</span>
+                        <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-bold text-xs">{s.losses}P</span>
+                      </div>
+                    );
+                  })()}
                   <span className="text-xs text-muted-foreground shrink-0">{formatTime(entry.arrivedAt)}</span>
                 </Reorder.Item>
               ))}
@@ -262,6 +305,16 @@ export default function Turnos() {
                     <p className="font-semibold truncate">{entry.player.name}</p>
                     <p className="text-xs text-muted-foreground">Llegó a las {formatTime(entry.arrivedAt)}</p>
                   </div>
+                  {(() => {
+                    const s = todayStats.get(entry.player.id);
+                    if (!s) return null;
+                    return (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-bold text-xs">{s.wins}G</span>
+                        <span className="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 font-bold text-xs">{s.losses}P</span>
+                      </div>
+                    );
+                  })()}
                   <Button
                     variant="ghost"
                     size="icon"
