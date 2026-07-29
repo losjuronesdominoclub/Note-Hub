@@ -378,19 +378,25 @@ export default function Dashboard() {
 
                     {/* Players */}
                     {match.players && match.players.length > 0 && (
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs">
-                        {match.players.filter((p: any) => p.team === "cortos").map((p: any, j: number) => (
-                          <div key={j} className="flex items-center gap-1 truncate">
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0" />
-                            <span className="truncate text-foreground/80 font-medium">{p.player?.name ?? "—"}</span>
-                          </div>
-                        ))}
-                        {match.players.filter((p: any) => p.team === "largos").map((p: any, j: number) => (
-                          <div key={j} className="flex items-center gap-1 truncate">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
-                            <span className="truncate text-foreground/80 font-medium">{p.player?.name ?? "—"}</span>
-                          </div>
-                        ))}
+                      <div className="grid grid-cols-2 gap-x-3 text-xs">
+                        {/* Cortos column */}
+                        <div className="flex flex-col gap-0.5">
+                          {match.players.filter((p: any) => p.team === "cortos").map((p: any, j: number) => (
+                            <div key={j} className="flex items-center gap-1 truncate">
+                              <span className="h-1.5 w-1.5 rounded-full bg-red-400 shrink-0" />
+                              <span className="truncate text-foreground/80 font-medium">{p.player?.name ?? "—"}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Largos column */}
+                        <div className="flex flex-col gap-0.5">
+                          {match.players.filter((p: any) => p.team === "largos").map((p: any, j: number) => (
+                            <div key={j} className="flex items-center gap-1 truncate">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
+                              <span className="truncate text-foreground/80 font-medium">{p.player?.name ?? "—"}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
