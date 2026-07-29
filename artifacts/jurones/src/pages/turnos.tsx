@@ -252,6 +252,10 @@ export default function Turnos() {
               <p className="text-xs opacity-60">Agrega jugadores desde el Dashboard</p>
             </div>
           ) : editMode ? (
+            <div
+              className="overflow-y-scroll"
+              style={{ maxHeight: "60vh", scrollbarGutter: "stable" }}
+            >
             <Reorder.Group
               axis="y"
               values={localOrder}
@@ -288,6 +292,7 @@ export default function Turnos() {
                 </Reorder.Item>
               ))}
             </Reorder.Group>
+            </div>
           ) : (
             <AnimatePresence>
               {turnos.map((entry, index) => (
