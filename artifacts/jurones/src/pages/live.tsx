@@ -1,9 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useListMatches, getListMatchesQueryKey, useGetMatch, getGetMatchQueryKey } from "@workspace/api-client-react";
+import { useListMatches, getListMatchesQueryKey, useGetMatch, getGetMatchQueryKey, useGetBusyPlayers, getGetBusyPlayersQueryKey } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Radio, RefreshCw, Trophy, Volume2, VolumeX } from "lucide-react";
+import { Radio, RefreshCw, Trophy, Volume2, VolumeX, Swords } from "lucide-react";
+
+interface TurnoPlayer {
+  id: number;
+  name: string;
+  avatarUrl: string | null;
+}
 
 // Speak synchronously — must be called directly from a user gesture on first use.
 // After first user-gesture unlock, can be called from any context (useEffect, timers).
@@ -41,7 +48,7 @@ function PlayerPill({ player, team }: { player: { name: string; avatarUrl?: stri
   );
 }
 
-function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean }) {
+function LiveMatchCard({ matchId, narrate, challengers = [] }: { matchId: number; narrate: boolean; challengers?: TurnoPlayer[] }) {
   const { data: match } = useGetMatch(matchId, {
     query: { queryKey: getGetMatchQueryKey(matchId), refetchInterval: 3000 },
   });
@@ -192,6 +199,29 @@ function LiveMatchCard({ matchId, narrate }: { matchId: number; narrate: boolean
         </div>
       </div>
 
+      {/* Retadores */}
+      {challengers.length > 0 && (
+        <div className="border-t border-border/50 px-4 py-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Swords className="h-3 w-3" /> Retadores
+          </p>
+          <div className="flex gap-3">
+            {challengers.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-2 flex-1 min-w-0 rounded-xl border border-white/8 bg-white/3 px-3 py-2">
+                <span className="text-xs font-black text-muted-foreground/50 shrink-0">{i + 1}</span>
+                <Avatar className="h-8 w-8 border border-white/10 shrink-0">
+                  <AvatarImage src={avatarSrc(p.avatarUrl)} className="object-cover" />
+                  <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">
+                    {p.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-semibold text-xs truncate">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Score log */}
       {match.scoreLog && match.scoreLog.length > 0 && (
         <div className="border-t border-border/50 px-4 py-2">
@@ -250,6 +280,26 @@ export default function LiveMatches() {
     { status: "active" },
     { query: { queryKey: getListMatchesQueryKey({ status: "active" }), refetchInterval: 5000 } }
   );
+
+  const { data: busyData } = useGetBusyPlayers({
+    query: { queryKey: getGetBusyPlayersQueryKey(), refetchInterval: 5000 },
+  });
+  const busyIds = new Set(busyData?.busyPlayerIds ?? []);
+
+  const { data: rawTurnos = [] } = useQuery<{ id: number; player: TurnoPlayer }[]>({
+    queryKey: ["turnos"],
+    queryFn: async () => {
+      const res = await fetch("/api/turnos");
+      if (!res.ok) throw new Error("Error cargando turnos");
+      return res.json();
+    },
+    refetchInterval: 10000,
+  });
+
+  const challengers: TurnoPlayer[] = rawTurnos
+    .filter((t) => !busyIds.has(t.player.id))
+    .slice(0, 2)
+    .map((t) => t.player);
 
   const handleRefresh = useCallback(async () => {
     setSpinning(true);
@@ -310,7 +360,7 @@ export default function LiveMatches() {
       ) : matches && matches.length > 0 ? (
         <div key={refreshKey} className="flex flex-col gap-3">
           {matches.map(m => (
-            <LiveMatchCard key={m.id} matchId={m.id} narrate={narrate} />
+            <LiveMatchCard key={m.id} matchId={m.id} narrate={narrate} challengers={challengers} />
           ))}
         </div>
       ) : (
