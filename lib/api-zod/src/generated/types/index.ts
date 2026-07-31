@@ -37,6 +37,7 @@ export * from './scoreInputTeam';
 export * from './scoreLogEntry';
 export * from './scoreLogEntryTeam';
 export * from './substituteMatchBody';
+export * from './throneEntry';
 export * from './topPair';
 export * from './uploadUrlRequest';
 export * from './uploadUrlResponse';

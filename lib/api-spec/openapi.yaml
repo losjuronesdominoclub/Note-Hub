@@ -434,6 +434,21 @@ paths:
                   $ref: "#/components/schemas/PairRank"
 
   # ─── Ranking ─────────────────────────────────────────────────────────────
+  /lideres:
+    get:
+      operationId: getLideres
+      tags: [ranking]
+      summary: Get throne-time leaderboard (time each player has held the #1 spot)
+      responses:
+        "200":
+          description: Throne-time leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ThroneEntry"
+
   /ranking:
     get:
       operationId: getRanking
@@ -834,6 +849,25 @@ components:
           type: integer
         player:
           $ref: "#/components/schemas/Player"
+
+    ThroneEntry:
+      type: object
+      required: [position, playerId, name, totalSeconds, isCurrent]
+      properties:
+        position:
+          type: integer
+        playerId:
+          type: integer
+        name:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        totalSeconds:
+          type: integer
+        isCurrent:
+          type: boolean
+        topSince:
+          type: ["string", "null"]
 
     # ─── Events ───────────────────────────────────────────────────────────
     Event:

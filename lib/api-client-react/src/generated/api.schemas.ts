@@ -194,6 +194,18 @@ export interface RankedPlayer {
   player: Player;
 }
 
+export interface ThroneEntry {
+  position: number;
+  playerId: number;
+  name: string;
+  /** @nullable */
+  avatarUrl?: string | null;
+  totalSeconds: number;
+  isCurrent: boolean;
+  /** @nullable */
+  topSince?: string | null;
+}
+
 export interface Event {
   id: number;
   title: string;

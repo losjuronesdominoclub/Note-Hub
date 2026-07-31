@@ -630,6 +630,21 @@ export const GetTeamsRankingResponse = zod.array(GetTeamsRankingResponseItem)
 
 
 /**
+ * @summary Get throne-time leaderboard (time each player has held the
+ */
+export const GetLideresResponseItem = zod.object({
+  "position": zod.number(),
+  "playerId": zod.number(),
+  "name": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "totalSeconds": zod.number(),
+  "isCurrent": zod.boolean(),
+  "topSince": zod.string().nullish()
+})
+export const GetLideresResponse = zod.array(GetLideresResponseItem)
+
+
+/**
  * @summary Get player ranking leaderboard
  */
 export const GetRankingResponseItem = zod.object({

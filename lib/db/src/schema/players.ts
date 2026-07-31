@@ -15,6 +15,7 @@ export const playersTable = pgTable("players", {
   extraLisasRecibidas: integer("extra_lisas_recibidas").notNull().default(0),
   topPts: integer("top_pts").notNull().default(0),
   topSince: timestamp("top_since", { withTimezone: true }),
+  throneTimeSeconds: integer("throne_time_seconds").notNull().default(0),
   hidden: boolean("hidden").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

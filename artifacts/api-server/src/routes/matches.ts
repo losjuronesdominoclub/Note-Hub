@@ -151,7 +151,20 @@ async function updateTopPlayerSince() {
     return;
   }
 
-  // Top player changed — clear all previous topSince values, set new one
+  // Top player changed — accumulate throne time for the outgoing leader before clearing
+  if (prevTopId !== null) {
+    const [prevTopRow] = await db
+      .select({ topSince: playersTable.topSince, throneTimeSeconds: playersTable.throneTimeSeconds })
+      .from(playersTable)
+      .where(eq(playersTable.id, prevTopId));
+    if (prevTopRow?.topSince) {
+      const elapsed = Math.floor((Date.now() - new Date(prevTopRow.topSince).getTime()) / 1000);
+      const accumulated = (prevTopRow.throneTimeSeconds ?? 0) + elapsed;
+      await db.update(playersTable).set({ throneTimeSeconds: accumulated }).where(eq(playersTable.id, prevTopId));
+    }
+  }
+
+  // Clear all previous topSince values, set new one
   await db.update(playersTable).set({ topSince: null }).where(isNotNull(playersTable.topSince));
   await db.update(playersTable).set({ topSince: new Date() }).where(eq(playersTable.id, newTop.id));
 }

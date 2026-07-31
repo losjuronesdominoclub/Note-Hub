@@ -41,6 +41,7 @@ import type {
   RankedPlayer,
   ScoreInput,
   SubstituteMatchBody,
+  ThroneEntry,
   UploadUrlRequest,
   UploadUrlResponse
 } from './api.schemas';
@@ -1528,6 +1529,83 @@ export function useGetTeamsRanking<TData = Awaited<ReturnType<typeof getTeamsRan
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTeamsRankingQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLideresUrl = () => {
+
+
+
+
+  return `/api/lideres`
+}
+
+/**
+ * @summary Get throne-time leaderboard (time each player has held the
+ */
+export const getLideres = async ( options?: RequestInit): Promise<ThroneEntry[]> => {
+
+  return customFetch<ThroneEntry[]>(getGetLideresUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLideresQueryKey = () => {
+    return [
+    `/api/lideres`
+    ] as const;
+    }
+
+
+export const getGetLideresQueryOptions = <TData = Awaited<ReturnType<typeof getLideres>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLideres>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLideresQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLideres>>> = ({ signal }) => getLideres({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLideres>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLideresQueryResult = NonNullable<Awaited<ReturnType<typeof getLideres>>>
+export type GetLideresQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get throne-time leaderboard (time each player has held the
+ */
+
+export function useGetLideres<TData = Awaited<ReturnType<typeof getLideres>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLideres>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLideresQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
