@@ -288,7 +288,7 @@ export default function MatchLive() {
     if (!faultPlayer) return;
     const descs: Record<string, string> = {
       levantar: "Levantó ficha equivocada",
-      hablar: "Habló durante la jugada",
+      hablar: "Salida equivocada",
       adelantado: "Jugó adelantado",
     };
     const pts = multasTipo === "adelantado" ? 60 : 30;
@@ -781,7 +781,7 @@ export default function MatchLive() {
               <div className="flex flex-col gap-2">
                 {([
                   { key: "levantar", label: "Levantó ficha equivocada", pts: 30 },
-                  { key: "hablar",   label: "Habló durante la jugada",   pts: 30 },
+                  { key: "hablar",   label: "Salida equivocada",   pts: 30 },
                   { key: "adelantado", label: "Jugó adelantado",         pts: 60 },
                 ] as const).map(({ key, label, pts }) => (
                   <button
