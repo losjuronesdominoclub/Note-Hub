@@ -13,10 +13,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil, Share2 } from "lucide-react";
+import { Fish, Medal, Download, Upload, KeyRound, CheckCircle2, XCircle, Pencil, Share2, ScrollText } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useDevMode } from "@/contexts/dev-mode-context";
+import { useLocation } from "wouter";
 import html2canvas from "html2canvas";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
@@ -47,6 +48,7 @@ export default function Lisas() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isDevMode } = useDevMode();
+  const [, navigate] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shareRef = useRef<HTMLDivElement | null>(null);
 
@@ -239,6 +241,15 @@ export default function Lisas() {
 
         {/* Action buttons */}
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/lisas-history")}
+            className="gap-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 rounded-full"
+          >
+            <ScrollText className="h-4 w-4" />
+            Record
+          </Button>
           <Button
             variant="outline"
             size="sm"
