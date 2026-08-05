@@ -238,7 +238,7 @@ function App() {
           </WouterRouter>
           <Toaster />
         </TooltipProvider>
-        <MaintenanceOverlay />
+        {/* <MaintenanceOverlay /> */}
       </DevModeProvider>
     </ThemeProvider>
   );
