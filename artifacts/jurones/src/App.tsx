@@ -36,6 +36,7 @@ import Teams from "@/pages/teams";
 import Turnos from "@/pages/turnos";
 import Lideres from "@/pages/lideres";
 import NotFound from "@/pages/not-found";
+import MaintenanceOverlay from "@/components/maintenance-overlay";
 import logoPath from "@assets/logo_1779907396869.png";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -237,6 +238,7 @@ function App() {
           </WouterRouter>
           <Toaster />
         </TooltipProvider>
+        <MaintenanceOverlay />
       </DevModeProvider>
     </ThemeProvider>
   );
