@@ -40,3 +40,6 @@ channel = "stable-25_05"
 LIVEKIT_URL = "wss://jurones-ryxnapdx.livekit.cloud"
 LIVEKIT_API_KEY = "APIzoZZfUC8gBGv"
 LIVEKIT_API_SECRET = "9eVQVvqsfVtfvnWUVYIAbK0zIX1wCffAYK96WPNpryyG"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-ea11acbe-e03e-4d4b-97b4-f635fc3ddf64"

@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useDevMode } from "@/contexts/dev-mode-context";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ScrollToTop from "@/components/scroll-to-top";
@@ -86,6 +87,7 @@ async function reorderTurnos(order: number[]): Promise<void> {
 
 export default function Turnos() {
   const { toast } = useToast();
+  const { isDevMode } = useDevMode();
   const queryClient = useQueryClient();
   const [editMode, setEditMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<TurnoEntry[]>([]);
@@ -194,16 +196,18 @@ export default function Turnos() {
             </>
           ) : (
             <>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 text-muted-foreground hover:text-primary"
-                title="Editar orden"
-                onClick={enterEditMode}
-                disabled={turnos.length < 2}
-              >
-                <ListOrdered className="h-5 w-5" />
-              </Button>
+              {isDevMode && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                  title="Editar orden"
+                  onClick={enterEditMode}
+                  disabled={turnos.length < 2}
+                >
+                  <ListOrdered className="h-5 w-5" />
+                </Button>
+              )}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
