@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { 
-  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff, Percent, CalendarDays, Swords, ListOrdered, Crown
+  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff, Percent, CalendarDays, Swords, ListOrdered, Crown, Brackets
 } from "lucide-react";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function FloatingMenu() {
     { icon: Scale, label: "Compare", path: "/compare" },
     { icon: Swords, label: "Teams VS", path: "/teams-vs" },
     { icon: BookOpen, label: "Reglas", path: "/rules" },
+    { icon: Brackets, label: "Torneo", path: "/torneo" },
     { icon: WifiOff, label: "Partidas Pendientes", path: "/pending-matches", badge: pendingCount },
   ];
 
