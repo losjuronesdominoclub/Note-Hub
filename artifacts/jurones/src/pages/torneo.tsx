@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -45,6 +45,12 @@ import {
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Player {
+  id: number;
+  name: string;
+  avatarUrl: string | null;
+}
 
 interface TournamentSummary {
   id: number;
@@ -375,6 +381,115 @@ function Podium({ tournament }: { tournament: TournamentDetail }) {
   );
 }
 
+// ─── Player Picker ────────────────────────────────────────────────────────────
+function PlayerPicker({
+  label,
+  selected,
+  onSelect,
+  players,
+  excluded,
+}: {
+  label: string;
+  selected: Player | null;
+  onSelect: (p: Player | null) => void;
+  players: Player[];
+  excluded: number[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  const filtered = players.filter(
+    (p) =>
+      !excluded.includes(p.id) &&
+      p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-1" ref={ref}>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      {selected ? (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
+          <Avatar className="h-6 w-6 shrink-0">
+            <AvatarFallback className="bg-purple-500/30 text-purple-300 text-[10px] font-black">
+              {selected.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-semibold flex-1 truncate text-purple-200">{selected.name}</span>
+          <button
+            onClick={() => { onSelect(null); setSearch(""); }}
+            className="text-purple-400/60 hover:text-purple-300 transition-colors text-xs ml-1 shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setOpen(true); setSearch(""); }}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-white/10 hover:border-purple-500/40 hover:bg-purple-500/5 transition-colors text-left"
+        >
+          <span className="text-sm text-muted-foreground/50 italic flex-1">Seleccionar jugador…</span>
+        </button>
+      )}
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            className="z-50 mt-1 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl overflow-hidden"
+          >
+            {/* Search */}
+            <div className="p-2 border-b border-white/8">
+              <Input
+                autoFocus
+                placeholder="Buscar jugador…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="bg-background h-8 text-sm border-white/10 focus:border-purple-500/50"
+              />
+            </div>
+
+            {/* List */}
+            <div className="max-h-48 overflow-y-auto overscroll-contain">
+              {filtered.length === 0 ? (
+                <p className="text-xs text-muted-foreground/40 italic text-center py-4">Sin resultados</p>
+              ) : (
+                filtered.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => { onSelect(p); setOpen(false); setSearch(""); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-purple-500/10 transition-colors text-left"
+                  >
+                    <Avatar className="h-7 w-7 shrink-0">
+                      <AvatarFallback className="bg-white/10 text-[10px] font-black">
+                        {p.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium truncate">{p.name}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Tournament Setup ─────────────────────────────────────────────────────────
 function TournamentSetup({
   tournament,
@@ -386,29 +501,54 @@ function TournamentSetup({
   onRefresh: () => void;
 }) {
   const { toast } = useToast();
-  const qc = useQueryClient();
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [form, setForm] = useState({ name: "", player1: "", player2: "" });
+  const [teamName, setTeamName] = useState("");
+  const [player1, setPlayer1] = useState<Player | null>(null);
+  const [player2, setPlayer2] = useState<Player | null>(null);
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
 
+  const { data: allPlayers = [] } = useQuery<Player[]>({
+    queryKey: ["players"],
+    queryFn: async () => {
+      const res = await fetch("/api/players");
+      if (!res.ok) throw new Error("Error");
+      return res.json();
+    },
+  });
+
+  const visiblePlayers = allPlayers.filter((p) => !p.hidden);
+
+  const autoName = player1 && player2 ? `${player1.name} / ${player2.name}` : "";
+  const resolvedName = teamName.trim() || autoName;
+
+  const resetForm = () => {
+    setTeamName("");
+    setPlayer1(null);
+    setPlayer2(null);
+    setShowAddForm(false);
+  };
+
   const addTeam = async () => {
-    if (!form.name.trim() || !form.player1.trim() || !form.player2.trim()) return;
+    if (!player1 || !player2) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/torneo/${tournament.id}/equipos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: resolvedName,
+          player1: player1.name,
+          player2: player2.name,
+        }),
       });
       if (!res.ok) {
         const d = await res.json();
         toast({ title: "Error", description: d.error, variant: "destructive" });
         return;
       }
-      setForm({ name: "", player1: "", player2: "" });
-      setShowAddForm(false);
+      resetForm();
       onRefresh();
     } finally {
       setSaving(false);
@@ -435,10 +575,14 @@ function TournamentSetup({
     }
   };
 
-  const deleteTeam = (teamId: number) => removeTeam(teamId);
-
   const canStart = tournament.teams.length >= 2;
   const isEven = tournament.teams.length % 2 === 0;
+
+  // Players already in some team
+  const usedPlayerNames = new Set(tournament.teams.flatMap((t) => [t.player1, t.player2]));
+  const availablePlayers = visiblePlayers.filter((p) => !usedPlayerNames.has(p.name));
+
+  const excludedIds = [player1?.id, player2?.id].filter(Boolean) as number[];
 
   return (
     <div className="space-y-5">
@@ -466,7 +610,7 @@ function TournamentSetup({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => { setShowAddForm(!showAddForm); if (showAddForm) resetForm(); }}
             className="gap-1.5 h-7 text-xs border-purple-500/30 text-purple-400 hover:bg-purple-500/10 rounded-full"
           >
             <UserPlus className="h-3.5 w-3.5" />
@@ -485,42 +629,49 @@ function TournamentSetup({
             >
               <div className="glass-card rounded-xl p-4 space-y-3 border border-purple-500/20">
                 <p className="text-xs font-bold uppercase tracking-widest text-purple-400">Nuevo equipo</p>
-                <div className="space-y-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Nombre del equipo</Label>
-                    <Input
-                      placeholder="Ej: Los Invictos"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className="bg-background mt-1 h-9"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Jugador 1</Label>
-                      <Input
-                        placeholder="Nombre"
-                        value={form.player1}
-                        onChange={(e) => setForm({ ...form, player1: e.target.value })}
-                        className="bg-background mt-1 h-9"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Jugador 2</Label>
-                      <Input
-                        placeholder="Nombre"
-                        value={form.player2}
-                        onChange={(e) => setForm({ ...form, player2: e.target.value })}
-                        className="bg-background mt-1 h-9"
-                      />
-                    </div>
-                  </div>
+
+                {/* Player pickers */}
+                <div className="grid grid-cols-2 gap-3">
+                  <PlayerPicker
+                    label="Jugador 1"
+                    selected={player1}
+                    onSelect={setPlayer1}
+                    players={availablePlayers}
+                    excluded={excludedIds}
+                  />
+                  <PlayerPicker
+                    label="Jugador 2"
+                    selected={player2}
+                    onSelect={setPlayer2}
+                    players={availablePlayers}
+                    excluded={excludedIds}
+                  />
                 </div>
+
+                {/* Team name (optional) */}
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Nombre del equipo{" "}
+                    <span className="text-muted-foreground/40">(opcional)</span>
+                  </Label>
+                  <Input
+                    placeholder={autoName || "Ej: Los Invictos"}
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    className="bg-background mt-1 h-9"
+                  />
+                  {autoName && !teamName && (
+                    <p className="text-[10px] text-muted-foreground/40 mt-1">
+                      Se usará: <span className="text-muted-foreground/60 font-medium">{autoName}</span>
+                    </p>
+                  )}
+                </div>
+
                 <div className="flex gap-2">
                   <Button
                     size="sm"
                     onClick={addTeam}
-                    disabled={saving || !form.name.trim() || !form.player1.trim() || !form.player2.trim()}
+                    disabled={saving || !player1 || !player2}
                     className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-8 text-xs"
                   >
                     {saving ? "Guardando..." : "Confirmar"}
@@ -528,7 +679,7 @@ function TournamentSetup({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setShowAddForm(false)}
+                    onClick={resetForm}
                     className="h-8 text-xs text-muted-foreground"
                   >
                     Cancelar
