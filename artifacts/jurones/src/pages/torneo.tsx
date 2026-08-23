@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -42,6 +43,12 @@ import {
   Medal,
   Swords,
   UserPlus,
+  PencilLine,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeftRight,
+  Save,
+  AlertTriangle,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +57,7 @@ interface Player {
   id: number;
   name: string;
   avatarUrl: string | null;
+  hidden?: boolean;
 }
 
 interface TournamentSummary {
@@ -495,10 +503,12 @@ function TournamentSetup({
   tournament,
   onBack,
   onRefresh,
+  onOpenBracketEditor,
 }: {
   tournament: TournamentDetail;
   onBack: () => void;
   onRefresh: () => void;
+  onOpenBracketEditor: () => void;
 }) {
   const { toast } = useToast();
 
@@ -560,7 +570,9 @@ function TournamentSetup({
     onRefresh();
   };
 
-  const startTournament = async () => {
+  const deleteTeam = (teamId: number) => removeTeam(teamId);
+
+  const startTournament = async (openEditorAfterStart = false) => {
     setStarting(true);
     try {
       const res = await fetch(`/api/torneo/${tournament.id}/iniciar`, { method: "POST" });
@@ -570,6 +582,7 @@ function TournamentSetup({
         return;
       }
       onRefresh();
+      if (openEditorAfterStart) onOpenBracketEditor();
     } finally {
       setStarting(false);
     }
@@ -751,22 +764,38 @@ function TournamentSetup({
         </p>
       )}
 
-      {/* Start button */}
-      <Button
-        className="w-full h-11 bg-purple-600 hover:bg-purple-700 text-white font-bold uppercase tracking-wider gap-2"
-        disabled={!canStart || starting}
-        onClick={startTournament}
-      >
-        {starting ? (
-          "Generando bracket..."
-        ) : (
-          <>
-            <Play className="h-4 w-4" />
-            Iniciar Torneo
-            {canStart && ` · ${tournament.teams.length} equipos`}
-          </>
-        )}
-      </Button>
+      {/* Start buttons */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button
+          className="h-11 bg-purple-600 hover:bg-purple-700 text-white font-bold uppercase tracking-wider gap-2"
+          disabled={!canStart || starting}
+          onClick={() => startTournament(false)}
+        >
+          {starting ? (
+            "Generando bracket..."
+          ) : (
+            <>
+              <Play className="h-4 w-4" />
+              Iniciar Torneo
+            </>
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-11 border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200 font-bold uppercase tracking-wider gap-2"
+          disabled={!canStart || starting}
+          onClick={() => startTournament(true)}
+        >
+          <PencilLine className="h-4 w-4" />
+          Preparar y editar
+        </Button>
+      </div>
+
+      {canStart && (
+        <p className="text-center text-[11px] text-muted-foreground/55">
+          El editor permite ordenar los cruces de los {tournament.teams.length} equipos antes de registrar resultados.
+        </p>
+      )}
 
       {!canStart && (
         <p className="text-center text-xs text-muted-foreground/50">
@@ -777,15 +806,317 @@ function TournamentSetup({
   );
 }
 
+// ─── Bracket Editor ───────────────────────────────────────────────────────────
+type BracketSlotDraft = {
+  matchId: number;
+  position: number;
+  team1Id: number | null;
+  team2Id: number | null;
+};
+
+function BracketEditorDialog({
+  tournament,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  tournament: TournamentDetail;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const { toast } = useToast();
+  const [slots, setSlots] = useState<BracketSlotDraft[]>([]);
+  const [savingBracket, setSavingBracket] = useState(false);
+  const [confirmingSave, setConfirmingSave] = useState(false);
+  const wasOpen = useRef(false);
+
+  const firstRound = useMemo(
+    () =>
+      tournament.matches
+        .filter((match) => !match.isThirdPlace && match.round === 1)
+        .sort((a, b) => a.position - b.position),
+    [tournament.matches]
+  );
+
+  useEffect(() => {
+    if (open && !wasOpen.current) {
+      setSlots(
+        firstRound.map((match) => ({
+          matchId: match.id,
+          position: match.position,
+          team1Id: match.team1Id,
+          team2Id: match.team2Id,
+        }))
+      );
+    }
+    wasOpen.current = open;
+  }, [open, firstRound]);
+
+  const placedTeamIds = slots.flatMap((slot) => [slot.team1Id, slot.team2Id]).filter((id): id is number => id !== null);
+  const allTeamsPlaced = placedTeamIds.length === tournament.teams.length && new Set(placedTeamIds).size === tournament.teams.length;
+  const hasRecordedResults = tournament.matches.some((match) => match.status === "finished");
+
+  const setTeam = (matchId: number, side: "team1Id" | "team2Id", rawValue: string) => {
+    const newTeamId = rawValue ? Number(rawValue) : null;
+
+    setSlots((currentSlots) => {
+      const next = currentSlots.map((slot) => ({ ...slot }));
+      const target = next.find((slot) => slot.matchId === matchId);
+      if (!target) return currentSlots;
+
+      const otherSide = side === "team1Id" ? "team2Id" : "team1Id";
+      if (newTeamId && target[otherSide] === newTeamId) {
+        [target.team1Id, target.team2Id] = [target.team2Id, target.team1Id];
+        return next;
+      }
+
+      const previousTeamId = target[side];
+      const source = newTeamId
+        ? next.find((slot) => slot.matchId !== matchId && (slot.team1Id === newTeamId || slot.team2Id === newTeamId))
+        : undefined;
+
+      target[side] = newTeamId;
+      if (source) {
+        if (source.team1Id === newTeamId) source.team1Id = previousTeamId;
+        else source.team2Id = previousTeamId;
+      }
+      return next;
+    });
+  };
+
+  const swapSides = (matchId: number) => {
+    setSlots((currentSlots) =>
+      currentSlots.map((slot) =>
+        slot.matchId === matchId ? { ...slot, team1Id: slot.team2Id, team2Id: slot.team1Id } : slot
+      )
+    );
+  };
+
+  const moveMatch = (index: number, direction: -1 | 1) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= slots.length) return;
+
+    setSlots((currentSlots) => {
+      const next = currentSlots.map((slot) => ({ ...slot }));
+      const current = next[index];
+      const target = next[targetIndex];
+      [current.team1Id, target.team1Id] = [target.team1Id, current.team1Id];
+      [current.team2Id, target.team2Id] = [target.team2Id, current.team2Id];
+      return next;
+    });
+  };
+
+  const saveBracket = async () => {
+    if (!allTeamsPlaced) {
+      toast({
+        title: "Faltan equipos",
+        description: "Ubica cada equipo registrado una sola vez antes de guardar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingBracket(true);
+    try {
+      const res = await fetch(`/api/torneo/${tournament.id}/bracket`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slots: slots.map(({ matchId, team1Id, team2Id }) => ({ matchId, team1Id, team2Id })) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "No se pudo guardar", description: data.error, variant: "destructive" });
+        return;
+      }
+
+      toast({
+        title: data.changed ? "Bracket actualizado" : "Sin cambios",
+        description: data.invalidatedResults
+          ? "Los resultados afectados fueron limpiados de forma segura."
+          : `${data.preservedFirstRoundResults ?? 0} resultado(s) de primera ronda se conservaron.`,
+      });
+      setConfirmingSave(false);
+      onOpenChange(false);
+      onSaved();
+    } finally {
+      setSavingBracket(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!savingBracket) onOpenChange(nextOpen);
+      }}
+    >
+      <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <PencilLine className="h-4 w-4 text-purple-400" />
+            Editar bracket
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Reorganiza los equipos y los enfrentamientos de la primera ronda del torneo.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-1">
+          <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 px-3 py-2.5">
+            <p className="text-xs font-semibold text-purple-200">Organiza los cruces de la primera ronda</p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Puedes intercambiar lados, mover un enfrentamiento y dejar un hueco para un pase libre. Todos los equipos deben quedar ubicados una sola vez.
+            </p>
+          </div>
+
+          {hasRecordedResults && (
+            <div className="rounded-xl border border-yellow-500/25 bg-yellow-500/8 px-3 py-2.5 flex gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-400 shrink-0 mt-0.5" />
+              <p className="text-[11px] leading-relaxed text-yellow-100/80">
+                Al guardar se conservarán los resultados de primera ronda cuyos equipos no cambien. Se reiniciarán las rondas y resultados que dependan de los cruces modificados.
+              </p>
+            </div>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {slots.map((slot, index) => {
+              const selectOptions = (currentId: number | null) =>
+                tournament.teams.map((team) => {
+                  const usedInAnotherSlot = slots.some(
+                    (other) =>
+                      other.matchId !== slot.matchId &&
+                      (other.team1Id === team.id || other.team2Id === team.id)
+                  );
+                  return (
+                    <option key={team.id} value={team.id} disabled={usedInAnotherSlot && currentId !== team.id}>
+                      {team.name}
+                    </option>
+                  );
+                });
+
+              return (
+                <div key={slot.matchId} className="rounded-xl border border-white/10 bg-white/[0.025] p-3 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Partido {index + 1}
+                    </span>
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={index === 0}
+                        onClick={() => moveMatch(index, -1)}
+                        title="Subir partido"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={index === slots.length - 1}
+                        onClick={() => moveMatch(index, 1)}
+                        title="Bajar partido"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-purple-300 hover:bg-purple-500/10"
+                        onClick={() => swapSides(slot.matchId)}
+                        title="Intercambiar lados"
+                      >
+                        <ArrowLeftRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <select
+                    aria-label={`Equipo superior partido ${index + 1}`}
+                    value={slot.team1Id ?? ""}
+                    onChange={(event) => setTeam(slot.matchId, "team1Id", event.target.value)}
+                    className="h-9 w-full rounded-md border border-white/10 bg-background px-2 text-sm font-medium outline-none focus:border-purple-500/60"
+                  >
+                    <option value="">Pase libre</option>
+                    {selectOptions(slot.team1Id)}
+                  </select>
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
+                    <div className="h-px bg-white/10 flex-1" />
+                    vs
+                    <div className="h-px bg-white/10 flex-1" />
+                  </div>
+                  <select
+                    aria-label={`Equipo inferior partido ${index + 1}`}
+                    value={slot.team2Id ?? ""}
+                    onChange={(event) => setTeam(slot.matchId, "team2Id", event.target.value)}
+                    className="h-9 w-full rounded-md border border-white/10 bg-background px-2 text-sm font-medium outline-none focus:border-purple-500/60"
+                  >
+                    <option value="">Pase libre</option>
+                    {selectOptions(slot.team2Id)}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className={`text-xs ${allTeamsPlaced ? "text-green-400/80" : "text-yellow-400/80"}`}>
+            {allTeamsPlaced
+              ? `✓ Los ${tournament.teams.length} equipos están ubicados.`
+              : `${placedTeamIds.length} de ${tournament.teams.length} equipos ubicados.`}
+          </p>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={savingBracket} className="border-[#2a2a2a]">
+            Cancelar
+          </Button>
+          <AlertDialog open={confirmingSave} onOpenChange={setConfirmingSave}>
+            <AlertDialogTrigger asChild>
+              <Button disabled={!allTeamsPlaced || savingBracket} className="bg-purple-600 hover:bg-purple-700 text-white gap-2">
+                <Save className="h-4 w-4" />
+                Guardar bracket
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#141414] border-[#2a2a2a]">
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Guardar la nueva organización?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Los cruces posteriores se recalcularán con las posiciones elegidas. Los resultados afectados se limpiarán para evitar avances inválidos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="border-[#2a2a2a]">Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={saveBracket} disabled={savingBracket} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  {savingBracket ? "Guardando..." : "Guardar cambios"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Active / Finished Tournament View ───────────────────────────────────────
 function TournamentActiveView({
   tournament,
   onBack,
   onRefresh,
+  bracketEditorOpen,
+  onBracketEditorOpenChange,
 }: {
   tournament: TournamentDetail;
   onBack: () => void;
   onRefresh: () => void;
+  bracketEditorOpen: boolean;
+  onBracketEditorOpenChange: (open: boolean) => void;
 }) {
   const { toast } = useToast();
   const [resultMatch, setResultMatch] = useState<TournamentMatch | null>(null);
@@ -871,6 +1202,16 @@ function TournamentActiveView({
           </div>
         </div>
       </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onBracketEditorOpenChange(true)}
+        className="gap-1.5 border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
+      >
+        <PencilLine className="h-3.5 w-3.5" />
+        Editar bracket
+      </Button>
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-white/5 rounded-xl">
@@ -998,6 +1339,13 @@ function TournamentActiveView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BracketEditorDialog
+        tournament={tournament}
+        open={bracketEditorOpen}
+        onOpenChange={onBracketEditorOpenChange}
+        onSaved={onRefresh}
+      />
     </div>
   );
 }
@@ -1199,6 +1547,7 @@ function TournamentList({ onSelect }: { onSelect: (id: number) => void }) {
 export default function Torneo() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [bracketEditorOpen, setBracketEditorOpen] = useState(false);
 
   const { data: tournament, refetch } = useQuery<TournamentDetail>({
     queryKey: ["torneo-detail", selectedId],
@@ -1213,6 +1562,7 @@ export default function Torneo() {
 
   const handleBack = () => {
     setSelectedId(null);
+    setBracketEditorOpen(false);
     qc.invalidateQueries({ queryKey: ["torneo-list"] });
   };
 
@@ -1228,9 +1578,20 @@ export default function Torneo() {
       ) : !tournament ? (
         <div className="py-20 text-center text-muted-foreground">Cargando torneo...</div>
       ) : tournament.status === "setup" ? (
-        <TournamentSetup tournament={tournament} onBack={handleBack} onRefresh={handleRefresh} />
+        <TournamentSetup
+          tournament={tournament}
+          onBack={handleBack}
+          onRefresh={handleRefresh}
+          onOpenBracketEditor={() => setBracketEditorOpen(true)}
+        />
       ) : (
-        <TournamentActiveView tournament={tournament} onBack={handleBack} onRefresh={handleRefresh} />
+        <TournamentActiveView
+          tournament={tournament}
+          onBack={handleBack}
+          onRefresh={handleRefresh}
+          bracketEditorOpen={bracketEditorOpen}
+          onBracketEditorOpenChange={setBracketEditorOpen}
+        />
       )}
       <ScrollToTop />
     </div>
