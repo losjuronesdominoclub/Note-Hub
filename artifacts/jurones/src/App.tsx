@@ -36,6 +36,7 @@ import Teams from "@/pages/teams";
 import Turnos from "@/pages/turnos";
 import Lideres from "@/pages/lideres";
 import Torneo from "@/pages/torneo";
+import Backup from "@/pages/backup";
 import NotFound from "@/pages/not-found";
 import MaintenanceOverlay from "@/components/maintenance-overlay";
 import logoPath from "@assets/logo_1779907396869.png";
@@ -220,6 +221,7 @@ function ClerkProviderWithRoutes() {
           <Route path="/teams" component={() => <ProtectedRoute component={Teams} />} />
           <Route path="/turnos" component={() => <ProtectedRoute component={Turnos} />} />
           <Route path="/torneo" component={() => <ProtectedRoute component={Torneo} />} />
+          <Route path="/backup" component={() => <ProtectedRoute component={Backup} />} />
           
           <Route path="/live" component={() => <PublicOrProtectedRoute component={LiveMatches} />} />
           

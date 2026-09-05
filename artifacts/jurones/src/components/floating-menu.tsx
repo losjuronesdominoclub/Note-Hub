@@ -2,17 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { 
-  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff, Percent, CalendarDays, Swords, ListOrdered, Crown, Brackets
+  Menu, X, Home, History, Trophy, Calendar, Users, Radio, Fish, Star, BarChart2, Tv2, Scale, LogOut, Skull, BookOpen, WifiOff, Percent, CalendarDays, Swords, ListOrdered, Crown, Brackets, Database
 } from "lucide-react";
 import { useClerk, Show } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { getPendingCount } from "@/hooks/useOfflineMatch";
+import { useDevMode } from "@/contexts/dev-mode-context";
 
 export default function FloatingMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { signOut } = useClerk();
   const [pendingCount, setPendingCount] = useState(0);
+  const { isDevMode } = useDevMode();
 
   useEffect(() => {
     const refresh = () => setPendingCount(getPendingCount());
@@ -44,6 +46,7 @@ export default function FloatingMenu() {
     { icon: BookOpen, label: "Reglas", path: "/rules" },
     { icon: Brackets, label: "Torneo", path: "/torneo" },
     { icon: WifiOff, label: "Partidas Pendientes", path: "/pending-matches", badge: pendingCount },
+    ...(isDevMode ? [{ icon: Database, label: "Respaldo", path: "/backup" }] : []),
   ];
 
   const handleNav = (path: string) => {

@@ -2,6 +2,7 @@ import { createServer } from "http";
 import app from "./app";
 import { setupSocket } from "./socket";
 import { logger } from "./lib/logger";
+import { startBackupScheduler } from "./lib/backupScheduler";
 
 const rawPort = process.env["PORT"];
 
@@ -22,6 +23,7 @@ setupSocket(httpServer);
 
 httpServer.listen(port, () => {
   logger.info({ port }, "Server listening");
+  startBackupScheduler();
 });
 
 httpServer.on("error", (err: Error) => {

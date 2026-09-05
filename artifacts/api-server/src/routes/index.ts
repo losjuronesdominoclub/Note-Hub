@@ -16,6 +16,7 @@ import rulesRouter from "./rules";
 import turnosRouter from "./turnos";
 import lideresRouter from "./lideres";
 import torneoRouter from "./torneo";
+import backupRouter from "./backup";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(rulesRouter);
 router.use(turnosRouter);
 router.use(lideresRouter);
 router.use("/torneo", torneoRouter);
+router.use(backupRouter);
 
 export default router;
