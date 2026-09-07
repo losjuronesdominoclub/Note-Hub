@@ -3,7 +3,7 @@ import ScrollToTop from "@/components/scroll-to-top";
 import { useDevMode } from "@/contexts/dev-mode-context";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit2, Trash2, Trophy, Flame, Camera, Upload, X, BarChart2, CheckCircle2, XCircle, LineChart, Share2, Download, Search, EyeOff, Eye } from "lucide-react";
-import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey, getGetRankingQueryKey } from "@workspace/api-client-react";
+import { useListPlayers, useCreatePlayer, useUpdatePlayer, useDeletePlayer, getListPlayersQueryKey } from "@workspace/api-client-react";
 import { useUpload } from "@workspace/object-storage-web";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -134,19 +134,23 @@ interface PlayerCardProps {
     winRate: number;
     currentStreak: number;
     topPts: number;
+    gamesPlayedOverride?: number | null;
+    averagePointsOverride?: number | null;
   };
   lisas: number;
   open: boolean;
   onClose: () => void;
+  onEditStatistics: () => void;
 }
 
-function PlayerCardModal({ player, lisas, open, onClose }: PlayerCardProps) {
+function PlayerCardModal({ player, lisas, open, onClose, onEditStatistics }: PlayerCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { isDevMode } = useDevMode();
   const [isSharing, setIsSharing] = useState(false);
 
-  const totalGames = player.wins + player.losses;
-  const avgPoints = totalGames > 0 ? Math.round(player.totalPoints / totalGames) : 0;
+  const totalGames = player.gamesPlayedOverride ?? player.wins + player.losses;
+  const avgPoints = player.averagePointsOverride ?? (totalGames > 0 ? Math.round(player.totalPoints / totalGames) : 0);
   const winRatePct = (Number(player.winRate) * 100).toFixed(0);
   const initials = player.name.substring(0, 2).toUpperCase();
 
@@ -299,6 +303,11 @@ function PlayerCardModal({ player, lisas, open, onClose }: PlayerCardProps) {
             )}
           </Button>
         </div>
+        {isDevMode && (
+          <Button variant="ghost" className="mt-2 w-full text-primary" onClick={onEditStatistics}>
+            Editar
+          </Button>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -358,7 +367,7 @@ export default function Players() {
   const [isCardOpen, setIsCardOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
-  const [formData, setFormData] = useState({ name: "", avatarUrl: "", currentStreak: 0 });
+  const [formData, setFormData] = useState({ name: "", avatarUrl: "" });
 
   const [createStep, setCreateStep] = useState<"code" | "fields">("code");
   const [createCode, setCreateCode] = useState("");
@@ -371,7 +380,11 @@ export default function Players() {
   const [statsStep, setStatsStep] = useState<"code" | "fields">("code");
   const [statsCode, setStatsCode] = useState("");
   const [statsCodeError, setStatsCodeError] = useState(false);
-  const [statsData, setStatsData] = useState({ wins: 0, losses: 0 });
+  const [statsData, setStatsData] = useState({
+    wins: 0, losses: 0, lisas: 0, averagePoints: 0, winRate: 0,
+    totalPoints: 0, topPts: 0, currentStreak: 0, gamesPlayed: 0,
+  });
+  const [isSavingStats, setIsSavingStats] = useState(false);
 
   const handleCreate = () => {
     if (!formData.name.trim()) return;
@@ -379,7 +392,7 @@ export default function Players() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
         setIsCreateOpen(false);
-        setFormData({ name: "", avatarUrl: "", currentStreak: 0 });
+        setFormData({ name: "", avatarUrl: "" });
         toast({ title: "Jugador creado", description: "El jugador ha sido creado exitosamente." });
       },
     });
@@ -387,7 +400,7 @@ export default function Players() {
 
   const handleEdit = () => {
     if (!formData.name.trim() || !selectedPlayer) return;
-    updatePlayer.mutate({ id: selectedPlayer.id, data: { name: formData.name, avatarUrl: formData.avatarUrl || undefined, currentStreak: formData.currentStreak } }, {
+    updatePlayer.mutate({ id: selectedPlayer.id, data: { name: formData.name, avatarUrl: formData.avatarUrl || undefined } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
         setIsEditOpen(false);
@@ -427,7 +440,7 @@ export default function Players() {
 
   const openEdit = (player: any) => {
     setSelectedPlayer(player);
-    setFormData({ name: player.name, avatarUrl: player.avatarUrl || "", currentStreak: player.currentStreak ?? 0 });
+    setFormData({ name: player.name, avatarUrl: player.avatarUrl || "" });
     setEditStep("code");
     setEditCode("");
     setEditCodeError(false);
@@ -444,7 +457,21 @@ export default function Players() {
     setStatsStep("code");
     setStatsCode("");
     setStatsCodeError(false);
-    setStatsData({ wins: player.wins ?? 0, losses: player.losses ?? 0 });
+    const gamesPlayed = player.gamesPlayedOverride ?? (player.wins ?? 0) + (player.losses ?? 0);
+    const averagePoints = player.averagePointsOverride ?? (gamesPlayed > 0
+      ? Math.round((player.totalPoints ?? 0) / gamesPlayed)
+      : 0);
+    setStatsData({
+      wins: player.wins ?? 0,
+      losses: player.losses ?? 0,
+      lisas: lisasMap[player.id] ?? 0,
+      averagePoints,
+      winRate: Number(player.winRate ?? 0) * 100,
+      totalPoints: player.totalPoints ?? 0,
+      topPts: player.topPts ?? 0,
+      currentStreak: player.currentStreak ?? 0,
+      gamesPlayed,
+    });
     setIsStatsOpen(true);
   };
 
@@ -454,7 +481,7 @@ export default function Players() {
   };
 
   const handleVerifyCode = () => {
-    if (statsCode === "110880") {
+    if (statsCode.trim()) {
       setStatsCodeError(false);
       setStatsStep("fields");
     } else {
@@ -462,22 +489,26 @@ export default function Players() {
     }
   };
 
-  const handleSaveStats = () => {
+  const handleSaveStats = async () => {
     if (!selectedPlayer) return;
-    updatePlayer.mutate(
-      { id: selectedPlayer.id, data: { wins: statsData.wins, losses: statsData.losses } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListPlayersQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetRankingQueryKey() });
-          setIsStatsOpen(false);
-          toast({ title: "Estadísticas actualizadas", description: `${selectedPlayer.name} — ${statsData.wins}V / ${statsData.losses}D` });
-        },
-        onError: () => {
-          toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
-        },
-      }
-    );
+    setIsSavingStats(true);
+    try {
+      const response = await fetch(`/api/players/${selectedPlayer.id}/statistics`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode: statsCode, ...statsData }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "No se pudieron guardar los cambios.");
+      setSelectedPlayer(result.player);
+      await queryClient.invalidateQueries();
+      setIsStatsOpen(false);
+      toast({ title: "Estadísticas actualizadas", description: `${selectedPlayer.name} — ${statsData.wins}V / ${statsData.losses}D` });
+    } catch (error) {
+      toast({ title: "Error", description: error instanceof Error ? error.message : "No se pudieron guardar los cambios.", variant: "destructive" });
+    } finally {
+      setIsSavingStats(false);
+    }
   };
 
   return (
@@ -487,7 +518,7 @@ export default function Players() {
           <h1 className="text-3xl font-bold tracking-tight">Jugadores</h1>
           <p className="text-muted-foreground mt-1 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-xs">Gestiona los miembros del club.</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={(o) => { setIsCreateOpen(o); if (!o) { setFormData({ name: "", avatarUrl: "", currentStreak: 0 }); setCreateStep("code"); setCreateCode(""); setCreateCodeError(false); } }}>
+          <Dialog open={isCreateOpen} onOpenChange={(o) => { setIsCreateOpen(o); if (!o) { setFormData({ name: "", avatarUrl: "" }); setCreateStep("code"); setCreateCode(""); setCreateCodeError(false); } }}>
           <DialogTrigger asChild>
             <Button className="rounded-full shadow-lg font-bold">
               <Plus className="mr-2 h-5 w-5" /> Nuevo Jugador
@@ -677,15 +708,6 @@ export default function Players() {
                         <LineChart className="h-3.5 w-3.5" />
                         Ver Estadísticas
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 text-xs border-border hover:border-primary hover:text-primary shrink-0"
-                        title="Editar estadísticas"
-                        onClick={() => openStats(player)}
-                      >
-                        <BarChart2 className="h-3.5 w-3.5" />
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -702,6 +724,10 @@ export default function Players() {
           lisas={lisasMap[selectedPlayer.id] ?? 0}
           open={isCardOpen}
           onClose={() => setIsCardOpen(false)}
+          onEditStatistics={() => {
+            setIsCardOpen(false);
+            openStats(selectedPlayer);
+          }}
         />
       )}
 
@@ -761,17 +787,6 @@ export default function Players() {
                     className="bg-background"
                     onKeyDown={(e) => e.key === "Enter" && handleEdit()}
                     autoFocus
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-streak">Racha actual</Label>
-                  <Input
-                    id="edit-streak"
-                    type="number"
-                    min={0}
-                    value={formData.currentStreak}
-                    onChange={(e) => setFormData({ ...formData, currentStreak: Math.max(0, parseInt(e.target.value) || 0) })}
-                    className="bg-background"
                   />
                 </div>
               </div>
@@ -844,44 +859,64 @@ export default function Players() {
             </div>
           ) : (
             <div className="space-y-4 py-2">
-              <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
+                <div className="flex items-center gap-2 text-sm text-green-400 mb-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
-                Código verificado correctamente
+                  Código listo; se verificará al guardar
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label className="text-green-400 font-semibold">Victorias</Label>
+                    <Label className="text-green-400 font-semibold">Ganadas</Label>
                   <Input
                     type="number"
                     min={0}
                     value={statsData.wins}
                     onChange={(e) => setStatsData({ ...statsData, wins: parseInt(e.target.value) || 0 })}
-                    className="bg-background text-center text-2xl font-bold"
+                      className="bg-background text-center font-bold"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-red-400 font-semibold">Derrotas</Label>
+                    <Label className="text-red-400 font-semibold">Perdidas</Label>
                   <Input
                     type="number"
                     min={0}
                     value={statsData.losses}
                     onChange={(e) => setStatsData({ ...statsData, losses: parseInt(e.target.value) || 0 })}
-                    className="bg-background text-center text-2xl font-bold"
+                      className="bg-background text-center font-bold"
                   />
                 </div>
-              </div>
-              <div className="rounded-lg bg-muted/40 p-3 text-center text-sm text-muted-foreground">
-                Win Rate resultante:{" "}
-                <span className="font-bold text-primary">
-                  {statsData.wins + statsData.losses > 0
-                    ? ((statsData.wins / (statsData.wins + statsData.losses)) * 100).toFixed(0)
-                    : "0.00"}%
-                </span>
+                  <div className="grid gap-2">
+                    <Label>Lisas</Label>
+                    <Input type="number" min={0} value={statsData.lisas} onChange={(e) => setStatsData({ ...statsData, lisas: parseInt(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Promedio</Label>
+                    <Input type="number" min={0} step="any" value={statsData.averagePoints} onChange={(e) => setStatsData({ ...statsData, averagePoints: parseFloat(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Win Rate (%)</Label>
+                    <Input type="number" min={0} max={100} step="any" value={statsData.winRate} onChange={(e) => setStatsData({ ...statsData, winRate: parseFloat(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Puntos</Label>
+                    <Input type="number" min={0} value={statsData.totalPoints} onChange={(e) => setStatsData({ ...statsData, totalPoints: parseInt(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Top Pts</Label>
+                    <Input type="number" min={0} value={statsData.topPts} onChange={(e) => setStatsData({ ...statsData, topPts: parseInt(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Racha</Label>
+                    <Input type="number" min={0} value={statsData.currentStreak} onChange={(e) => setStatsData({ ...statsData, currentStreak: parseInt(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
+                  <div className="grid gap-2 col-span-2">
+                    <Label>Partidas</Label>
+                    <Input type="number" min={0} value={statsData.gamesPlayed} onChange={(e) => setStatsData({ ...statsData, gamesPlayed: parseInt(e.target.value) || 0 })} className="bg-background text-center font-bold" />
+                  </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsStatsOpen(false)} className="flex-1">Cancelar</Button>
-                <Button onClick={handleSaveStats} disabled={updatePlayer.isPending} className="flex-1">
-                  {updatePlayer.isPending ? "Guardando..." : "Guardar Cambios"}
+                  <Button onClick={handleSaveStats} disabled={isSavingStats} className="flex-1">
+                    {isSavingStats ? "Guardando..." : "Guardar Cambios"}
                 </Button>
               </DialogFooter>
             </div>

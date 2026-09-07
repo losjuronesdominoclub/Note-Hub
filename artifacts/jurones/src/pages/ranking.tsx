@@ -20,6 +20,16 @@ function avatarSrc(path: string | null | undefined): string | undefined {
   return `/api/storage/objects/${slug}`;
 }
 
+type PlayerGames = {
+  wins: number;
+  losses: number;
+  gamesPlayedOverride?: number | null;
+};
+
+function displayedGames(player: PlayerGames): number {
+  return player.gamesPlayedOverride ?? player.wins + player.losses;
+}
+
 export default function Ranking() {
   const { data: ranking, isLoading } = useGetRanking();
   const queryClient = useQueryClient();
@@ -279,7 +289,7 @@ export default function Ranking() {
                     </span>
                   )}
                   <span className="text-muted-foreground/70 font-medium">
-                    {item.player.wins + item.player.losses} Part
+                    {displayedGames(item.player)} Part
                   </span>
                 </div>
               </div>

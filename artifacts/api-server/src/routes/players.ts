@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
-import { db, playersTable } from "@workspace/db";
+import { and, eq, gte, or, sql } from "drizzle-orm";
+import { db, matchesTable, matchPlayersTable, playersTable } from "@workspace/db";
 import {
   GetPlayerParams,
   UpdatePlayerParams,
@@ -10,7 +10,7 @@ import {
 } from "@workspace/api-zod";
 import z from "zod";
 
-const ADMIN_CODE = "110880";
+const ADMIN_CODE = process.env.ADMIN_CODE ?? "110880";
 
 const ImportJugadorSchema = z.object({
   nombre: z.string().min(1),
@@ -22,6 +22,23 @@ const ImportJugadorSchema = z.object({
 const ImportJugadoresBody = z.object({
   adminCode: z.string(),
   jugadores: z.array(ImportJugadorSchema).min(1),
+});
+
+const PlayerStatisticsParams = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+const UpdatePlayerStatisticsBody = z.object({
+  adminCode: z.string().min(1),
+  wins: z.number().int().min(0),
+  losses: z.number().int().min(0),
+  lisas: z.number().int().min(0),
+  averagePoints: z.number().finite().min(0),
+  winRate: z.number().finite().min(0).max(100),
+  totalPoints: z.number().int().min(0),
+  topPts: z.number().int().min(0),
+  currentStreak: z.number().int().min(0),
+  gamesPlayed: z.number().int().min(0),
 });
 
 const router: IRouter = Router();
@@ -98,6 +115,84 @@ router.post("/players", async (req, res): Promise<void> => {
   res.status(201).json(player);
 });
 
+// PATCH /players/:id/statistics — deliberately separate from general player edits.
+// This retains admin-code verification on the server even when developer UI is exposed.
+router.patch("/players/:id/statistics", async (req, res): Promise<void> => {
+  const params = PlayerStatisticsParams.safeParse(req.params);
+  if (!params.success) {
+    req.log.warn({ errors: params.error.message }, "Invalid player statistics parameters");
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const parsed = UpdatePlayerStatisticsBody.safeParse(req.body);
+  if (!parsed.success) {
+    req.log.warn({ errors: parsed.error.message }, "Invalid player statistics payload");
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  if (parsed.data.adminCode !== ADMIN_CODE) {
+    req.log.warn({ playerId: params.data.id }, "Rejected player statistics update with invalid admin code");
+    res.status(403).json({ error: "Código de administrador inválido." });
+    return;
+  }
+
+  const lisaMatches = await db
+    .select()
+    .from(matchesTable)
+    .where(
+      and(
+        eq(matchesTable.status, "finished"),
+        or(
+          and(gte(matchesTable.shortosScore, 200), eq(matchesTable.largosScore, 0)),
+          and(gte(matchesTable.largosScore, 200), eq(matchesTable.shortosScore, 0)),
+        ),
+      ),
+    );
+
+  let matchDerivedLisas = 0;
+  for (const match of lisaMatches) {
+    if (!match.winnerTeam) continue;
+    const winningPlayer = await db
+      .select({ playerId: matchPlayersTable.playerId })
+      .from(matchPlayersTable)
+      .where(
+        and(
+          eq(matchPlayersTable.matchId, match.id),
+          eq(matchPlayersTable.team, match.winnerTeam as "cortos" | "largos"),
+          eq(matchPlayersTable.playerId, params.data.id),
+        ),
+      );
+    matchDerivedLisas += winningPlayer.length;
+  }
+
+  const extraLisas = parsed.data.lisas - matchDerivedLisas;
+  const [player] = await db
+    .update(playersTable)
+    .set({
+      wins: parsed.data.wins,
+      losses: parsed.data.losses,
+      extraLisas,
+      averagePointsOverride: parsed.data.averagePoints,
+      gamesPlayedOverride: parsed.data.gamesPlayed,
+      // The UI supplies a percentage; the database consistently stores 0–1.
+      winRate: parsed.data.winRate / 100,
+      totalPoints: parsed.data.totalPoints,
+      topPts: parsed.data.topPts,
+      currentStreak: parsed.data.currentStreak,
+    })
+    .where(eq(playersTable.id, params.data.id))
+    .returning();
+
+  if (!player) {
+    res.status(404).json({ error: "Player not found" });
+    return;
+  }
+
+  req.log.info({ playerId: player.id }, "Player statistics updated");
+  res.json({ player, lisas: matchDerivedLisas + extraLisas });
+});
+
 router.get("/players/:id", async (req, res): Promise<void> => {
   const params = GetPlayerParams.safeParse(req.params);
   if (!params.success) {
@@ -130,19 +225,7 @@ router.patch("/players/:id", async (req, res): Promise<void> => {
   const updateData: Record<string, unknown> = {};
   if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
   if (parsed.data.avatarUrl !== undefined) updateData.avatarUrl = parsed.data.avatarUrl;
-  if (parsed.data.wins !== undefined) updateData.wins = parsed.data.wins;
-  if (parsed.data.losses !== undefined) updateData.losses = parsed.data.losses;
-  if (parsed.data.totalPoints !== undefined) updateData.totalPoints = parsed.data.totalPoints;
-  if (parsed.data.currentStreak !== undefined) updateData.currentStreak = parsed.data.currentStreak;
   if (parsed.data.hidden !== undefined) updateData.hidden = parsed.data.hidden;
-
-  // Recalculate winRate if wins/losses changed
-  const wins = parsed.data.wins;
-  const losses = parsed.data.losses;
-  if (wins !== undefined && losses !== undefined) {
-    const total = wins + losses;
-    updateData.winRate = total > 0 ? wins / total : 0;
-  }
 
   const [player] = await db
     .update(playersTable)

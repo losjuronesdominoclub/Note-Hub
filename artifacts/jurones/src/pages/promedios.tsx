@@ -20,6 +20,16 @@ function avatarSrc(path: string | null | undefined): string | undefined {
   return `/api/storage/objects/${slug}`;
 }
 
+type PlayerGames = {
+  wins: number;
+  losses: number;
+  gamesPlayedOverride?: number | null;
+};
+
+function displayedGames(player: PlayerGames): number {
+  return player.gamesPlayedOverride ?? player.wins + player.losses;
+}
+
 function positionStyle(pos: number) {
   if (pos === 1) return { badge: "text-yellow-400 bg-yellow-400/15 border-yellow-400/50", row: "border-yellow-400/30 bg-yellow-400/5" };
   if (pos === 2) return { badge: "text-slate-300 bg-slate-300/15 border-slate-300/50", row: "border-slate-300/20 bg-slate-300/5" };
@@ -40,7 +50,7 @@ export default function Promedios() {
   const shareRef = useRef<HTMLDivElement>(null);
 
   const sorted = [...(players ?? [])]
-    .filter(p => (p.wins + p.losses) > 0)
+    .filter(p => displayedGames(p) > 0)
     .sort((a, b) => Number(b.winRate) - Number(a.winRate));
 
   const top10 = sorted.slice(0, 10);
@@ -182,7 +192,7 @@ export default function Promedios() {
             const pos = index + 1;
             const style = positionStyle(pos);
             const wrPct = (Number(player.winRate) * 100).toFixed(1);
-            const total = player.wins + player.losses;
+            const total = displayedGames(player);
             return (
               <motion.div
                 key={player.id}

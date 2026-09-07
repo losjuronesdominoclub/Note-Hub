@@ -9,6 +9,9 @@ export const playersTable = pgTable("players", {
   wins: integer("wins").notNull().default(0),
   losses: integer("losses").notNull().default(0),
   totalPoints: integer("total_points").notNull().default(0),
+  // Null preserves the historical values derived from match totals.
+  gamesPlayedOverride: integer("games_played_override"),
+  averagePointsOverride: real("average_points_override"),
   winRate: real("win_rate").notNull().default(0),
   currentStreak: integer("current_streak").notNull().default(0),
   extraLisas: integer("extra_lisas").notNull().default(0),
