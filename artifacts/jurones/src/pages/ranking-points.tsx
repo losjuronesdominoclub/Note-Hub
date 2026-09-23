@@ -1,12 +1,17 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import ScrollToTop from "@/components/scroll-to-top";
 import { motion } from "framer-motion";
 import { useListPlayers } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, Share2, Medal, Trophy } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Star, Share2, Medal, Trophy, Pencil, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDevMode } from "@/contexts/dev-mode-context";
+import { useQueryClient } from "@tanstack/react-query";
 import html2canvas from "html2canvas";
 
 function avatarSrc(path: string | null | undefined): string | undefined {
@@ -33,7 +38,14 @@ function positionIcon(pos: number) {
 export default function RankingPoints() {
   const { data: players, isLoading } = useListPlayers();
   const { toast } = useToast();
+  const { isDevMode } = useDevMode();
+  const queryClient = useQueryClient();
   const shareRef = useRef<HTMLDivElement>(null);
+  const [editingPlayer, setEditingPlayer] = useState<{ id: number; name: string; topPts: number } | null>(null);
+  const [topPtsInput, setTopPtsInput] = useState("");
+  const [adminCode, setAdminCode] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const totalPuntos = (players ?? []).reduce((sum, p) => sum + (p.totalPoints ?? 0), 0);
   const sorted = [...(players ?? [])].sort((a, b) => (b.totalPoints ?? 0) - (a.totalPoints ?? 0));
@@ -43,6 +55,52 @@ export default function RankingPoints() {
   const recordHolder = [...(players ?? [])]
     .filter(p => (p.topPts ?? 0) > 120)
     .sort((a, b) => (b.topPts ?? 0) - (a.topPts ?? 0))[0] ?? null;
+
+  const openTopPtsEditor = (player: { id: number; name: string; topPts?: number | null }) => {
+    setEditingPlayer({ id: player.id, name: player.name, topPts: player.topPts ?? 0 });
+    setTopPtsInput(String(player.topPts ?? 0));
+    setAdminCode("");
+    setSaveError("");
+  };
+
+  const closeTopPtsEditor = () => {
+    setEditingPlayer(null);
+    setTopPtsInput("");
+    setAdminCode("");
+    setSaveError("");
+  };
+
+  const saveTopPts = async () => {
+    if (!editingPlayer || !adminCode.trim()) return;
+    const value = Number(topPtsInput);
+    if (!Number.isInteger(value) || value < 0) {
+      setSaveError("Top Pts debe ser un número entero igual o mayor que 0.");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      const response = await fetch(`/api/players/${editingPlayer.id}/top-pts`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminCode, topPts: value }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "No se pudo actualizar Top Pts.");
+
+      await queryClient.invalidateQueries();
+      closeTopPtsEditor();
+      toast({
+        title: "Top Pts actualizado",
+        description: `${editingPlayer.name}: ${value} puntos.`,
+      });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "No se pudo actualizar Top Pts.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleShare = async () => {
     if (!shareRef.current || top10.length === 0) return;
@@ -125,10 +183,20 @@ export default function RankingPoints() {
             <div className="flex-1 min-w-0">
               <p className="text-lg sm:text-2xl font-black truncate">{recordHolder.name}</p>
               <p className="text-xs text-muted-foreground uppercase tracking-widest mt-0.5">Puntuación individual más alta</p>
-              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2">
                 <Trophy className="h-5 w-5 text-[#e8b03f] shrink-0" />
                 <span className="text-3xl sm:text-4xl font-black text-[#e8b03f]">{recordHolder.topPts}</span>
                 <span className="text-xs text-[#e8b03f]/60 font-semibold uppercase tracking-widest self-end mb-1">pts</span>
+                  {isDevMode && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 h-8 text-[#e8b03f] hover:bg-[#e8b03f]/10 hover:text-[#f6c95b]"
+                      onClick={() => openTopPtsEditor(recordHolder)}
+                    >
+                      <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+                    </Button>
+                  )}
               </div>
             </div>
           </div>
@@ -190,6 +258,16 @@ export default function RankingPoints() {
                   <p className="text-2xl font-black text-yellow-400">{player.totalPoints ?? 0}</p>
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground">pts</p>
                 </div>
+                {isDevMode && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 gap-1 border-[#e8b03f]/40 text-[#e8b03f] hover:bg-[#e8b03f]/10 hover:text-[#f6c95b]"
+                    onClick={() => openTopPtsEditor(player)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Editar
+                  </Button>
+                )}
               </motion.div>
             );
           })}
@@ -286,6 +364,59 @@ export default function RankingPoints() {
           </div>
         </div>
       </div>
+      <Dialog open={Boolean(editingPlayer)} onOpenChange={(open) => !open && closeTopPtsEditor()}>
+        <DialogContent className="glass-card sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-[#e8b03f]" />
+              Editar Top Pts — {editingPlayer?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Corrige manualmente la puntuación individual más alta. El nuevo valor se reflejará en todos los rankings.
+            </p>
+            <div className="grid gap-2">
+              <Label htmlFor="top-pts-value">Top Pts</Label>
+              <Input
+                id="top-pts-value"
+                type="number"
+                min={0}
+                step={1}
+                value={topPtsInput}
+                onChange={(event) => setTopPtsInput(event.target.value)}
+                className="bg-background text-center text-2xl font-bold"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="top-pts-admin-code">Código de administrador</Label>
+              <Input
+                id="top-pts-admin-code"
+                type="password"
+                value={adminCode}
+                onChange={(event) => { setAdminCode(event.target.value); setSaveError(""); }}
+                onKeyDown={(event) => event.key === "Enter" && void saveTopPts()}
+                className="bg-background"
+                autoFocus
+              />
+            </div>
+            {saveError && (
+              <div className="flex items-center gap-2 text-sm text-destructive">
+                <XCircle className="h-4 w-4 shrink-0" />
+                {saveError}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeTopPtsEditor} disabled={isSaving} className="flex-1">
+              Cancelar
+            </Button>
+            <Button onClick={() => void saveTopPts()} disabled={isSaving || !adminCode.trim()} className="flex-1">
+              {isSaving ? "Guardando..." : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <ScrollToTop />
     </div>
   );

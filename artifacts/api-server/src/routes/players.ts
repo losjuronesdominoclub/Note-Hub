@@ -41,6 +41,11 @@ const UpdatePlayerStatisticsBody = z.object({
   gamesPlayed: z.number().int().min(0),
 });
 
+const UpdateTopPtsBody = z.object({
+  adminCode: z.string().min(1),
+  topPts: z.number().int().min(0),
+});
+
 const router: IRouter = Router();
 
 router.get("/players", async (req, res): Promise<void> => {
@@ -113,6 +118,43 @@ router.post("/players", async (req, res): Promise<void> => {
     .returning();
 
   res.status(201).json(player);
+});
+
+// PATCH /players/:id/top-pts — isolated manual correction for the individual scoring record.
+router.patch("/players/:id/top-pts", async (req, res): Promise<void> => {
+  const params = PlayerStatisticsParams.safeParse(req.params);
+  if (!params.success) {
+    req.log.warn({ errors: params.error.message }, "Invalid top points parameters");
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const parsed = UpdateTopPtsBody.safeParse(req.body);
+  if (!parsed.success) {
+    req.log.warn({ errors: parsed.error.message }, "Invalid top points payload");
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  if (parsed.data.adminCode !== ADMIN_CODE) {
+    req.log.warn({ playerId: params.data.id }, "Rejected top points update with invalid admin code");
+    res.status(403).json({ error: "Código de administrador inválido." });
+    return;
+  }
+
+  const [player] = await db
+    .update(playersTable)
+    .set({ topPts: parsed.data.topPts })
+    .where(eq(playersTable.id, params.data.id))
+    .returning();
+
+  if (!player) {
+    res.status(404).json({ error: "Player not found" });
+    return;
+  }
+
+  req.log.info({ playerId: player.id }, "Player top points updated");
+  res.json(player);
 });
 
 // PATCH /players/:id/statistics — deliberately separate from general player edits.
