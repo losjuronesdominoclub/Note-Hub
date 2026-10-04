@@ -30,6 +30,16 @@ export interface TurnoEntry {
   player: { id: number; name: string; avatarUrl: string | null };
 }
 
+function uniqueTurnos(entries: TurnoEntry[]): TurnoEntry[] {
+  const seen = new Set<number>();
+  return entries.filter((entry) => {
+    const playerId = entry.player.id;
+    if (seen.has(playerId)) return false;
+    seen.add(playerId);
+    return true;
+  });
+}
+
 function avatarSrc(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
   if (path.startsWith("http")) return path;
@@ -129,8 +139,9 @@ export default function Turnos() {
     return map;
   }, [dailyDays]);
 
-  const turnos = rawTurnos.filter((t) => !busyPlayerIds.has(t.player.id));
-  const playingCount = rawTurnos.length - turnos.length;
+  const uniqueRawTurnos = useMemo(() => uniqueTurnos(rawTurnos), [rawTurnos]);
+  const turnos = uniqueRawTurnos.filter((t) => !busyPlayerIds.has(t.player.id));
+  const playingCount = uniqueRawTurnos.length - turnos.length;
 
   const remove = useMutation({
     mutationFn: removeTurno,
@@ -153,7 +164,7 @@ export default function Turnos() {
   });
 
   const enterEditMode = () => {
-    setLocalOrder([...turnos]);
+    setLocalOrder(uniqueTurnos(turnos));
     setEditMode(true);
   };
 
