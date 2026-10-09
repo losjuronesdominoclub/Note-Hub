@@ -1318,7 +1318,7 @@ export default function MatchLive() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-bold">+{log.points}</span>
+                    <span className="font-bold">{log.points === 0 ? "KNOCKOUT" : `+${log.points} pts`}</span>
                     <span className="text-muted-foreground text-xs">{new Date(log.createdAt).toLocaleTimeString("es-DO", { timeZone: "America/Santo_Domingo", hour: '2-digit', minute: '2-digit', hour12: true })}</span>
                   </div>
                 </div>

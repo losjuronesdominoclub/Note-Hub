@@ -13,7 +13,7 @@ import {
   AddScoreParams,
   AddScoreBody,
   FinishMatchParams,
-  FinishMatchInput,
+  FinishMatchBody,
 } from "@workspace/api-zod";
 
 const ADMIN_CODE = process.env.ADMIN_CODE ?? "110880";
@@ -663,7 +663,7 @@ router.post("/matches/:id/finish", async (req, res): Promise<void> => {
     return;
   }
 
-  const parsed = FinishMatchInput.safeParse(req.body ?? {});
+  const parsed = FinishMatchBody.safeParse(req.body ?? {});
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
