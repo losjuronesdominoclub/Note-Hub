@@ -21,6 +21,8 @@ export * from './listMatchesStatus';
 export * from './match';
 export * from './matchDetail';
 export * from './matchDetailStatus';
+export * from './matchFinishInput';
+export * from './matchFinishInputWinnerTeam';
 export * from './matchInput';
 export * from './matchPlayer';
 export * from './matchPlayerTeam';

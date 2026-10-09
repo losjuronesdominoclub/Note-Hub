@@ -32,6 +32,7 @@ import type {
   ListMatchesParams,
   Match,
   MatchDetail,
+  MatchFinishInput,
   MatchInput,
   MatchUpdate,
   PairRank,
@@ -1186,14 +1187,16 @@ export const getFinishMatchUrl = (id: number,) => {
 /**
  * @summary Finish a match and declare winner
  */
-export const finishMatch = async (id: number, options?: RequestInit): Promise<MatchDetail> => {
+export const finishMatch = async (id: number,
+    matchFinishInput?: MatchFinishInput, options?: RequestInit): Promise<MatchDetail> => {
 
   return customFetch<MatchDetail>(getFinishMatchUrl(id),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      matchFinishInput,)
   }
 );}
 
@@ -1201,8 +1204,8 @@ export const finishMatch = async (id: number, options?: RequestInit): Promise<Ma
 
 
 export const getFinishMatchMutationOptions = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishMatch>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof finishMatch>>, TError,{id: number}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishMatch>>, TError,{id: number;data?: BodyType<MatchFinishInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof finishMatch>>, TError,{id: number;data?: BodyType<MatchFinishInput>}, TContext> => {
 
 const mutationKey = ['finishMatch'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -1214,10 +1217,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finishMatch>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof finishMatch>>, {id: number;data?: BodyType<MatchFinishInput>}> = (props) => {
+          const {id,data} = props ?? {};
 
-          return  finishMatch(id,requestOptions)
+          return  finishMatch(id,data,requestOptions)
         }
 
 
@@ -1228,18 +1231,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type FinishMatchMutationResult = NonNullable<Awaited<ReturnType<typeof finishMatch>>>
-
+    export type FinishMatchMutationBody = BodyType<MatchFinishInput> | undefined
     export type FinishMatchMutationError = ErrorType<void>
 
     /**
  * @summary Finish a match and declare winner
  */
 export const useFinishMatch = <TError = ErrorType<void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishMatch>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishMatch>>, TError,{id: number;data?: BodyType<MatchFinishInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof finishMatch>>,
         TError,
-        {id: number},
+        {id: number;data?: BodyType<MatchFinishInput>},
         TContext
       > => {
       return useMutation(getFinishMatchMutationOptions(options));

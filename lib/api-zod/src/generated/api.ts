@@ -408,6 +408,12 @@ export const FinishMatchParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const FinishMatchBody = zod.object({
+  "winnerTeam": zod.enum(['cortos', 'largos']).optional(),
+  "playerId": zod.number().optional(),
+  "note": zod.string().optional()
+})
+
 export const FinishMatchResponse = zod.object({
   "id": zod.number(),
   "matchNumber": zod.string(),

@@ -63,7 +63,11 @@ export default function MatchLive() {
   const [showMultasDialog, setShowMultasDialog] = useState(false);
   const [multasTeam, setMultasTeam] = useState<"cortos" | "largos" | null>(null);
   const [multasPlayerId, setMultasPlayerId] = useState<string>("");
-  const [multasTipo, setMultasTipo] = useState<"levantar" | "hablar" | "adelantado" | "">("");
+  const [multasTipo, setMultasTipo] = useState<"levantar" | "hablar" | "adelantado" | "hablo" | "knockout" | "">("");
+  const [pendingKnockout, setPendingKnockout] = useState<{
+    player: { id: number; name: string };
+    winnerTeam: "cortos" | "largos";
+  } | null>(null);
 
   // Swap teams state
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -280,23 +284,85 @@ export default function MatchLive() {
   const handleMulta = async () => {
     if (!multasTeam || !multasPlayerId || !multasTipo || !match) return;
     const opponentTeam = multasTeam === "cortos" ? "largos" : "cortos";
-    const opponentPlayers = opponentTeam === "cortos" ? cortosPlayers : largosPlayers;
-    const opponentFirst = opponentPlayers[0];
-    if (!opponentFirst) return;
     const teamPlayers = multasTeam === "cortos" ? cortosPlayers : largosPlayers;
     const faultPlayer = teamPlayers.find(p => p.player.id === parseInt(multasPlayerId));
     if (!faultPlayer) return;
+    if (multasTipo === "knockout") {
+      setPendingKnockout({ player: faultPlayer.player, winnerTeam: opponentTeam });
+      setShowMultasDialog(false);
+      return;
+    }
+
+    const opponentPlayers = opponentTeam === "cortos" ? cortosPlayers : largosPlayers;
+    const opponentFirst = opponentPlayers[0];
+    if (!opponentFirst) return;
     const descs: Record<string, string> = {
       levantar: "Levantó ficha equivocada",
       hablar: "Salida equivocada",
       adelantado: "Jugó adelantado",
+      hablo: "Habló durante la jugada",
     };
-    const pts = multasTipo === "adelantado" ? 60 : 30;
+    const pts = multasTipo === "adelantado" || multasTipo === "hablo" ? 60 : 30;
     const note = `🚨 ${faultPlayer.player.name} - ${descs[multasTipo]}`;
     setShowMultasDialog(false);
     setMultasPlayerId("");
     setMultasTipo("");
     await handleAddScore(opponentFirst.player.id, opponentTeam, pts, false, note);
+  };
+
+  const confirmKnockout = async () => {
+    if (!pendingKnockout || !match || submitting) return;
+    const { player, winnerTeam } = pendingKnockout;
+    const note = `🚨 ${player.name} - KNOCKOUT`;
+    setSubmitting(true);
+
+    try {
+      if (!isOnline) {
+        enqueueOp({
+          endpoint: `/api/matches/${matchId}/finish`,
+          method: "POST",
+          body: { winnerTeam, playerId: player.id, note },
+          label: `KNOCKOUT — ganan ${winnerTeam}`,
+        });
+        queryClient.setQueryData(getGetMatchQueryKey(matchId), (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            status: "finished",
+            winnerTeam,
+            finishedAt: new Date().toISOString(),
+            scoreLog: [
+              {
+                id: -Date.now(),
+                playerId: player.id,
+                team: winnerTeam,
+                points: 0,
+                createdAt: new Date().toISOString(),
+                playerName: note,
+                note,
+              },
+              ...(old.scoreLog ?? []),
+            ],
+          };
+        });
+      } else {
+        const response = await fetch(`/api/matches/${matchId}/finish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ winnerTeam, playerId: player.id, note }),
+        });
+        if (!response.ok) throw new Error("No se pudo registrar el KNOCKOUT");
+        queryClient.invalidateQueries({ queryKey: getGetMatchQueryKey(matchId) });
+      }
+
+      setPendingKnockout(null);
+      setMultasPlayerId("");
+      setMultasTipo("");
+    } catch {
+      toast({ title: "Error", description: "No se pudo aplicar la multa KNOCKOUT.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancelMatch = async () => {
@@ -743,7 +809,7 @@ export default function MatchLive() {
               Multa — Equipo {multasTeam === "cortos" ? "Cortos" : "Largos"}
             </DialogTitle>
             <DialogDescription className="text-gray-400">
-              Los puntos de la multa se suman al equipo contrario.
+              Los puntos se suman al equipo contrario; KNOCKOUT le da la victoria inmediata.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -783,6 +849,8 @@ export default function MatchLive() {
                   { key: "levantar", label: "Levantó ficha equivocada", pts: 30 },
                   { key: "hablar",   label: "Salida equivocada",   pts: 30 },
                   { key: "adelantado", label: "Jugó adelantado",         pts: 60 },
+                  { key: "hablo", label: "Habló durante la jugada", pts: 60 },
+                  { key: "knockout", label: "KNOCKOUT", pts: null },
                 ] as const).map(({ key, label, pts }) => (
                   <button
                     key={key}
@@ -794,8 +862,10 @@ export default function MatchLive() {
                     }`}
                   >
                     <span className="text-sm font-medium">{label}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pts === 60 ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400"}`}>
-                      +{pts} pts
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      pts === null ? "bg-red-500/20 text-red-300" : pts === 60 ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400"
+                    }`}>
+                      {pts === null ? "Gana la partida" : `+${pts} pts`}
                     </span>
                   </button>
                 ))}
@@ -814,6 +884,53 @@ export default function MatchLive() {
             >
               <Gavel className="h-4 w-4" />
               Aplicar Multa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* KNOCKOUT confirmation */}
+      <Dialog
+        open={!!pendingKnockout}
+        onOpenChange={(open) => {
+          if (!open && !submitting) {
+            setPendingKnockout(null);
+            setShowMultasDialog(true);
+          }
+        }}
+      >
+        <DialogContent className="bg-[#141414] border-[#2a2a2a] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Gavel className="h-5 w-5 text-red-400" />
+              Confirmar KNOCKOUT
+            </DialogTitle>
+            <DialogDescription className="text-gray-300 leading-relaxed">
+              {pendingKnockout?.player.name} cometió KNOCKOUT. La partida terminará ahora y ganará el equipo{" "}
+              <span className={`font-bold ${pendingKnockout?.winnerTeam === "cortos" ? "text-red-400" : "text-blue-400"}`}>
+                {pendingKnockout?.winnerTeam === "cortos" ? "Cortos" : "Largos"}
+              </span>
+              . El marcador no cambiará.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPendingKnockout(null);
+                setShowMultasDialog(true);
+              }}
+              disabled={submitting}
+              className="border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a]"
+            >
+              Volver
+            </Button>
+            <Button
+              onClick={confirmKnockout}
+              disabled={submitting}
+              className="bg-red-600 hover:bg-red-500 text-white font-bold"
+            >
+              {submitting ? "Aplicando…" : "Confirmar victoria"}
             </Button>
           </DialogFooter>
         </DialogContent>

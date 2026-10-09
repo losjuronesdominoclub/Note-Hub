@@ -340,6 +340,12 @@ paths:
           required: true
           schema:
             type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchFinishInput"
       responses:
         "200":
           description: Finished match
@@ -794,6 +800,17 @@ components:
         status:
           type: string
           enum: [active, finished]
+
+    MatchFinishInput:
+      type: object
+      properties:
+        winnerTeam:
+          type: string
+          enum: [cortos, largos]
+        playerId:
+          type: integer
+        note:
+          type: string
 
     AdminAction:
       type: object

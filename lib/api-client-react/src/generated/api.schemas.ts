@@ -169,6 +169,20 @@ export interface MatchUpdate {
   status?: MatchUpdateStatus;
 }
 
+export type MatchFinishInputWinnerTeam = typeof MatchFinishInputWinnerTeam[keyof typeof MatchFinishInputWinnerTeam];
+
+
+export const MatchFinishInputWinnerTeam = {
+  cortos: 'cortos',
+  largos: 'largos',
+} as const;
+
+export interface MatchFinishInput {
+  winnerTeam?: MatchFinishInputWinnerTeam;
+  playerId?: number;
+  note?: string;
+}
+
 export interface AdminAction {
   adminCode: string;
 }

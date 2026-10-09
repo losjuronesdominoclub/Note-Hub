@@ -13,6 +13,7 @@ import {
   AddScoreParams,
   AddScoreBody,
   FinishMatchParams,
+  FinishMatchInput,
 } from "@workspace/api-zod";
 
 const ADMIN_CODE = process.env.ADMIN_CODE ?? "110880";
@@ -662,19 +663,57 @@ router.post("/matches/:id/finish", async (req, res): Promise<void> => {
     return;
   }
 
+  const parsed = FinishMatchInput.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
   const [match] = await db.select().from(matchesTable).where(eq(matchesTable.id, params.data.id));
   if (!match) {
     res.status(404).json({ error: "Match not found" });
     return;
   }
 
-  // Determine winner
-  const winnerTeam = match.shortosScore >= match.largosScore ? "cortos" : "largos";
+  const { winnerTeam: requestedWinner, playerId, note } = parsed.data;
+  const hasKnockoutEvent = playerId !== undefined || note !== undefined;
+  if (hasKnockoutEvent && (playerId === undefined || !note || !requestedWinner)) {
+    res.status(400).json({ error: "KNOCKOUT requiere winnerTeam, playerId y note" });
+    return;
+  }
+  if (hasKnockoutEvent && match.status === "finished") {
+    res.status(409).json({ error: "Match is already finished" });
+    return;
+  }
+
+  if (playerId !== undefined && requestedWinner) {
+    const [offendingPlayer] = await db
+      .select({ team: matchPlayersTable.team })
+      .from(matchPlayersTable)
+      .where(and(eq(matchPlayersTable.matchId, params.data.id), eq(matchPlayersTable.playerId, playerId)));
+    if (!offendingPlayer || offendingPlayer.team === requestedWinner) {
+      res.status(400).json({ error: "El jugador debe pertenecer al equipo sancionado" });
+      return;
+    }
+  }
+
+  // Explicit winners are used by KNOCKOUT; normal finishes still use the score.
+  const winnerTeam = requestedWinner ?? (match.shortosScore >= match.largosScore ? "cortos" : "largos");
 
   await db
     .update(matchesTable)
     .set({ status: "finished", winnerTeam, finishedAt: new Date() })
     .where(eq(matchesTable.id, params.data.id));
+
+  if (playerId !== undefined && note) {
+    await db.insert(scoreLogTable).values({
+      matchId: params.data.id,
+      playerId,
+      team: winnerTeam,
+      points: 0,
+      note,
+    });
+  }
 
   // Update all player stats
   const allPlayers = await db
